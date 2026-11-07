@@ -1,0 +1,168 @@
+/* Reset padrão */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    /* Paleta de cores exata da imagem */
+    --bg-header: #000000;       /* Preto do cabeçalho */
+    --bg-content: #ffffff;      /* Fundo branco inferior */
+    --text-pink: #f1c5d9;       /* Rosa pastel do título */
+    --text-dark: #000000;       /* Preto das fontes inferiores */
+    --btn-pink: #f7bbd7;        /* Rosa do botão */
+    --border-gray: #d3d3d3;     /* Cinza claro para as bordas do layout */
+}
+
+body {
+    background-color: var(--bg-content);
+    color: var(--text-dark);
+    font-family: 'Montserrat', sans-serif;
+    overflow-x: hidden;
+}
+
+/* --- BANNER SUPERIOR PRETO --- */
+.main-header {
+    background-color: var(--bg-header);
+    width: 100%;
+    padding: 40px 60px; /* Aumentei o padding nas laterais para o texto não colarem na borda da tela */
+    text-align: right;   /* Alinha o bloco de texto para a direita */
+    border-bottom: 2px solid var(--text-dark);
+}
+
+.main-title {
+    color: var(--text-pink);
+    font-size: 2.8rem;
+    font-weight: 900;
+    letter-spacing: 3px;
+    line-height: 1.2;
+    display: inline-block; /* Garante que o alinhamento funcione corretamente em blocos multilinhas */
+}
+
+/* --- ESTRUTURA EM DUAS COLUNAS --- */
+.page-layout {
+    display: flex;
+    width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
+    min-height: 70vh;
+}
+
+/* Coluna da Esquerda (Silhuetas) */
+.sidebar-illustrations {
+    width: 25%;
+    border-right: 2px solid var(--text-dark);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--bg-content);
+}
+
+.illustration-box {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    align-items: center;
+    width: 100%;
+}
+
+.img-sidebar {
+    width: 100%;
+    max-width: 180px;
+    height: auto;
+    object-fit: contain;
+}
+
+/* Coluna da Direita (Conteúdo Principal) */
+.main-content {
+    width: 75%;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: flex-start;
+    padding: 40px;
+}
+
+/* Slogan */
+.slogan-text {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin-bottom: 40px;
+    text-align: left;
+    max-width: 800px;
+}
+
+/* --- LETREIRO DE ÁLBUNS (MARQUEE) --- */
+.marquee-container {
+    overflow: hidden;
+    display: flex;
+    width: 100%;
+    gap: 20px;
+    padding: 10px 0;
+    margin-bottom: 40px;
+}
+
+.marquee-track {
+    display: flex;
+    flex-shrink: 0;
+    gap: 20px;
+    min-width: 100%;
+    justify-content: space-around;
+    
+    /* Move os álbuns continuamente para a direita */
+    animation: scrollParaDireita 16s linear infinite;
+}
+
+/* Pausa o letreiro ao passar o mouse */
+.marquee-container:hover .marquee-track {
+    animation-play-state: paused;
+}
+
+/* Ajuste dos cards de álbum */
+.album-card img {
+    width: 160px;
+    height: 160px;
+    object-fit: cover;
+    border: 1px solid var(--text-dark);
+    box-shadow: 4px 4px 0px rgba(0,0,0,0.15); /* Sombra em bloco combinando com o estilo */
+}
+
+/* Animação para correr para a direita */
+@keyframes scrollParaDireita {
+    from {
+        transform: translateX(-100%);
+    }
+    to {
+        transform: translateX(0%);
+    }
+}
+
+/* --- BOTÃO ROSA INFERIOR --- */
+.action-container {
+    width: 100%;
+    display: flex;
+    justify-content: flex-end; /* Alinha o botão à direita como no seu protótipo */
+    padding-right: 20px;
+}
+
+.btn-discover {
+    background-color: var(--btn-pink);
+    color: var(--text-dark);
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 1rem;
+    padding: 12px 30px;
+    border-radius: 25px;
+    border: 1px solid var(--text-dark);
+    box-shadow: 2px 2px 0px #000;
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.btn-discover:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 4px 4px 0px #000;
+}
