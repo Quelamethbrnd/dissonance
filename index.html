@@ -1,73 +1,87 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Em Frequência Com Você</title>
     <link rel="stylesheet" href="style.css">
-    <!-- Importação de uma fonte moderna e limpa -->
     <link rel="preconnect" href="https://googleapis.com">
     <link rel="preconnect" href="https://gstatic.com" crossorigin>
     <link href="https://googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
 </head>
+
 <body>
 
-    <!-- Cabeçalho Principal (Banner Superior Preto) -->
-    <header class="main-header">
-        <div class="header-container">
-            <!-- Espaço reservado para as decorações do topo (notas e ipod) se você as tiver isoladas -->
+    <!-- Bloco de aplicativo com tamanho fixo e centralizado -->
+    <div class="app-container">
+
+        <!-- Cabeçalho Principal (Banner Superior Preto) -->
+        <header class="main-header">
             <h1 class="main-title">EM FREQUENCIA <br> COM VOCE</h1>
+        </header>
+
+        <!-- Área de Conteúdo (Fundo Branco) -->
+        <div class="page-layout">
+
+            <!-- Coluna da Esquerda: Suas Ilustrações Enviadas -->
+            <aside class="sidebar-illustrations">
+                <div class="illustration-box">
+                    <!-- Certifique-se de salvar a foto do anjo com este nome -->
+                    <img src="imgs/sidebar angel.jpg" alt="Silhueta Anjo" class="img-sidebar">
+                    <!-- Certifique-se de salvar a foto da banda com este nome -->
+                    <img src="imgs/sidebarbanda.jpg" alt="Silhueta Banda" class="img-sidebar">
+                </div>
+            </aside>
+
+            <!-- Coluna da Direita: Conteúdo Dinâmico -->
+            <main class="main-content">
+
+                <!-- Texto de Chamada / Slogan -->
+                <p class="slogan-text">
+                    Descubra, de reviews, interaja com a comunidade e esteja em tune com suas musicas!
+                </p>
+
+                <!-- Letreiro de Álbuns -->
+                <div class="marquee-container">
+
+                    <!-- Grupo 1 -->
+                    <div class="marquee-track">
+                        <article class="album-card"><img src="imgs/Mitskipuberty2.jpg" alt="Puberty 2 - Mitski">
+                        </article>
+                        <article class="album-card"><img src="imgs/Blonde_-_Frank_Ocean.jpeg" alt="Blond - Frank Ocean">
+                        </article>
+                        <article class="album-card"><img src="imgs/Radiohead_-_In_Rainbows.jpg"
+                                alt="In Rainbows - Radiohead"></article>
+                        <article class="album-card"><img src="imgs/Kendrick_Lamar_-_Damn.png"
+                                alt="DAMN - Kendrick Lamar"></article>
+                    </div>
+
+                    <!-- Grupo 2 (Loop Infinito) -->
+                    <div class="marquee-track" aria-hidden="true">
+                        <article class="album-card"><img src="imgs/Mitskipuberty2.jpg" alt="Puberty 2 - Mitski">
+                        </article>
+                        <article class="album-card"><img src="imgs/Blonde_-_Frank_Ocean.jpeg" alt="Blond - Frank Ocean">
+                        </article>
+                        <article class="album-card"><img src="imgs/Radiohead_-_In_Rainbows.jpg"
+                                alt="In Rainbows - Radiohead"></article>
+                        <article class="album-card"><img src="imgs/Kendrick_Lamar_-_Damn.png"
+                                alt="DAMN - Kendrick Lamar"></article>
+                    </div>
+
+                </div>
+
+                <!-- Botão Rosa Alinhado à Direita -->
+                <div class="action-container">
+                    <a href="#" class="btn-discover">Descobrir mais ▸</a>
+                </div>
+
+            </main>
+
         </div>
-    </header>
-
-    <!-- Área de Conteúdo Geral (Fundo Branco) -->
-    <div class="page-layout">
-        
-        <!-- Coluna da Esquerda: Ilustrações Fixas -->
-        <aside class="sidebar-illustrations">
-            <div class="illustration-box">
-                <img src="silhueta-anjo.png" alt="Silhueta Anjo" class="img-sidebar">
-                <img src="silhueta-banda.png" alt="Silhueta Banda" class="img-sidebar">
-            </div>
-        </aside>
-
-        <!-- Coluna da Direita: Conteúdo Dinâmico -->
-        <main class="main-content">
-            
-            <!-- Texto de Chamada / Slogan -->
-            <p class="slogan-text">
-                Descubra, de reviews, interaja com a comunidade e esteja em tune com suas musicas!
-            </p>
-
-            <!-- Container Principal do Letreiro (Marquee) -->
-            <div class="marquee-container">
-                
-                <!-- Grupo 1 de álbuns -->
-                <div class="marquee-track">
-                    <article class="album-card"><img src="puberty-2-mitski.jpg" alt="Puberty 2 - Mitski"></article>
-                    <article class="album-card"><img src="blond-frank-ocean.jpg" alt="Blond - Frank Ocean"></article>
-                    <article class="album-card"><img src="in-rainbows-radiohead.jpg" alt="In Rainbows - Radiohead"></article>
-                    <article class="album-card"><img src="damn-kendrick-lamar.jpg" alt="DAMN - Kendrick Lamar"></article>
-                </div>
-                
-                <!-- Grupo 2 (Cópia idêntica para o efeito de loop infinito) -->
-                <div class="marquee-track" aria-hidden="true">
-                    <article class="album-card"><img src="puberty-2-mitski.jpg" alt="Puberty 2 - Mitski"></article>
-                    <article class="album-card"><img src="blond-frank-ocean.jpg" alt="Blond - Frank Ocean"></article>
-                    <article class="album-card"><img src="in-rainbows-radiohead.jpg" alt="In Rainbows - Radiohead"></article>
-                    <article class="album-card"><img src="damn-kendrick-lamar.jpg" alt="DAMN - Kendrick Lamar"></article>
-                </div>
-
-            </div>
-
-            <!-- Botão de Ação -->
-            <div class="action-container">
-                <a href="#" class="btn-discover">Descobrir mais ▸</a>
-            </div>
-
-        </main>
 
     </div>
 
 </body>
+
 </html>
