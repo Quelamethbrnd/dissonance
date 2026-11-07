@@ -1,0 +1,125 @@
+/* Reset padrão */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --bg-header: #000000;       /* Preto */
+    --bg-content: #ffffff;      /* Branco */
+    --text-pink: #f1c5d9;       /* Rosa pastel do título */
+    --text-dark: #000000;       /* Preto dos textos */
+    --btn-pink: #f7bbd7;        /* Rosa do botão */
+    --border-gray: #eef0f2;
+}
+
+body {
+    background-color: #eef0f2; /* Fundo cinza externo do navegador */
+    color: var(--text-dark);
+    font-family: 'Montserrat', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 40px 20px;
+}
+
+/* Caixa de Termos Fixa */
+.terms-container {
+    width: 100%;
+    max-width: 650px; /* Um pouco mais largo para facilitar a leitura do texto */
+    height: 80vh;     /* Altura máxima fixa proporcional à tela */
+    background-color: var(--bg-content);
+    border: 2px solid var(--text-dark);
+    box-shadow: 8px 8px 0px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Cabeçalho */
+.terms-header {
+    background-color: var(--bg-header);
+    padding: 25px;
+    text-align: center;
+    border-bottom: 2px solid var(--text-dark);
+    flex-shrink: 0;
+}
+
+.terms-title {
+    color: var(--text-pink);
+    font-weight: 900;
+    letter-spacing: 2px;
+}
+
+/* Corpo do Texto Rolável */
+.terms-content {
+    padding: 30px;
+    overflow-y: auto; /* Cria a barra de rolagem se o texto for maior que a caixa */
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+/* Estilização dos tópicos */
+.terms-section h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+}
+
+.terms-section p {
+    font-size: 0.95rem;
+    color: #333;
+    line-height: 1.6;
+    text-align: justify;
+}
+
+/* Rodapé */
+.terms-footer {
+    padding: 20px;
+    border-top: 2px solid var(--text-dark);
+    display: flex;
+    justify-content: center;
+    background-color: #fafafa;
+    flex-shrink: 0;
+}
+
+.btn-back {
+    background-color: var(--btn-pink);
+    color: var(--text-dark);
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 0.95rem;
+    padding: 10px 25px;
+    border-radius: 20px;
+    border: 1px solid var(--text-dark);
+    box-shadow: 3px 3px 0px #000;
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.btn-back:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 5px 5px 0px #000;
+}
+
+/* Customização charmosa da barra de rolagem (opcional) */
+.terms-content::-webkit-scrollbar {
+    width: 8px;
+}
+
+.terms-content::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+.terms-content::-webkit-scrollbar-thumb {
+    background: var(--text-dark);
+    border-radius: 4px;
+}
+
+.terms-content::-webkit-scrollbar-thumb:hover {
+    background: var(--btn-pink);
+}

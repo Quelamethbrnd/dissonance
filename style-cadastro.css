@@ -1,0 +1,145 @@
+/* Reset padrão */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --bg-header: #000000;       /* Preto */
+    --bg-content: #ffffff;      /* Branco */
+    --text-pink: #f1c5d9;       /* Rosa pastel do título */
+    --text-dark: #000000;       /* Preto dos textos */
+    --btn-pink: #f7bbd7;        /* Rosa do botão */
+    --input-gray: #f4f4f4;      /* Fundo cinza claro para os inputs */
+}
+
+body {
+    background-color: #eef0f2; /* Fundo cinza externo do navegador */
+    color: var(--text-dark);
+    font-family: 'Montserrat', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+/* Caixa de Cadastro Fixa */
+.register-container {
+    width: 100%;
+    max-width: 440px; /* Um pouco mais larga para acomodar melhor os campos novos */
+    background-color: var(--bg-content);
+    border: 2px solid var(--text-dark);
+    box-shadow: 8px 8px 0px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Cabeçalho do Cadastro */
+.register-header {
+    background-color: var(--bg-header);
+    padding: 25px;
+    text-align: center;
+    border-bottom: 2px solid var(--text-dark);
+}
+
+.register-title {
+    color: var(--text-pink);
+    font-weight: 900;
+    letter-spacing: 2px;
+}
+
+/* Corpo do Formulário */
+.register-form {
+    padding: 25px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px; /* Espaçamento ligeiramente menor para não esticar muito verticalmente */
+}
+
+/* Grupos de Input */
+.input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.input-group label {
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 11px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.95rem;
+    background-color: var(--input-gray);
+    border: 1px solid var(--text-dark);
+    border-radius: 4px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+/* Efeito de foco ao clicar no campo */
+.input-group input:focus {
+    border: 2px solid var(--btn-pink);
+}
+
+/* Caixa de seleção dos termos */
+.form-options {
+    font-size: 0.85rem;
+    font-weight: 500;
+    margin-top: 5px;
+}
+
+.terms-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+}
+
+.terms-label a, .login-text a {
+    color: var(--text-dark);
+    text-decoration: underline;
+    font-weight: 700;
+}
+
+/* Botão de Enviar e Rodapé */
+.form-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    align-items: center;
+    margin-top: 10px;
+}
+
+.btn-register {
+    width: 100%;
+    background-color: var(--btn-pink);
+    color: var(--text-dark);
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 700;
+    font-size: 1rem;
+    padding: 12px;
+    border-radius: 20px;
+    border: 1px solid var(--text-dark);
+    box-shadow: 3px 3px 0px #000;
+    cursor: pointer;
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.btn-register:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 5px 5px 0px #000;
+}
+
+.login-text {
+    font-size: 0.85rem;
+    color: #555;
+}

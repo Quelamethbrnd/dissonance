@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,79 +8,57 @@
     <link rel="preconnect" href="https://googleapis.com">
     <link rel="preconnect" href="https://gstatic.com" crossorigin>
     <link href="https://googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
-</head>
-
+</dy>
 <body>
 
-    <!-- Bloco de aplicativo com tamanho fixo e centralizado -->
     <div class="app-container">
-
-        <!-- Cabeçalho Principal (Banner Superior Preto) -->
+        <!-- Banner Superior com o iPod alinhado à direita no CSS -->
         <header class="main-header">
             <h1 class="main-title">EM FREQUENCIA <br> COM VOCE</h1>
         </header>
 
-        <!-- Área de Conteúdo (Fundo Branco) -->
-        <div class="page-layout">
+        <!-- Barra de Navegação Revisada -->
+        <nav class="navbar">
+            <div class="nav-links">
+                <a href="index.html" class="nav-item active">Início</a>
+                <a href="login.html" class="nav-item">Entrar</a>
+            </div>
+        </nav>
 
-            <!-- Coluna da Esquerda: Suas Ilustrações Enviadas -->
+        <div class="page-layout">
             <aside class="sidebar-illustrations">
                 <div class="illustration-box">
-                    <!-- Certifique-se de salvar a foto do anjo com este nome -->
                     <img src="imgs/sidebar angel.jpg" alt="Silhueta Anjo" class="img-sidebar">
-                    <!-- Certifique-se de salvar a foto da banda com este nome -->
                     <img src="imgs/sidebarbanda.jpg" alt="Silhueta Banda" class="img-sidebar">
                 </div>
             </aside>
 
-            <!-- Coluna da Direita: Conteúdo Dinâmico -->
             <main class="main-content">
-
-                <!-- Texto de Chamada / Slogan -->
                 <p class="slogan-text">
                     Descubra, de reviews, interaja com a comunidade e esteja em tune com suas musicas!
                 </p>
 
-                <!-- Letreiro de Álbuns -->
                 <div class="marquee-container">
-
-                    <!-- Grupo 1 -->
                     <div class="marquee-track">
-                        <article class="album-card"><img src="imgs/Mitskipuberty2.jpg" alt="Puberty 2 - Mitski">
-                        </article>
-                        <article class="album-card"><img src="imgs/Blonde_-_Frank_Ocean.jpeg" alt="Blond - Frank Ocean">
-                        </article>
-                        <article class="album-card"><img src="imgs/Radiohead_-_In_Rainbows.jpg"
-                                alt="In Rainbows - Radiohead"></article>
-                        <article class="album-card"><img src="imgs/Kendrick_Lamar_-_Damn.png"
-                                alt="DAMN - Kendrick Lamar"></article>
+                        <article class="album-card"><img src="imgs/Mitskipuberty2.jpg" alt="Puberty 2"></article>
+                        <article class="album-card"><img src="imgs/Blonde_-_Frank_Ocean.jpeg" alt="Blond"></article>
+                        <article class="album-card"><img src="imgs/Radiohead_-_In_Rainbows.jpg" alt="In Rainbows"></article>
+                        <article class="album-card"><img src="imgs/Kendrick_Lamar_-_Damn.png" alt="DAMN."></article>
                     </div>
-
-                    <!-- Grupo 2 (Loop Infinito) -->
                     <div class="marquee-track" aria-hidden="true">
-                        <article class="album-card"><img src="imgs/Mitskipuberty2.jpg" alt="Puberty 2 - Mitski">
-                        </article>
-                        <article class="album-card"><img src="imgs/Blonde_-_Frank_Ocean.jpeg" alt="Blond - Frank Ocean">
-                        </article>
-                        <article class="album-card"><img src="imgs/Radiohead_-_In_Rainbows.jpg"
-                                alt="In Rainbows - Radiohead"></article>
-                        <article class="album-card"><img src="imgs/Kendrick_Lamar_-_Damn.png"
-                                alt="DAMN - Kendrick Lamar"></article>
+                        <article class="album-card"><img src="imgs/Mitskipuberty2.jpg" alt="Puberty 2"></article>
+                        <article class="album-card"><img src="imgs/Blonde_-_Frank_Ocean.jpeg" alt="Blond"></article>
+                        <article class="album-card"><img src="imgs/Radiohead_-_In_Rainbows.jpg" alt="In Rainbows"></article>
+                        <article class="album-card"><img src="imgs/Kendrick_Lamar_-_Damn.png" alt="DAMN."></article>
                     </div>
-
                 </div>
 
-                <!-- Botão Rosa Alinhado à Direita -->
                 <div class="action-container">
-                    <a href="#" class="btn-discover">Descobrir mais ▸</a>
+                    <a href="login.html" class="btn-discover">Descobrir mais ▸</a>
                 </div>
-
             </main>
-
         </div>
-
     </div>
 
 </body>
-
 </html>
