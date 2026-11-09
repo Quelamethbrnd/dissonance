@@ -1,13 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. CONEXÃO COM O SUPABASE
-    const SUPABASE_URL = 'https://supabase.co';
-    const SUPABASE_KEY = 'sb_publishable_lO9AFsjUKgwYnNiE3n7bEQ_sfmWHqv5';
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-    // Puxa o nome real do usuário que fez login
     const usuarioAtual = localStorage.getItem('usuarioLogado') || '@ouvinte';
 
-    // --- NOVO BLOCO: APLICA O TEMA DE CORES E A FOTO DE PERFIL ---
+    // Aplica tema e foto salvos
     const themes = {
         pink: { textPink: '#f1c5d9', btnPink: '#f7bbd7' },
         cyan: { textPink: '#b2f2bb', btnPink: '#8ce99a' },
@@ -24,16 +18,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if (savedAvatar && avatarContainer) {
         avatarContainer.innerHTML = `<img src="${savedAvatar}" alt="Avatar" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">`;
     }
-    // -------------------------------------------------------------
 
-    // Atualiza o nome e a bio na barra lateral
     const greetingSpan = document.querySelector('.nav-user-greeting strong');
     const profileHeading = document.querySelector('.profile-summary h3');
     const bioParagraph = document.querySelector('.user-bio');
 
     if (greetingSpan) greetingSpan.textContent = usuarioAtual;
     if (profileHeading) profileHeading.textContent = usuarioAtual;
-    
+
     const savedBio = localStorage.getItem('bio_' + usuarioAtual);
     if (savedBio && bioParagraph) bioParagraph.textContent = savedBio;
 
@@ -54,130 +46,133 @@ document.addEventListener('DOMContentLoaded', () => {
         'damn': 'imgs/Kendrick_Lamar_-_Damn.png'
     };
 
-    // 2. CARREGAR REVIEWS DO BANCO DE DADOS AO ABRIR A PÁGINA
-    async function carregarReviews() {
-        const { data, error } = await supabase
-            .from('reviews')
-            .select('*')
-            .order('created_at', { ascending: false });
-
-        if (error) {
-            console.error('Erro ao buscar reviews:', error);
-            return;
+    // Reviews iniciais de exemplo caso o banco local esteja vazio
+    const reviewsPadrao = [
+        {
+            id: 1,
+            username: '@ana_indie',
+            album_name: 'Puberty 2',
+            rating: '★★★★★',
+            comment: 'A produção desse álbum é impecável. A transição entre faixas calmas e explosivas nunca perde a força.',
+            cover_url: 'imgs/Mitskipuberty2.jpg',
+            likes: 14
+        },
+        {
+            id: 2,
+            username: '@lucas_rock',
+            album_name: 'In Rainbows',
+            rating: '★★★★★',
+            comment: 'Ouvindo no repeat hoje. Weird Fishes continua sendo uma das melhores músicas já feitas.',
+            cover_url: 'imgs/Radiohead_-_In_Rainbows.jpg',
+            likes: 29
         }
+    ];
 
+    function obterReviews() {
+        const salvas = localStorage.getItem('dissonance_reviews');
+        if (!salvas) {
+            localStorage.setItem('dissonance_reviews', JSON.stringify(reviewsPadrao));
+            return reviewsPadrao;
+        }
+        return JSON.parse(salvas);
+    }
+
+    function carregarReviews() {
+        const lista = obterReviews();
         const cardsAntigos = feedList.querySelectorAll('.review-card');
         cardsAntigos.forEach(card => card.remove());
 
-        data.forEach(review => {
-            renderizarCard(review);
+        lista.forEach(review => {
+            const newCard = document.createElement('article');
+            newCard.classList.add('review-card');
+            newCard.dataset.id = review.id;
+
+            newCard.innerHTML = `
+                <img src="${review.cover_url}" alt="${escapeHTML(review.album_name)}" class="review-cover">
+                <div class="review-body">
+                    <div class="review-header">
+                        <span class="reviewer-name"><strong>${escapeHTML(review.username)}</strong> avaliou <strong>${escapeHTML(review.album_name)}</strong></span>
+                        <span class="review-stars">${escapeHTML(review.rating)}</span>
+                    </div>
+                    <p class="review-text">${escapeHTML(review.comment)}</p>
+                    <div class="review-actions">
+                        <button class="action-btn btn-like">♡ Curtir (${review.likes})</button>
+                        <button class="action-btn">💬 Comentar (0)</button>
+                    </div>
+                </div>
+            `;
+            feedList.appendChild(newCard);
         });
     }
 
-    function renderizarCard(review) {
-        const newCard = document.createElement('article');
-        newCard.classList.add('review-card');
-        newCard.dataset.id = review.id;
+    if (reviewForm) {
+        reviewForm.addEventListener('submit', (event) => {
+            event.preventDefault();
 
-        newCard.innerHTML = `
-            <img src="${review.cover_url}" alt="${escapeHTML(review.album_name)}" class="review-cover">
-            <div class="review-body">
-                <div class="review-header">
-                    <span class="reviewer-name"><strong>${escapeHTML(review.username)}</strong> avaliou <strong>${escapeHTML(review.album_name)}</strong></span>
-                    <span class="review-stars">${escapeHTML(review.rating)}</span>
-                </div>
-                <p class="review-text">${escapeHTML(review.comment)}</p>
-                <div class="review-actions">
-                    <button class="action-btn btn-like">♡ Curtir (${review.likes})</button>
-                    <button class="action-btn">💬 Comentar (0)</button>
-                </div>
-            </div>
-        `;
+            const albumInput = reviewForm.querySelector('input[type="text"]');
+            const ratingSelect = reviewForm.querySelector('select');
+            const commentTextarea = reviewForm.querySelector('textarea');
 
-        feedList.appendChild(newCard);
+            const albumName = albumInput.value.trim();
+            const ratingStars = ratingSelect.options[ratingSelect.selectedIndex].text.split(' ')[0];
+            const commentText = commentTextarea.value.trim();
+
+            if (!albumName || !commentText) return;
+
+            const searchKey = albumName.toLowerCase();
+            let coverSrc = 'imgs/Blonde_-_Frank_Ocean.jpeg';
+            for (const key in albumCovers) {
+                if (searchKey.includes(key)) {
+                    coverSrc = albumCovers[key];
+                    break;
+                }
+            }
+
+            const lista = obterReviews();
+            lista.unshift({
+                id: Date.now(),
+                username: usuarioAtual,
+                album_name: albumName,
+                rating: ratingStars,
+                comment: commentText,
+                cover_url: coverSrc,
+                likes: 0
+            });
+
+            localStorage.setItem('dissonance_reviews', JSON.stringify(lista));
+            reviewForm.reset();
+            carregarReviews();
+        });
     }
 
-    // 3. SALVAR NOVA REVIEW NO BANCO DE DADOS
-    reviewForm.addEventListener('submit', async (event) => {
-        event.preventDefault();
-
-        const albumInput = reviewForm.querySelector('input[type="text"]');
-        const ratingSelect = reviewForm.querySelector('select');
-        const commentTextarea = reviewForm.querySelector('textarea');
-
-        const albumName = albumInput.value.trim();
-        const ratingStars = ratingSelect.options[ratingSelect.selectedIndex].text.split(' ')[0];
-        const commentText = commentTextarea.value.trim();
-
-        if (!albumName || !commentText) return;
-
-        const searchKey = albumName.toLowerCase();
-        let coverSrc = 'imgs/Blonde_-_Frank_Ocean.jpeg';
-        for (const key in albumCovers) {
-            if (searchKey.includes(key)) {
-                coverSrc = albumCovers[key];
-                break;
-            }
-        }
-
-        const { error } = await supabase
-            .from('reviews')
-            .insert([
-                {
-                    username: usuarioAtual,
-                    album_name: albumName,
-                    rating: ratingStars,
-                    comment: commentText,
-                    cover_url: coverSrc,
-                    likes: 0
-                }
-            ]);
-
-        if (error) {
-            alert('Erro ao salvar review! Verifique o console (F12) para detalhes.');
-            console.error(error);
-            return;
-        }
-
-        reviewForm.reset();
-        carregarReviews();
-    });
-
-    // 4. ATUALIZAR CURTIDAS NO BANCO DE DADOS
-    feedList.addEventListener('click', async (event) => {
+    feedList.addEventListener('click', (event) => {
         const btn = event.target.closest('.btn-like');
         if (!btn) return;
 
         const card = btn.closest('.review-card');
-        const reviewId = card.dataset.id;
-        const match = btn.textContent.match(/\((\d+)\)/);
-        let count = match ? parseInt(match[1], 10) : 0;
+        const reviewId = Number(card.dataset.id);
+        const lista = obterReviews();
+        const item = lista.find(r => r.id === reviewId);
 
-        if (btn.classList.contains('liked')) {
-            count--;
-            btn.classList.remove('liked');
-            btn.style.color = '#444';
-            btn.textContent = `♡ Curtir (${count})`;
-        } else {
-            count++;
-            btn.classList.add('liked');
-            btn.style.color = '#d9387a';
-            btn.textContent = `♥ Curtido (${count})`;
-        }
-
-        if (reviewId) {
-            await supabase
-                .from('reviews')
-                .update({ likes: count })
-                .eq('id', reviewId);
+        if (item) {
+            if (btn.classList.contains('liked')) {
+                item.likes--;
+                btn.classList.remove('liked');
+                btn.style.color = '#444';
+                btn.textContent = `♡ Curtir (${item.likes})`;
+            } else {
+                item.likes++;
+                btn.classList.add('liked');
+                btn.style.color = '#d9387a';
+                btn.textContent = `♥ Curtido (${item.likes})`;
+            }
+            localStorage.setItem('dissonance_reviews', JSON.stringify(lista));
         }
     });
 
-    // 5. BOTÕES DE CONEXÃO DE TRACKING
     platformButtons.forEach((button) => {
         button.addEventListener('click', () => {
             const platformName = button.textContent.replace('✓ ', '').replace('+ Conectar ', '').replace(' Conectado', '');
-
             if (button.classList.contains('connected')) {
                 button.classList.remove('connected');
                 button.textContent = `+ Conectar ${platformName}`;
@@ -188,12 +183,10 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // 6. BOTÃO SAIR
     if (logoutBtn) {
-        logoutBtn.addEventListener('click', async (event) => {
+        logoutBtn.addEventListener('click', (event) => {
             event.preventDefault();
             localStorage.removeItem('usuarioLogado');
-            await supabase.auth.signOut();
             window.location.href = 'index.html';
         });
     }

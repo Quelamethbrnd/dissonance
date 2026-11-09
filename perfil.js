@@ -1,8 +1,4 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const SUPABASE_URL = 'https://supabase.co';
-    const SUPABASE_KEY = 'sb_publishable_lO9AFsjUKgwYnNiE3n7bEQ_sfmWHqv5';
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
     const usuarioAtual = localStorage.getItem('usuarioLogado') || '@ouvinte';
 
     // Aplica o tema de cores salvo
@@ -39,30 +35,23 @@ document.addEventListener('DOMContentLoaded', () => {
     const statReviews = document.getElementById('stat-reviews');
     const statLikes = document.getElementById('stat-likes');
 
-    async function carregarMinhasReviews() {
-        const { data, error } = await supabase
-            .from('reviews')
-            .select('*')
-            .eq('username', usuarioAtual)
-            .order('created_at', { ascending: false });
+    function carregarMinhasReviews() {
+        const todas = JSON.parse(localStorage.getItem('dissonance_reviews')) || [];
+        const minhas = todas.filter(r => r.username === usuarioAtual);
 
-        if (error) {
-            reviewsList.innerHTML = '<p>Erro ao carregar suas reviews.</p>';
-            return;
-        }
-
-        statReviews.textContent = data.length;
-        const totalCurtidas = data.reduce((soma, item) => soma + (item.likes || 0), 0);
+        // Atualiza contadores
+        statReviews.textContent = minhas.length;
+        const totalCurtidas = minhas.reduce((soma, item) => soma + (item.likes || 0), 0);
         statLikes.textContent = totalCurtidas;
 
-        if (data.length === 0) {
+        if (minhas.length === 0) {
             reviewsList.innerHTML = '<p>Você ainda não publicou nenhuma review. Vá até o Feed para avaliar um álbum!</p>';
             return;
         }
 
         reviewsList.innerHTML = '';
 
-        data.forEach(review => {
+        minhas.forEach(review => {
             const card = document.createElement('article');
             card.classList.add('review-card');
 
@@ -85,24 +74,27 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    reviewsList.addEventListener('click', async (event) => {
+    // Excluir review localmente
+    reviewsList.addEventListener('click', (event) => {
         const deleteBtn = event.target.closest('.btn-delete-review');
         if (!deleteBtn) return;
 
         if (!confirm('Tem certeza que deseja apagar esta review?')) return;
 
-        const reviewId = deleteBtn.dataset.id;
-        const { error } = await supabase.from('reviews').delete().eq('id', reviewId);
+        const reviewId = Number(deleteBtn.dataset.id);
+        let todas = JSON.parse(localStorage.getItem('dissonance_reviews')) || [];
+        todas = todas.filter(r => r.id !== reviewId);
 
-        if (!error) carregarMinhasReviews();
+        localStorage.setItem('dissonance_reviews', JSON.stringify(todas));
+        carregarMinhasReviews();
     });
 
+    // Botão Sair
     const logoutBtn = document.querySelector('.btn-logout');
     if (logoutBtn) {
-        logoutBtn.addEventListener('click', async (event) => {
+        logoutBtn.addEventListener('click', (event) => {
             event.preventDefault();
             localStorage.removeItem('usuarioLogado');
-            await supabase.auth.signOut();
             window.location.href = 'index.html';
         });
     }

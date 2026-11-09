@@ -1,8 +1,4 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const SUPABASE_URL = 'https://supabase.co';
-    const SUPABASE_KEY = 'sb_publishable_lO9AFsjUKgwYnNiE3n7bEQ_sfmWHqv5';
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
     const usuarioAtual = localStorage.getItem('usuarioLogado') || '@ouvinte';
 
     // Aplica o tema de cores salvo
@@ -23,25 +19,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const searchInput = document.getElementById('search-input');
     const filterRating = document.getElementById('filter-rating');
     const resultsList = document.getElementById('explore-reviews-list');
-    let todasAsReviews = [];
 
-    // Busca todas as reviews ordenadas pelas mais curtidas
-    async function buscarReviews() {
-        const { data, error } = await supabase
-            .from('reviews')
-            .select('*')
-            .order('likes', { ascending: false });
-
-        if (error) {
-            resultsList.innerHTML = '<p>Erro ao carregar reviews.</p>';
-            return;
-        }
-
-        todasAsReviews = data;
-        filtrarERenderizar();
+    function buscarReviews() {
+        const todas = JSON.parse(localStorage.getItem('dissonance_reviews')) || [];
+        // Ordena das mais curtidas para as menos curtidas
+        return todas.sort((a, b) => (b.likes || 0) - (a.likes || 0));
     }
 
     function filtrarERenderizar() {
+        const todasAsReviews = buscarReviews();
         const termo = searchInput.value.toLowerCase().trim();
         const notaSelecionada = filterRating.value;
 
@@ -80,11 +66,9 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Eventos de digitação e seleção
     searchInput.addEventListener('input', filtrarERenderizar);
     filterRating.addEventListener('change', filtrarERenderizar);
 
-    // Clicar nos álbuns em alta filtra automaticamente
     document.querySelectorAll('.trending-card').forEach(card => {
         card.addEventListener('click', () => {
             searchInput.value = card.dataset.search;
@@ -92,13 +76,11 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Botão Sair
     const logoutBtn = document.querySelector('.btn-logout');
     if (logoutBtn) {
-        logoutBtn.addEventListener('click', async (event) => {
+        logoutBtn.addEventListener('click', (event) => {
             event.preventDefault();
             localStorage.removeItem('usuarioLogado');
-            await supabase.auth.signOut();
             window.location.href = 'index.html';
         });
     }
@@ -109,5 +91,5 @@ document.addEventListener('DOMContentLoaded', () => {
         return div.innerHTML;
     }
 
-    buscarReviews();
+    filtrarERenderizar();
 });
