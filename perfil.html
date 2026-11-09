@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perfil - Em Frequência Com Você</title>
+    <link rel="stylesheet" href="style-perfil.css">
+    <link rel="preconnect" href="https://googleapis.com">
+    <link rel="preconnect" href="https://gstatic.com" crossorigin>
+    <link href="https://googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <div class="app-container">
+
+        <!-- Cabeçalho Principal -->
+        <header class="main-header">
+            <h1 class="main-title">EM FREQUENCIA <br> COM VOCE</h1>
+        </header>
+
+        <!-- Barra de Navegação Unificada -->
+        <nav class="navbar">
+            <div class="nav-user-greeting">
+                <span>Olá, <strong>@ouvinte</strong></span>
+            </div>
+            <div class="nav-links">
+                <a href="home.html" class="nav-item">Feed</a>
+                <a href="#" class="nav-item">Explorar</a>
+                <a href="perfil.html" class="nav-item active">Perfil</a>
+                <a href="index.html" class="nav-item btn-logout">Sair</a>
+            </div>
+        </nav>
+
+        <!-- Conteúdo do Perfil -->
+        <main class="profile-layout">
+            
+            <!-- Cartão de Informações do Usuário -->
+            <section class="profile-header-card">
+                <div class="profile-avatar-large">🎧</div>
+                
+                <div class="profile-details">
+                    <div class="profile-top-row">
+                        <h2 id="profile-username">@ouvinte</h2>
+                        <button class="btn-edit-profile" id="btn-edit-bio" href="editar-perfil.html" >Editar perfil ✎</button>
+                    </div>
+                    <p class="profile-bio" id="profile-bio-text">Em sintonia com indie, R&B e rock alternativo.</p>
+                    
+                    <!-- Estatísticas Dinâmicas -->
+                    <div class="profile-stats">
+                        <div class="stat-box">
+                            <strong id="stat-reviews">0</strong>
+                            <span>Reviews</span>
+                        </div>
+                        <div class="stat-box">
+                            <strong id="stat-likes">0</strong>
+                            <span>Curtidas Recebidas</span>
+                        </div>
+                        <div class="stat-box">
+                            <strong>4</strong>
+                            <span>Favoritos</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Vitrine de Álbuns Favoritos (Top 4 estilo Letterboxd) -->
+            <section class="favorites-section">
+                <h3 class="section-title">TOP 4 ÁLBUNS FAVORITOS</h3>
+                <div class="favorites-grid">
+                    <div class="fav-album">
+                        <img src="imgs/Mitskipuberty2.jpg" alt="Puberty 2">
+                        <span>Puberty 2</span>
+                    </div>
+                    <div class="fav-album">
+                        <img src="imgs/Blonde_-_Frank_Ocean.jpeg" alt="Blonde">
+                        <span>Blonde</span>
+                    </div>
+                    <div class="fav-album">
+                        <img src="imgs/Radiohead_-_In_Rainbows.jpg" alt="In Rainbows">
+                        <span>In Rainbows</span>
+                    </div>
+                    <div class="fav-album">
+                        <img src="imgs/Kendrick_Lamar_-_Damn.png" alt="DAMN.">
+                        <span>DAMN.</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Histórico de Reviews do Próprio Usuário -->
+            <section class="user-reviews-section">
+                <h3 class="section-title">MINHAS REVIEWS PUBLICADAS</h3>
+                <div class="user-reviews-list" id="user-reviews-list">
+                    <p class="loading-msg">Carregando suas reviews do banco de dados...</p>
+                </div>
+            </section>
+
+        </main>
+
+    </div>
+
+    <!-- Scripts do Supabase e do Perfil -->
+    <script src="https://jsdelivr.net"></script>
+    <script src="js/perfil.js"></script>
+</body>
+</html>

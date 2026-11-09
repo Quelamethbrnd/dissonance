@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Perfil - Em Frequência Com Você</title>
+    <link rel="stylesheet" href="style-editar.css">
+    <link rel="preconnect" href="https://googleapis.com">
+    <link rel="preconnect" href="https://gstatic.com" crossorigin>
+    <link href="https://googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <div class="app-container">
+
+        <!-- Cabeçalho Principal -->
+        <header class="main-header">
+            <h1 class="main-title">EM FREQUENCIA <br> COM VOCE</h1>
+        </header>
+
+        <!-- Barra de Navegação Unificada -->
+        <nav class="navbar">
+            <div class="nav-user-greeting">
+                <span>Olá, <strong>@ouvinte</strong></span>
+            </div>
+            <div class="nav-links">
+                <a href="home.html" class="nav-item">Feed</a>
+                <a href="#" class="nav-item">Explorar</a>
+                <a href="perfil.html" class="nav-item active">Perfil</a>
+                <a href="index.html" class="nav-item btn-logout">Sair</a>
+            </div>
+        </nav>
+
+        <!-- Conteúdo de Edição -->
+        <main class="edit-layout">
+            
+            <div class="edit-header-row">
+                <h2>CONFIGURAÇÕES DE PERFIL E TEMA</h2>
+                <a href="perfil.html" class="btn-cancel">⇠ Voltar ao Perfil</a>
+            </div>
+
+            <form id="edit-profile-form" class="edit-form">
+                
+                <!-- Seção 1: Foto de Perfil -->
+                <div class="edit-section avatar-upload-section">
+                    <div class="avatar-preview-box" id="avatar-preview">🎧</div>
+                    <div class="avatar-controls">
+                        <label for="avatar-input" class="btn-upload">Escolher Nova Foto 📷</label>
+                        <input type="file" id="avatar-input" accept="image/*" hidden>
+                        <button type="button" id="btn-remove-avatar" class="btn-remove-photo">Remover foto</button>
+                        <small>Formatos aceitos: JPG, PNG ou GIF (máx. 2MB).</small>
+                    </div>
+                </div>
+
+                <!-- Seção 2: Dados Pessoais -->
+                <div class="edit-section">
+                    <h3>DADOS DO PERFIL</h3>
+                    <div class="input-group">
+                        <label for="edit-username">Nome de Usuário (@username)</label>
+                        <input type="text" id="edit-username" placeholder="@seu_usuario" required>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="edit-bio">Biografia Musical</label>
+                        <textarea id="edit-bio" rows="3" placeholder="Conte sobre seus artistas e gêneros favoritos..."></textarea>
+                    </div>
+                </div>
+
+                <!-- Seção 3: Personalização de Cores do Site -->
+                <div class="edit-section">
+                    <h3>PALETA DE CORES DO SITE</h3>
+                    <p class="section-desc">Escolha um tema visual para aplicar nas páginas do seu perfil e feed:</p>
+                    
+                    <div class="theme-options-grid">
+                        <!-- Tema 1: Original (Rosa Pastel) -->
+                        <label class="theme-card">
+                            <input type="radio" name="site-theme" value="pink" checked>
+                            <span class="color-swatch" style="background-color: #f7bbd7;"></span>
+                            <strong>Rosa Original</strong>
+                        </label>
+
+                        <!-- Tema 2: Ciano / Electric -->
+                        <label class="theme-card">
+                            <input type="radio" name="site-theme" value="cyan">
+                            <span class="color-swatch" style="background-color: #8ce99a;"></span>
+                            <strong>Verde Indie</strong>
+                        </label>
+
+                        <!-- Tema 3: Lilás / Vaporwave -->
+                        <label class="theme-card">
+                            <input type="radio" name="site-theme" value="purple">
+                            <span class="color-swatch" style="background-color: #d0bfff;"></span>
+                            <strong>Lilás Sintetizador</strong>
+                        </label>
+
+                        <!-- Tema 4: Amarelo Vinil -->
+                        <label class="theme-card">
+                            <input type="radio" name="site-theme" value="yellow">
+                            <span class="color-swatch" style="background-color: #ffe066;"></span>
+                            <strong>Amarelo Vinil</strong>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Botão Salvar -->
+                <div class="form-footer">
+                    <button type="submit" class="btn-save-changes">Salvar Alterações ✓</button>
+                </div>
+
+            </form>
+
+        </main>
+
+    </div>
+
+    <script src="https://jsdelivr.net"></script>
+    <script src="js/editar-perfil.js"></script>
+</body>
+</html>

@@ -1,0 +1,303 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --bg-header: #000000;
+    --bg-content: #ffffff;
+    --text-pink: #f1c5d9;
+    --text-dark: #000000;
+    --btn-pink: #f7bbd7;
+    --box-gray: #f4f4f4;
+}
+
+body {
+    background-color: #eef0f2;
+    color: var(--text-dark);
+    font-family: 'Montserrat', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.app-container {
+    width: 100%;
+    max-width: 1100px;
+    background-color: var(--bg-content);
+    border: 2px solid var(--text-dark);
+    box-shadow: 8px 8px 0px rgba(0, 0, 0, 0.15);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* Cabeçalho */
+.main-header {
+    background-color: var(--bg-header);
+    background-image: url('imgs/header ipod.png');
+    background-size: contain;
+    background-position: right center;
+    background-repeat: no-repeat;
+    width: 100%;
+    padding: 45px 40px;
+    text-align: right;
+    border-bottom: 2px solid var(--text-dark);
+}
+
+.main-title {
+    color: var(--text-pink);
+    font-size: 2.3rem;
+    font-weight: 900;
+    letter-spacing: 3px;
+    line-height: 1.2;
+    display: inline-block;
+    text-shadow: 2px 2px 0px #000000;
+}
+
+/* Navbar */
+.navbar {
+    background-color: var(--bg-content);
+    border-bottom: 2px solid var(--text-dark);
+    padding: 12px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.nav-user-greeting {
+    font-size: 0.9rem;
+}
+
+.nav-links {
+    display: flex;
+    gap: 25px;
+    align-items: center;
+}
+
+.nav-item {
+    color: var(--text-dark);
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 4px 0;
+    border-bottom: 2px solid transparent;
+}
+
+.nav-item.active {
+    border-bottom: 2px solid var(--text-dark);
+}
+
+.btn-logout {
+    background-color: var(--bg-header);
+    color: var(--text-pink);
+    padding: 6px 14px;
+    border-radius: 15px;
+}
+
+/* Layout de Edição */
+.edit-layout {
+    padding: 30px 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+    max-height: 700px;
+    overflow-y: auto;
+}
+
+.edit-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid var(--text-dark);
+    padding-bottom: 10px;
+}
+
+.edit-header-row h2 {
+    font-size: 1.2rem;
+    font-weight: 900;
+}
+
+.btn-cancel {
+    color: var(--text-dark);
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 0.85rem;
+}
+
+.btn-cancel:hover {
+    text-decoration: underline;
+}
+
+.edit-form {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+.edit-section {
+    background-color: var(--box-gray);
+    border: 2px solid var(--text-dark);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.edit-section h3 {
+    font-size: 0.95rem;
+    font-weight: 900;
+}
+
+.section-desc {
+    font-size: 0.85rem;
+    color: #444;
+    margin-top: -8px;
+}
+
+/* Área de Upload da Foto */
+.avatar-upload-section {
+    flex-direction: row;
+    align-items: center;
+    gap: 25px;
+}
+
+.avatar-preview-box {
+    width: 100px;
+    height: 100px;
+    background-color: var(--btn-pink);
+    border: 2px solid var(--text-dark);
+    box-shadow: 4px 4px 0px #000;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 2.8rem;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.avatar-preview-box img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.avatar-controls {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+.btn-upload {
+    background-color: var(--btn-pink);
+    color: var(--text-dark);
+    border: 1px solid var(--text-dark);
+    box-shadow: 3px 3px 0px #000;
+    padding: 8px 18px;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    cursor: pointer;
+}
+
+.btn-remove-photo {
+    background: none;
+    border: none;
+    color: #c92a2a;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+/* Inputs */
+.input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.input-group label {
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.input-group input,
+.input-group textarea {
+    width: 100%;
+    padding: 10px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.95rem;
+    background-color: var(--bg-content);
+    border: 1px solid var(--text-dark);
+    outline: none;
+}
+
+/* Grade de Temas de Cores */
+.theme-options-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+}
+
+.theme-card {
+    background-color: var(--bg-content);
+    border: 2px solid var(--text-dark);
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    box-shadow: 3px 3px 0px rgba(0, 0, 0, 0.1);
+}
+
+.theme-card input {
+    accent-color: #000000;
+}
+
+.color-swatch {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 2px solid var(--text-dark);
+}
+
+.theme-card strong {
+    font-size: 0.8rem;
+    text-align: center;
+}
+
+/* Rodapé Salvar */
+.form-footer {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.btn-save-changes {
+    background-color: var(--btn-pink);
+    color: var(--text-dark);
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 700;
+    font-size: 1rem;
+    padding: 12px 30px;
+    border-radius: 25px;
+    border: 2px solid var(--text-dark);
+    box-shadow: 4px 4px 0px #000;
+    cursor: pointer;
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.btn-save-changes:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0px #000;
+}
