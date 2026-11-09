@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feed - Em Frequência Com Você</title>
+    <link rel="stylesheet" href="style-home.css">
+    <link rel="preconnect" href="https://googleapis.com">
+    <link rel="preconnect" href="https://gstatic.com" crossorigin>
+    <link href="https://googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
+</head>
+
+<body>
+
+    <div class="app-container">
+
+        <!-- Cabeçalho Principal -->
+        <header class="main-header">
+            <h1 class="main-title">EM FREQUENCIA <br> COM VOCE</h1>
+        </header>
+
+        <!-- Barra de Navegação Pós-Login -->
+        <nav class="navbar">
+            <div class="nav-user-greeting">
+                <span>Olá, <strong>@ouvinte</strong></span>
+            </div>
+            <div class="nav-links">
+                <a href="home.html" class="nav-item active">Feed</a>
+                <a href="#" class="nav-item">Explorar</a>
+                <a href="#" class="nav-item">Perfil</a>
+                <a href="index.html" class="nav-item btn-logout">Sair</a>
+            </div>
+        </nav>
+
+        <!-- Layout em Duas Colunas -->
+        <div class="page-layout">
+
+            <!-- Coluna da Esquerda: Perfil, Tracking e Conexões -->
+            <aside class="sidebar-dashboard">
+
+                <!-- Card de Perfil Resumido -->
+                <div class="profile-summary">
+                    <div class="avatar-circle">🎧</div>
+                    <h3>@ouvinte</h3>
+                    <p class="user-bio">Em sintonia com indie, R&B e rock alternativo.</p>
+                </div>
+
+                <!-- Widget de Tracking (Ouvindo Agora) -->
+                <div class="tracking-card">
+                    <div class="tracking-header">
+                        <span class="live-dot"></span> OUVINDO AGORA
+                    </div>
+                    <div class="now-playing">
+                        <img src="imgs/Blonde_-_Frank_Ocean.jpeg" alt="Capa Blond">
+                        <div class="track-info">
+                            <strong>Nights</strong>
+                            <span>Frank Ocean</span>
+                            <small class="platform-tag">via Spotify</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Botões de Integração (Tracking) -->
+                <div class="connections-box">
+                    <h4>CONEXÕES DE TRACKING</h4>
+                    <button class="btn-platform connected">✓ Spotify Conectado</button>
+                    <button class="btn-platform">+ Conectar Apple Music</button>
+                    <button class="btn-platform">+ Conectar SoundCloud</button>
+                </div>
+
+            </aside>
+
+            <!-- Coluna da Direita: Escrever Review e Feed -->
+            <main class="main-feed">
+
+                <!-- Caixa para Publicar Nova Review -->
+                <section class="new-review-box">
+                    <h3>O que você está ouvindo?</h3>
+                    <form class="review-form">
+                        <div class="review-inputs-top">
+                            <input type="text" placeholder="Nome do Álbum ou Música..." required>
+                            <select name="rating" aria-label="Nota">
+                                <option value="5">★★★★★ (5.0)</option>
+                                <option value="4">★★★★☆ (4.0)</option>
+                                <option value="3">★★★☆☆ (3.0)</option>
+                                <option value="2">★★☆☆☆ (2.0)</option>
+                                <option value="1">★☆☆☆☆ (1.0)</option>
+                            </select>
+                        </div>
+                        <textarea rows="3" placeholder="Escreva sua review e compartilhe com a comunidade..."
+                            required></textarea>
+                        <div class="review-form-footer">
+                            <button type="submit" class="btn-post-review">Publicar Review ▸</button>
+                        </div>
+                    </form>
+                </section>
+
+                <!-- Feed da Comunidade -->
+                <section class="feed-list">
+                    <h3 class="feed-section-title">ATIVIDADE DA COMUNIDADE</h3>
+
+                    <!-- Post 1 -->
+                    <article class="review-card">
+                        <img src="imgs/Mitskipuberty2.jpg" alt="Puberty 2 - Mitski" class="review-cover">
+                        <div class="review-body">
+                            <div class="review-header">
+                                <span class="reviewer-name"><strong>@ana_indie</strong> avaliou <strong>Puberty
+                                        2</strong></span>
+                                <span class="review-stars">★★★★★</span>
+                            </div>
+                            <p class="review-text">A produção desse álbum é impecável. A transição entre faixas calmas e
+                                explosivas nunca perde a força.</p>
+                            <div class="review-actions">
+                                <button class="action-btn">♡ Curtir (14)</button>
+                                <button class="action-btn">💬 Comentar (3)</button>
+                            </div>
+                        </div>
+                    </article>
+
+                    <!-- Post 2 -->
+                    <article class="review-card">
+                        <img src="imgs/Radiohead_-_In_Rainbows.jpg" alt="In Rainbows - Radiohead" class="review-cover">
+                        <div class="review-body">
+                            <div class="review-header">
+                                <span class="reviewer-name"><strong>@lucas_rock</strong> avaliou <strong>In
+                                        Rainbows</strong></span>
+                                <span class="review-stars">★★★★★</span>
+                            </div>
+                            <p class="review-text">Ouvindo no repeat hoje pelo Apple Music. Weird Fishes continua sendo
+                                uma das melhores músicas já feitas.</p>
+                            <div class="review-actions">
+                                <button class="action-btn">♡ Curtir (29)</button>
+                                <button class="action-btn">💬 Comentar (7)</button>
+                            </div>
+                        </div>
+                    </article>
+
+                    <!-- Post 3 -->
+                    <article class="review-card">
+                        <img src="imgs/Kendrick_Lamar_-_Damn.png" alt="DAMN - Kendrick Lamar" class="review-cover">
+                        <div class="review-body">
+                            <div class="review-header">
+                                <span class="reviewer-name"><strong>@marcos_beats</strong> avaliou
+                                    <strong>DAMN.</strong></span>
+                                <span class="review-stars">★★★★☆</span>
+                            </div>
+                            <p class="review-text">Lirismo absurdo do começo ao fim. A construção narrativa do disco
+                                inteiro prende muito.</p>
+                            <div class="review-actions">
+                                <button class="action-btn">♡ Curtir (18)</button>
+                                <button class="action-btn">💬 Comentar (2)</button>
+                            </div>
+                        </div>
+                    </article>
+
+                </section>
+
+            </main>
+
+        </div>
+
+    </div>
+
+    <script src="feed.js">
+
+    </script>
+
+</body>
+
+</html>

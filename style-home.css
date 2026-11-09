@@ -1,0 +1,414 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --bg-header: #000000;
+    --bg-content: #ffffff;
+    --text-pink: #f1c5d9;
+    --text-dark: #000000;
+    --btn-pink: #f7bbd7;
+    --box-gray: #f4f4f4;
+}
+
+body {
+    background-color: #eef0f2;
+    color: var(--text-dark);
+    font-family: 'Montserrat', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+/* Container Fixo Centralizado */
+.app-container {
+    width: 100%;
+    max-width: 1100px;
+    background-color: var(--bg-content);
+    border: 2px solid var(--text-dark);
+    box-shadow: 8px 8px 0px rgba(0, 0, 0, 0.15);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* Cabeçalho Preto com Imagem da Pasta imgs/ */
+.main-header {
+    background-color: var(--bg-header);
+    background-image: url('imgs/header ipod.png');
+    background-size: contain;
+    background-position: right center;
+    background-repeat: no-repeat;
+    width: 100%;
+    padding: 45px 40px;
+    text-align: right;
+    border-bottom: 2px solid var(--text-dark);
+}
+
+.main-title {
+    color: var(--text-pink);
+    font-size: 2.3rem;
+    font-weight: 900;
+    letter-spacing: 3px;
+    line-height: 1.2;
+    display: inline-block;
+    text-shadow: 2px 2px 0px #000000;
+}
+
+/* Barra de Navegação Pós-Login */
+.navbar {
+    background-color: var(--bg-content);
+    border-bottom: 2px solid var(--text-dark);
+    padding: 12px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.nav-user-greeting {
+    font-size: 0.9rem;
+}
+
+.nav-links {
+    display: flex;
+    gap: 25px;
+    align-items: center;
+}
+
+.nav-item {
+    color: var(--text-dark);
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 4px 0;
+    border-bottom: 2px solid transparent;
+    transition: color 0.2s ease;
+}
+
+.nav-item:hover {
+    color: var(--btn-pink);
+}
+
+.nav-item.active {
+    border-bottom: 2px solid var(--text-dark);
+}
+
+.btn-logout {
+    background-color: var(--bg-header);
+    color: var(--text-pink);
+    padding: 6px 14px;
+    border-radius: 15px;
+    border: none;
+}
+
+.btn-logout:hover {
+    color: #ffffff;
+}
+
+/* Layout Interno em Duas Colunas */
+.page-layout {
+    display: flex;
+    width: 100%;
+    min-height: 600px;
+}
+
+/* --- COLUNA ESQUERDA (DASHBOARD & TRACKING) --- */
+.sidebar-dashboard {
+    width: 32%;
+    border-right: 2px solid var(--text-dark);
+    padding: 25px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+    background-color: #fafafa;
+}
+
+.profile-summary {
+    text-align: center;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #ccc;
+}
+
+.avatar-circle {
+    width: 65px;
+    height: 65px;
+    background-color: var(--btn-pink);
+    border: 2px solid var(--text-dark);
+    box-shadow: 3px 3px 0px #000;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.8rem;
+    margin: 0 auto 10px auto;
+}
+
+.profile-summary h3 {
+    font-size: 1.1rem;
+    font-weight: 900;
+}
+
+.user-bio {
+    font-size: 0.85rem;
+    color: #444;
+    margin-top: 5px;
+    line-height: 1.4;
+}
+
+/* Card de Tracking (Ouvindo Agora) */
+.tracking-card {
+    background-color: var(--bg-content);
+    border: 2px solid var(--text-dark);
+    box-shadow: 4px 4px 0px #000;
+    padding: 15px;
+}
+
+.tracking-header {
+    font-size: 0.75rem;
+    font-weight: 900;
+    letter-spacing: 1px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.live-dot {
+    width: 8px;
+    height: 8px;
+    background-color: #1db954;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.now-playing {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.now-playing img {
+    width: 55px;
+    height: 55px;
+    object-fit: cover;
+    border: 1px solid var(--text-dark);
+}
+
+.track-info {
+    display: flex;
+    flex-direction: column;
+    font-size: 0.85rem;
+}
+
+.platform-tag {
+    font-size: 0.7rem;
+    color: #666;
+    margin-top: 3px;
+}
+
+/* Botões de Conexão */
+.connections-box {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.connections-box h4 {
+    font-size: 0.8rem;
+    font-weight: 900;
+    letter-spacing: 0.5px;
+}
+
+.btn-platform {
+    width: 100%;
+    padding: 9px 12px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-align: left;
+    background-color: var(--bg-content);
+    border: 1px solid var(--text-dark);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn-platform:hover {
+    background-color: var(--box-gray);
+}
+
+.btn-platform.connected {
+    background-color: var(--btn-pink);
+    box-shadow: 2px 2px 0px #000;
+}
+
+/* --- COLUNA DIREITA (FEED E REVIEWS) --- */
+.main-feed {
+    width: 68%;
+    padding: 25px 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+    max-height: 680px;
+    overflow-y: auto;
+}
+
+/* Caixa de Nova Review */
+.new-review-box {
+    background-color: var(--box-gray);
+    border: 2px solid var(--text-dark);
+    padding: 20px;
+}
+
+.new-review-box h3 {
+    font-size: 1rem;
+    font-weight: 900;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+}
+
+.review-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.review-inputs-top {
+    display: flex;
+    gap: 10px;
+}
+
+.review-inputs-top input {
+    flex-grow: 1;
+    padding: 10px;
+    font-family: 'Montserrat', sans-serif;
+    border: 1px solid var(--text-dark);
+    background-color: var(--bg-content);
+}
+
+.review-inputs-top select {
+    padding: 10px;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 700;
+    border: 1px solid var(--text-dark);
+    background-color: var(--bg-content);
+}
+
+.review-form textarea {
+    width: 100%;
+    padding: 10px;
+    font-family: 'Montserrat', sans-serif;
+    border: 1px solid var(--text-dark);
+    background-color: var(--bg-content);
+    resize: vertical;
+}
+
+.review-form-footer {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.btn-post-review {
+    background-color: var(--btn-pink);
+    color: var(--text-dark);
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 700;
+    font-size: 0.9rem;
+    padding: 9px 22px;
+    border-radius: 20px;
+    border: 1px solid var(--text-dark);
+    box-shadow: 3px 3px 0px #000;
+    cursor: pointer;
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.btn-post-review:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 5px 5px 0px #000;
+}
+
+/* Lista de Reviews da Comunidade */
+.feed-section-title {
+    font-size: 0.95rem;
+    font-weight: 900;
+    letter-spacing: 1px;
+    margin-bottom: 15px;
+    border-bottom: 2px solid var(--text-dark);
+    padding-bottom: 5px;
+}
+
+.feed-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.review-card {
+    display: flex;
+    gap: 15px;
+    padding: 15px;
+    border: 1px solid var(--text-dark);
+    background-color: var(--bg-content);
+    box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.1);
+}
+
+.review-cover {
+    width: 85px;
+    height: 85px;
+    object-fit: cover;
+    border: 1px solid var(--text-dark);
+    flex-shrink: 0;
+}
+
+.review-body {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.review-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9rem;
+    margin-bottom: 6px;
+}
+
+.review-stars {
+    font-weight: 900;
+    letter-spacing: 1px;
+}
+
+.review-text {
+    font-size: 0.9rem;
+    color: #333;
+    line-height: 1.4;
+    margin-bottom: 10px;
+}
+
+.review-actions {
+    display: flex;
+    gap: 15px;
+}
+
+.action-btn {
+    background: none;
+    border: none;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    color: #444;
+}
+
+.action-btn:hover {
+    color: var(--text-dark);
+    text-decoration: underline;
+}
