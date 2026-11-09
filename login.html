@@ -1,28 +1,24 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Em Frequência Com Você</title>
+    <title>Login - DISSONANCE</title>
     <link rel="stylesheet" href="style-login.css">
     <link rel="preconnect" href="https://googleapis.com">
     <link rel="preconnect" href="https://gstatic.com" crossorigin>
     <link href="https://googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
 </head>
-
 <body>
 
     <div class="login-container">
+        
         <header class="login-header">
             <h2 class="login-title">ENTRAR</h2>
         </header>
 
-        <!-- Navbar integrada no Login -->
-        <nav class="navbar">
-            <div class="nav-links">
-                <a href="index.html" class="nav-item active">Início</a>
-            </div>
+        <nav class="navbar-login">
+            <a href="index.html" class="nav-item-login">Início</a>
         </nav>
 
         <form class="login-form">
@@ -44,16 +40,15 @@
             </div>
 
             <div class="form-actions">
-                <form class="login-form" action="home.html">
-                    <button type="submit" class="btn-login">Entrar ▸</button>
-                    <p class="register-text">Não tem uma conta? <a href="cadastro.html">Cadastre-se</a></p>
+                <button type="submit" class="btn-login">Entrar ▸</button>
+                <p class="register-text">Não tem uma conta? <a href="cadastro.html">Cadastre-se</a></p>
             </div>
         </form>
+
     </div>
 
+    <!-- Scripts do Supabase e Autenticação -->
     <script src="https://jsdelivr.net"></script>
     <script src="auth.js"></script>
-
 </body>
-
 </html>
