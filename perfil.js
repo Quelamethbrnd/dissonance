@@ -1,5 +1,11 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. Aplica o tema de cores salvo pelo usuário
+    const SUPABASE_URL = 'https://supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_lO9AFsjUKgwYnNiE3n7bEQ_sfmWHqv5';
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    const usuarioAtual = localStorage.getItem('usuarioLogado') || '@ouvinte';
+
+    // Aplica o tema de cores salvo
     const themes = {
         pink: { textPink: '#f1c5d9', btnPink: '#f7bbd7' },
         cyan: { textPink: '#b2f2bb', btnPink: '#8ce99a' },
@@ -11,45 +17,24 @@ document.addEventListener('DOMContentLoaded', () => {
     document.documentElement.style.setProperty('--text-pink', selectedTheme.textPink);
     document.documentElement.style.setProperty('--btn-pink', selectedTheme.btnPink);
 
-    // 2. Carrega a foto de perfil salva (se existir)
+    // Aplica a foto de perfil salva
     const savedAvatar = localStorage.getItem('avatar_' + usuarioAtual);
-    const avatarContainer = document.querySelector('.profile-avatar-large, .avatar-circle');
+    const avatarContainer = document.querySelector('.profile-avatar-large');
     if (savedAvatar && avatarContainer) {
         avatarContainer.innerHTML = `<img src="${savedAvatar}" alt="Avatar" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">`;
     }
 
-    const SUPABASE_URL = 'https://supabase.co';
-    const SUPABASE_KEY = 'sb_publishable_lO9AFsjUKgwYnNiE3n7bEQ_sfmWHqv5';
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-    const usuarioAtual = localStorage.getItem('usuarioLogado') || '@ouvinte';
-
-    // Preenche o nome do usuário na navbar e no cartão de perfil
     const greetingSpan = document.querySelector('.nav-user-greeting strong');
     const profileUsername = document.getElementById('profile-username');
     if (greetingSpan) greetingSpan.textContent = usuarioAtual;
     if (profileUsername) profileUsername.textContent = usuarioAtual;
 
-    // Carrega bio personalizada se o usuário já tiver editado antes
     const bioText = document.getElementById('profile-bio-text');
     const savedBio = localStorage.getItem('bio_' + usuarioAtual);
     if (savedBio && bioText) {
         bioText.textContent = savedBio;
     }
 
-    // Botão de Editar Bio
-    const btnEditBio = document.getElementById('btn-edit-bio');
-    if (btnEditBio) {
-        btnEditBio.addEventListener('click', () => {
-            const novaBio = prompt('Digite sua nova bio musical:', bioText.textContent);
-            if (novaBio !== null && novaBio.trim() !== '') {
-                bioText.textContent = novaBio.trim();
-                localStorage.setItem('bio_' + usuarioAtual, novaBio.trim());
-            }
-        });
-    }
-
-    // Busca apenas as reviews do usuário logado no Supabase
     const reviewsList = document.getElementById('user-reviews-list');
     const statReviews = document.getElementById('stat-reviews');
     const statLikes = document.getElementById('stat-likes');
@@ -62,12 +47,10 @@ document.addEventListener('DOMContentLoaded', () => {
             .order('created_at', { ascending: false });
 
         if (error) {
-            console.error('Erro ao carregar perfil:', error);
             reviewsList.innerHTML = '<p>Erro ao carregar suas reviews.</p>';
             return;
         }
 
-        // Atualiza os contadores de estatísticas
         statReviews.textContent = data.length;
         const totalCurtidas = data.reduce((soma, item) => soma + (item.likes || 0), 0);
         statLikes.textContent = totalCurtidas;
@@ -102,30 +85,18 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Excluir review do banco de dados
     reviewsList.addEventListener('click', async (event) => {
         const deleteBtn = event.target.closest('.btn-delete-review');
         if (!deleteBtn) return;
 
-        const confirmar = confirm('Tem certeza que deseja apagar esta review?');
-        if (!confirmar) return;
+        if (!confirm('Tem certeza que deseja apagar esta review?')) return;
 
         const reviewId = deleteBtn.dataset.id;
-        const { error } = await supabase
-            .from('reviews')
-            .delete()
-            .eq('id', reviewId);
+        const { error } = await supabase.from('reviews').delete().eq('id', reviewId);
 
-        if (error) {
-            alert('Erro ao excluir review.');
-            console.error(error);
-            return;
-        }
-
-        carregarMinhasReviews();
+        if (!error) carregarMinhasReviews();
     });
 
-    // Botão Sair
     const logoutBtn = document.querySelector('.btn-logout');
     if (logoutBtn) {
         logoutBtn.addEventListener('click', async (event) => {

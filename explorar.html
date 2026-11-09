@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Explorar - DISSONANCE</title>
+    <link rel="stylesheet" href="style-explorar.css">
+    <link rel="preconnect" href="https://googleapis.com">
+    <link rel="preconnect" href="https://gstatic.com" crossorigin>
+    <link href="https://googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <div class="app-container">
+
+        <header class="main-header">
+            <h1 class="main-title">DISSONANCE</h1>
+        </header>
+
+        <nav class="navbar">
+            <div class="nav-user-greeting">
+                <span>Olá, <strong>@ouvinte</strong></span>
+            </div>
+            <div class="nav-links">
+                <a href="home.html" class="nav-item">Feed</a>
+                <a href="explorar.html" class="nav-item active">Explorar</a>
+                <a href="perfil.html" class="nav-item">Perfil</a>
+                <a href="index.html" class="nav-item btn-logout">Sair</a>
+            </div>
+        </nav>
+
+        <main class="explore-layout">
+            
+            <!-- Barra de Pesquisa e Filtros -->
+            <section class="search-section">
+                <h2>EXPLORAR REVIEWS E ÁLBUNS</h2>
+                <div class="search-controls">
+                    <input type="text" id="search-input" placeholder="Buscar por álbum, artista ou @usuário...">
+                    <select id="filter-rating">
+                        <option value="all">Todas as notas</option>
+                        <option value="★★★★★">5 Estrelas (★★★★★)</option>
+                        <option value="★★★★☆">4 Estrelas (★★★★☆)</option>
+                        <option value="★★★☆☆">3 Estrelas (★★★☆☆)</option>
+                    </select>
+                </div>
+            </section>
+
+            <!-- Álbuns em Destaque na Comunidade -->
+            <section class="trending-section">
+                <h3 class="section-title">EM ALTA NO DISSONANCE</h3>
+                <div class="trending-grid">
+                    <div class="trending-card" data-search="Mitski">
+                        <img src="imgs/Mitskipuberty2.jpg" alt="Puberty 2">
+                        <div class="trending-info">
+                            <strong>Puberty 2</strong>
+                            <span>Mitski</span>
+                        </div>
+                    </div>
+                    <div class="trending-card" data-search="Frank Ocean">
+                        <img src="imgs/Blonde_-_Frank_Ocean.jpeg" alt="Blonde">
+                        <div class="trending-info">
+                            <strong>Blonde</strong>
+                            <span>Frank Ocean</span>
+                        </div>
+                    </div>
+                    <div class="trending-card" data-search="Radiohead">
+                        <img src="imgs/Radiohead_-_In_Rainbows.jpg" alt="In Rainbows">
+                        <div class="trending-info">
+                            <strong>In Rainbows</strong>
+                            <span>Radiohead</span>
+                        </div>
+                    </div>
+                    <div class="trending-card" data-search="Kendrick">
+                        <img src="imgs/Kendrick_Lamar_-_Damn.png" alt="DAMN.">
+                        <div class="trending-info">
+                            <strong>DAMN.</strong>
+                            <span>Kendrick Lamar</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Resultados das Reviews -->
+            <section class="results-section">
+                <h3 class="section-title">MAIS CURTIDAS PELA COMUNIDADE</h3>
+                <div class="explore-reviews-list" id="explore-reviews-list">
+                    <p>Carregando reviews...</p>
+                </div>
+            </section>
+
+        </main>
+
+    </div>
+
+    <script src="https://jsdelivr.net"></script>
+    <script src="explorar.js"></script>
+</body>
+</html>
