@@ -159,7 +159,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 avatarHTML +
                 '<div class="review-body">' +
                     '<div class="review-header">' +
-                        '<span class="reviewer-name"><a href="perfil.html?user=' + encodeURIComponent(review.username) + '" class="user-profile-link"><strong>' + escapeHTML(review.username) + '</strong></a> avaliou <a href="album.html?album=' + encodeURIComponent(review.album_name) + '" class="user-profile-link"><strong>' + escapeHTML(review.album_name) + '</strong></a>
+                        '<span class="reviewer-name"><a href="perfil.html?user=' + encodeURIComponent(review.username) + '" class="user-profile-link"><strong>' + escapeHTML(review.username) + '</strong></a> avaliou <a href="album.html?album=' + encodeURIComponent(review.album_name) + '" class="user-profile-link"><strong>' + escapeHTML(review.album_name) + '</strong></a></span>' +
                         '<span class="review-stars">' + escapeHTML(review.rating) + '</span>' +
                     '</div>' +
                     '<p class="review-text">' + escapeHTML(review.comment) + '</p>' +
@@ -300,19 +300,35 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    const chaveConexoes = 'dissonance_apps_' + usuarioAtual;
+    let appsConectados = JSON.parse(localStorage.getItem(chaveConexoes)) || ['Spotify'];
+
     platformButtons.forEach(button => {
+        const nomeLimpo = button.textContent
+            .replace('✓ ', '')
+            .replace('+ Conectar ', '')
+            .replace(' Conectado', '')
+            .trim();
+
+        if (appsConectados.includes(nomeLimpo)) {
+            button.classList.add('connected');
+            button.textContent = '✓ ' + nomeLimpo + ' Conectado';
+        } else {
+            button.classList.remove('connected');
+            button.textContent = '+ Conectar ' + nomeLimpo;
+        }
+
         button.addEventListener('click', () => {
-            const platformName = button.textContent
-                .replace('✓ ', '')
-                .replace('+ Conectar ', '')
-                .replace(' Conectado', '');
             if (button.classList.contains('connected')) {
                 button.classList.remove('connected');
-                button.textContent = '+ Conectar ' + platformName;
+                button.textContent = '+ Conectar ' + nomeLimpo;
+                appsConectados = appsConectados.filter(a => a !== nomeLimpo);
             } else {
                 button.classList.add('connected');
-                button.textContent = '✓ ' + platformName + ' Conectado';
+                button.textContent = '✓ ' + nomeLimpo + ' Conectado';
+                if (!appsConectados.includes(nomeLimpo)) appsConectados.push(nomeLimpo);
             }
+            localStorage.setItem(chaveConexoes, JSON.stringify(appsConectados));
         });
     });
 

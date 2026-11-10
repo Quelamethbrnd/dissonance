@@ -44,6 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 '<button type="button" class="filter-btn ' + ativo + '" data-genre="' + escaparHTML(gen) + '">' + escaparHTML(gen) + '</button>';
         });
     }
+
     function renderizarExplorar() {
         const reviews = JSON.parse(localStorage.getItem('dissonance_reviews')) || [];
 
@@ -60,9 +61,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 filtradas.slice(0, 4).forEach(rev => {
                     const card = document.createElement('div');
                     card.className = 'album-card';
+                    const capaRev = rev.media_url || 'imgs/Blonde_-_Frank_Ocean.jpeg';
                     card.innerHTML =
-                        '<img src="' + rev.cover_url + '" alt="' + escaparHTML(rev.album_name) + '">' +
-                        '<div class="album-card-title">' + escaparHTML(rev.album_name) + '</div>' +
+                        '<img src="' + capaRev + '" alt="' + escaparHTML(rev.album_name) + '">' +
+                        '<div class="album-card-title"><a href="album.html?album=' + encodeURIComponent(rev.album_name) + '" class="user-profile-link">' + escaparHTML(rev.album_name) + '</a></div>' +
                         '<div class="album-card-artist">Por ' + escaparHTML(rev.username) + '</div>' +
                         '<div class="album-card-meta"><span>' + escaparHTML(rev.rating) + '</span><span>♥ ' + (rev.likes || 0) + '</span></div>';
                     trendingGrid.appendChild(card);
@@ -92,7 +94,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     card.className = 'album-card';
                     card.innerHTML =
                         '<img src="' + item.cover + '" alt="' + escaparHTML(item.album) + '">' +
-                        '<div class="album-card-title"><a href="album.html?album=' + encodeURIComponent(item.album) + '&artist=' + encodeURIComponent(item.artist) + '" class="user-profile-link">' + escaparHTML(item.album) + '</a>< +
+                        '<div class="album-card-title"><a href="album.html?album=' + encodeURIComponent(item.album) + '&artist=' + encodeURIComponent(item.artist) + '" class="user-profile-link">' + escaparHTML(item.album) + '</a></div>' +
                         '<div class="album-card-artist">' + escaparHTML(item.artist) + '</div>' +
                         '<div class="album-card-meta"><span class="genre-tag">' + escaparHTML(item.genre) + '</span></div>' +
                         '<button type="button" class="btn-save-shelf ' + (salvo ? 'saved' : '') + '" ' +
@@ -218,11 +220,11 @@ function extrairCorDominante(urlImagem) {
                 }
                 const toHex = (n) => Math.round(n / total).toString(16).padStart(2, '0');
                 resolve('#' + toHex(r) + toHex(g) + toHex(b));
-            } catch (e) {
+                } catch (e) {
                 resolve('#f7bbd7');
-            }
-        };
-        img.onerror = () => resolve('#f7bbd7');
-        img.src = urlImagem;
-    });
-}
+                }
+                };
+                img.onerror = () => resolve('#f7bbd7');
+                img.src = urlImagem;
+                });
+                }
