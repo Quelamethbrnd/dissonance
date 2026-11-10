@@ -130,9 +130,8 @@ document.addEventListener('DOMContentLoaded', () => {
         avatarPreview.innerHTML = `<img src="${currentAvatarBase64}" alt="Avatar">`;
     }
 
-    // CORREÇÃO: Adicionado o índice [0] em event.target.files[0]
     avatarInput.addEventListener('change', (event) => {
-        const file = event.target.files[0];
+        const file = event.target.files.item(0);
         if (!file) return;
 
         const reader = new FileReader();

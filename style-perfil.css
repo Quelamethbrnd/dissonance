@@ -477,37 +477,223 @@ body {
     color: #000000;
 }
 
-/* Ajuste da lombada quando possui imagem preenchida */
-.vinyl-spine.has-bg-image {
+/* --- ESTANTE DE VINIS 3D EM PERSPECTIVA --- */
+.section-header-flex {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    border-bottom: 2px solid var(--text-dark);
+    padding-bottom: 6px;
+    margin-bottom: 15px;
+}
+
+.section-title {
+    font-size: 1rem;
+    font-weight: 900;
+    letter-spacing: 1px;
+}
+
+.vinyl-hint {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-weight: 700;
+}
+
+.add-vinyl-form {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.add-vinyl-form input[type="text"] {
+    flex: 1;
+    min-width: 150px;
+    padding: 9px 12px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.85rem;
+    border: 1px solid var(--text-dark);
+    background-color: var(--bg-content);
+    color: var(--text-dark);
+}
+
+.add-vinyl-form input[type="color"] {
+    width: 42px;
+    height: 38px;
+    border: 1px solid var(--text-dark);
+    cursor: pointer;
+    padding: 2px;
+    background: var(--bg-content);
+}
+
+.btn-upload-spine {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 14px;
+    height: 38px;
+    background-color: var(--bg-content);
+    color: var(--text-dark);
+    border: 1px solid var(--text-dark);
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.btn-upload-spine.has-image {
+    background-color: #8ce99a;
+    color: #000000;
+}
+
+.btn-add-vinyl {
+    background-color: var(--btn-pink);
+    color: #000000;
+    border: 1px solid var(--text-dark);
+    box-shadow: 2px 2px 0px #000;
+    padding: 0 18px;
+    height: 38px;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 700;
+    font-size: 0.85rem;
+    cursor: pointer;
+}
+
+/* Palco 3D escuro onde os vinis flutuam */
+.vinyl-stack {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+    padding: 35px 20px;
+    background-color: #111113;
+    border: 2px solid var(--text-dark);
+    box-shadow: 6px 6px 0px #000;
+    perspective: 900px;
+    overflow: hidden;
+}
+
+/* Container de cada disco 3D */
+.vinyl-3d-item {
+    width: 100%;
+    max-width: 560px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    transition: transform 0.25s ease;
+    position: relative;
+}
+
+.vinyl-3d-item:hover {
+    transform: scale(1.03);
+}
+
+/* Lombada frontal com título, artista e checklist */
+.vinyl-spine-face {
+    width: 100%;
+    height: 36px;
+    padding: 0 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.6);
+    z-index: 2;
+    position: relative;
+}
+
+.vinyl-spine-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.vinyl-checkbox {
+    width: 18px;
+    height: 18px;
+    border: 1.5px solid currentColor;
+    background-color: rgba(255, 255, 255, 0.2);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: 900;
+    font-size: 0.75rem;
+}
+
+.vinyl-title-group {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    font-size: 0.85rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.vinyl-album-name {
+    font-weight: 900;
+}
+
+.vinyl-artist-name {
+    font-weight: 400;
+    opacity: 0.85;
+}
+
+.vinyl-spine-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-remove-vinyl {
+    background: none;
+    border: none;
+    color: inherit;
+    font-weight: 900;
+    font-size: 0.9rem;
+    cursor: pointer;
+    opacity: 0.75;
+}
+
+.btn-remove-vinyl:hover {
+    opacity: 1;
+    color: #ff6b6b;
+}
+
+/* Superfície da capa inclinada em 3D */
+.vinyl-cover-plane {
+    width: 100%;
+    height: 150px;
     background-size: cover;
     background-position: center;
-    background-repeat: no-repeat;
-    position: relative;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 15px 25px rgba(0, 0, 0, 0.75);
+    transition: height 0.25s ease, filter 0.25s ease;
 }
 
-/* Camada sutil para garantir leitura do texto sobre qualquer capa */
-.vinyl-spine.has-bg-image::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(90deg, rgba(0, 0, 0, 0.72) 0%, rgba(0, 0, 0, 0.35) 60%, rgba(0, 0, 0, 0.65) 100%);
-    z-index: 1;
+/* Discos na metade superior mostram a capa inclinada para baixo */
+.vinyl-3d-item.tilt-bottom .vinyl-cover-plane {
+    transform-origin: top center;
+    transform: rotateX(-58deg);
+    margin-bottom: -55px;
+    filter: brightness(0.85);
 }
 
-.vinyl-spine.has-bg-image .vinyl-spine-left,
-.vinyl-spine.has-bg-image .vinyl-spine-right {
-    position: relative;
-    z-index: 2;
+/* Discos na metade inferior mostram a capa inclinada para cima */
+.vinyl-3d-item.tilt-top {
+    flex-direction: column-reverse;
 }
 
-.vinyl-spine.has-bg-image .vinyl-album-name,
-.vinyl-spine.has-bg-image .vinyl-artist-name,
-.vinyl-spine.has-bg-image .btn-remove-vinyl {
-    color: #ffffff;
-    text-shadow: 1px 1px 2px #000000;
+.vinyl-3d-item.tilt-top .vinyl-cover-plane {
+    transform-origin: bottom center;
+    transform: rotateX(58deg);
+    margin-top: -55px;
+    filter: brightness(0.95);
 }
 
-.vinyl-spine.has-bg-image .vinyl-status-badge {
-    background-color: rgba(255, 255, 255, 0.92);
-    color: #000000;
+/* Destaque quando o disco já foi ouvido */
+.vinyl-3d-item.listened .vinyl-album-name {
+    text-decoration: line-through;
+    opacity: 0.75;
 }

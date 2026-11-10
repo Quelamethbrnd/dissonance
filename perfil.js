@@ -1,7 +1,6 @@
         document.addEventListener('DOMContentLoaded', () => {
         const usuarioAtual = localStorage.getItem('usuarioLogado') || '@ouvinte'
 
-        // Aplica a foto de perfil salva
         const savedAvatar = localStorage.getItem('avatar_' + usuarioAtual)
         const avatarContainer = document.querySelector('.profile-avatar-large')
         if (savedAvatar && avatarContainer) {
@@ -19,7 +18,6 @@
             bioText.textContent = savedBio
         }
 
-        // --- LÓGICA DA BIBLIOTECA PESSOAL DE VINIS (COM IMAGEM NA LOMBADA) ---
         const vinylStack = document.getElementById('vinyl-stack')
         const addVinylForm = document.getElementById('add-vinyl-form')
         const statVinyls = document.getElementById('stat-vinyls')
@@ -80,10 +78,9 @@
             )
         }
 
-        // CORREÇÃO: Adicionado o índice [0] em event.target.files[0]
         if (vinylCoverInput) {
             vinylCoverInput.addEventListener('change', event => {
-            const file = event.target.files[0]
+            const file = event.target.files.item(0)
             if (!file) return
 
             const reader = new FileReader()
@@ -241,7 +238,6 @@
             })
         }
 
-        // --- LÓGICA DAS REVIEWS PUBLICADAS PELO USUÁRIO ---
         const reviewsList = document.getElementById('user-reviews-list')
         const statReviews = document.getElementById('stat-reviews')
         const statLikes = document.getElementById('stat-likes')
@@ -295,8 +291,11 @@
         reviewsList.addEventListener('click', event => {
             const deleteBtn = event.target.closest('.btn-delete-review')
             if (!deleteBtn) return
+
             if (!confirm('Tem certeza que deseja apagar esta review?')) return
+
             const reviewId = Number(deleteBtn.dataset.id)
+
             let todas = JSON.parse(localStorage.getItem('dissonance_reviews')) || []
             todas = todas.filter(r => r.id !== reviewId)
             localStorage.setItem('dissonance_reviews', JSON.stringify(todas))
