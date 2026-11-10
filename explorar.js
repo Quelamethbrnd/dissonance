@@ -92,7 +92,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     card.className = 'album-card';
                     card.innerHTML =
                         '<img src="' + item.cover + '" alt="' + escaparHTML(item.album) + '">' +
-                        '<div class="album-card-title">' + escaparHTML(item.album) + '</div>' +
+                        '<div class="album-card-title"><a href="album.html?album=' + encodeURIComponent(item.album) + '&artist=' + encodeURIComponent(item.artist) + '" class="user-profile-link">' + escaparHTML(item.album) + '</a>< +
                         '<div class="album-card-artist">' + escaparHTML(item.artist) + '</div>' +
                         '<div class="album-card-meta"><span class="genre-tag">' + escaparHTML(item.genre) + '</span></div>' +
                         '<button type="button" class="btn-save-shelf ' + (salvo ? 'saved' : '') + '" ' +

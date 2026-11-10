@@ -159,7 +159,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 avatarHTML +
                 '<div class="review-body">' +
                     '<div class="review-header">' +
-                        '<span class="reviewer-name"><a href="perfil.html?user=' + encodeURIComponent(review.username) + '" class="user-profile-link"><strong>' + escapeHTML(review.username) + '</strong></a> avaliou <strong>' + escapeHTML(review.album_name) + '</strong></span>' +
+                        '<span class="reviewer-name"><a href="perfil.html?user=' + encodeURIComponent(review.username) + '" class="user-profile-link"><strong>' + escapeHTML(review.username) + '</strong></a> avaliou <a href="album.html?album=' + encodeURIComponent(review.album_name) + '" class="user-profile-link"><strong>' + escapeHTML(review.album_name) + '</strong></a>
                         '<span class="review-stars">' + escapeHTML(review.rating) + '</span>' +
                     '</div>' +
                     '<p class="review-text">' + escapeHTML(review.comment) + '</p>' +
