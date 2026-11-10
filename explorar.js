@@ -10,6 +10,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let generoAtivo = 'todos';
     let termoBusca = '';
+    let resultadosOnline = [];
+    let timerBusca = null;
 
     const catalogoBase = [
         { album: 'Puberty 2', artist: 'Mitski', genre: 'indie', cover: 'imgs/Mitskipuberty2.jpg', color: '#2b2d42' },
@@ -56,16 +58,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (catalogGrid) {
             catalogGrid.innerHTML = '';
-            const filtrados = catalogoBase.filter(item => {
-                const bateGenero = (generoAtivo === 'todos') || (item.genre === generoAtivo);
-                const bateTexto = item.album.toLowerCase().includes(termoBusca) || item.artist.toLowerCase().includes(termoBusca);
-                return bateGenero && bateTexto;
-            });
+            const listaExibir = (termoBusca.length >= 2 && resultadosOnline.length > 0)
+                ? resultadosOnline
+                : catalogoBase.filter(item => {
+                    const bateGenero = (generoAtivo === 'todos') || (item.genre === generoAtivo);
+                    const bateTexto = item.album.toLowerCase().includes(termoBusca) || item.artist.toLowerCase().includes(termoBusca);
+                    return bateGenero && bateTexto;
+                });
 
-            if (filtrados.length === 0) {
-                catalogGrid.innerHTML = '<p>Nenhum álbum encontrado nesse filtro.</p>';
+            if (listaExibir.length === 0) {
+                catalogGrid.innerHTML = '<p>Nenhum álbum encontrado.</p>';
             } else {
-                filtrados.forEach(item => {
+                listaExibir.forEach(item => {
                     const salvo = jaEstaNaEstante(item.album);
                     const card = document.createElement('div');
                     card.className = 'album-card';
@@ -74,7 +78,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         '<div class="album-card-title">' + escaparHTML(item.album) + '</div>' +
                         '<div class="album-card-artist">' + escaparHTML(item.artist) + '</div>' +
                         '<div class="album-card-meta"><span class="genre-tag">' + item.genre + '</span></div>' +
-                        '<button type="button" class="btn-save-shelf ' + (salvo ? 'saved' : '') + '" data-album="' + escaparHTML(item.album) + '">' +
+                        '<button type="button" class="btn-save-shelf ' + (salvo ? 'saved' : '') + '" ' +
+                            'data-album="' + escaparHTML(item.album) + '" ' +
+                            'data-artist="' + escaparHTML(item.artist) + '" ' +
+                            'data-cover="' + item.cover + '">' +
                             (salvo ? '✓ Na sua Estante' : '+ Salvar na Estante') +
                         '</button>';
                     catalogGrid.appendChild(card);
@@ -86,7 +93,25 @@ document.addEventListener('DOMContentLoaded', () => {
     if (searchInput) {
         searchInput.addEventListener('input', (e) => {
             termoBusca = e.target.value.toLowerCase().trim();
-            renderizarExplorar();
+            clearTimeout(timerBusca);
+
+            if (termoBusca.length < 2) {
+                resultadosOnline = [];
+                renderizarExplorar();
+                return;
+            }
+
+            timerBusca = setTimeout(async () => {
+                const dados = await buscarCatalogoDeezer(termoBusca);
+                resultadosOnline = dados.map(d => ({
+                    album: d.title,
+                    artist: d.artist ? d.artist.name : 'Artista',
+                    genre: 'deezer',
+                    cover: d.cover_big || d.cover_medium || 'imgs/Blonde_-_Frank_Ocean.jpeg',
+                    color: '#f7bbd7'
+                }));
+                renderizarExplorar();
+            }, 400);
         });
     }
 
@@ -95,6 +120,9 @@ document.addEventListener('DOMContentLoaded', () => {
             filterButtons.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             generoAtivo = btn.dataset.genre;
+            termoBusca = '';
+            if (searchInput) searchInput.value = '';
+            resultadosOnline = [];
             renderizarExplorar();
         });
     });
@@ -105,8 +133,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!btn) return;
 
             const albumNome = btn.dataset.album;
-            const item = catalogoBase.find(a => a.album === albumNome);
-            if (!item) return;
+            const artistaNome = btn.dataset.artist || 'Artista';
+            const capaUrl = btn.dataset.cover || 'imgs/Blonde_-_Frank_Ocean.jpeg';
 
             const chave = 'dissonance_vinyls_' + usuarioAtual;
             let lista = JSON.parse(localStorage.getItem(chave)) || [];
@@ -116,10 +144,10 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 lista.unshift({
                     id: Date.now(),
-                    album: item.album,
-                    artist: item.artist,
-                    color: item.color,
-                    coverImage: item.cover,
+                    album: albumNome,
+                    artist: artistaNome,
+                    color: '#f7bbd7',
+                    coverImage: capaUrl,
                     listened: false
                 });
             }
@@ -140,3 +168,48 @@ document.addEventListener('DOMContentLoaded', () => {
 
     renderizarExplorar();
 });
+
+async function buscarCatalogoDeezer(termo) {
+    try {
+        const mbBase = 'https://' + 'musicbrainz.org/ws/2/release-group/?query=';
+        const urlBusca = mbBase + encodeURIComponent(termo) + '&fmt=json&limit=6';
+        const resp = await fetch(urlBusca);
+        const dados = await resp.json();
+
+        if (!dados || !dados['release-groups']) return [];
+
+        const resultados = await Promise.all(
+            dados['release-groups'].map(async (rg) => {
+                const artista = (rg['artist-credit'] && rg['artist-credit'].at(0))
+                    ? rg['artist-credit'].at(0).name
+                    : 'Artista';
+                let capaUrl = 'imgs/Blonde_-_Frank_Ocean.jpeg';
+
+                try {
+                    const caaBase = 'https://' + 'coverartarchive.org/release-group/';
+                    const rCapa = await fetch(caaBase + rg.id);
+                    if (rCapa.ok) {
+                        const dCapa = await rCapa.json();
+                        if (dCapa.images && dCapa.images.length > 0) {
+                            const frente = dCapa.images.find(i => i.front) || dCapa.images.at(0);
+                            capaUrl = frente.thumbnails.small || frente.thumbnails.large || frente.image;
+                        }
+                    }
+                } catch (e) {}
+
+                return {
+                    title: rg.title,
+                    artist: { name: artista },
+                    cover_big: capaUrl,
+                    cover_medium: capaUrl
+                };
+            })
+        );
+
+        return resultados;
+    } catch (erro) {
+        console.log('Erro na busca do explorar:', erro);
+        return [];
+    }
+}
+

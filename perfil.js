@@ -81,7 +81,6 @@ document.addEventListener('DOMContentLoaded', () => {
             reader.readAsDataURL(file);
         });
     }
-
     function renderizarVinis() {
         if (!vinylStack) return;
         const lista = obterVinis();
@@ -151,12 +150,22 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (addVinylForm) {
-        addVinylForm.addEventListener('submit', (event) => {
+        addVinylForm.addEventListener('submit', async (event) => {
             event.preventDefault();
             const album = document.getElementById('vinyl-album').value.trim();
             const artist = document.getElementById('vinyl-artist').value.trim();
-            const color = document.getElementById('vinyl-spine-color').value;
+            const colorInput = document.getElementById('vinyl-spine-color');
+            let color = colorInput.value;
             if (!album || !artist) return;
+
+            let capaFinal = capaQuadradaBase64;
+            if (!capaFinal) {
+                capaFinal = await buscarCapaOnline(album + ' ' + artist);
+            }
+
+            if (color.toLowerCase() === '#f7bbd7') {
+                color = await extrairCorDominante(capaFinal);
+            }
 
             try {
                 const lista = obterVinis();
@@ -165,7 +174,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     album: album,
                     artist: artist,
                     color: color,
-                    coverImage: capaQuadradaBase64 || 'imgs/Blonde_-_Frank_Ocean.jpeg',
+                    coverImage: capaFinal,
                     listened: false
                 });
                 salvarVinis(lista);
@@ -224,6 +233,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             const openClass = (idAberto === review.id) ? 'open' : '';
+            const jaCurtiu = (review.likedBy || []).includes(usuarioAtual);
+            const estiloLike = jaCurtiu ? 'style="background-color: var(--btn-pink); color: #000000;"' : '';
+            const textoLike = jaCurtiu ? '♥ Curtido (' + (review.likes || 0) + ')' : '♡ Curtir (' + (review.likes || 0) + ')';
 
             card.innerHTML =
                 '<img src="' + review.cover_url + '" alt="' + escapeHTML(review.album_name) + '" class="review-cover">' +
@@ -235,7 +247,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     '<p class="review-text">' + escapeHTML(review.comment) + '</p>' +
                     '<div class="review-footer-row">' +
                         '<div class="review-actions-group">' +
-                            '<button type="button" class="action-btn-perfil btn-like-perfil">♥ Curtir (' + (review.likes || 0) + ')</button>' +
+                            '<button type="button" class="action-btn-perfil btn-like-perfil" ' + estiloLike + '>' + textoLike + '</button>' +
                             '<button type="button" class="action-btn-perfil btn-toggle-perfil-comments">💬 Comentários (' + comentarios.length + ')</button>' +
                         '</div>' +
                         '<button type="button" class="btn-delete-review" data-id="' + review.id + '">Excluir review</button>' +
@@ -274,7 +286,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 const todas = JSON.parse(localStorage.getItem('dissonance_reviews')) || [];
                 const item = todas.find(r => r.id === reviewId);
                 if (item) {
-                    item.likes = (item.likes || 0) + 1;
+                    if (!item.likedBy) item.likedBy = [];
+
+                    if (item.likedBy.includes(usuarioAtual)) {
+                        item.likedBy = item.likedBy.filter(u => u !== usuarioAtual);
+                        item.likes = Math.max(0, (item.likes || 1) - 1);
+                    } else {
+                        item.likedBy.push(usuarioAtual);
+                        item.likes = (item.likes || 0) + 1;
+                    }
+
                     localStorage.setItem('dissonance_reviews', JSON.stringify(todas));
                     carregarMinhasReviews();
                 }
@@ -345,3 +366,74 @@ document.addEventListener('DOMContentLoaded', () => {
     renderizarVinis();
     carregarMinhasReviews();
 });
+
+async function buscarCapaOnline(termoBusca) {
+    try {
+        const dominio = ['itunes', 'apple', 'com'].join('.');
+        const caminho = '/search?term=' + encodeURIComponent(termoBusca) + '&media=music&entity=album&limit=1';
+        const respItunes = await fetch('https://' + dominio + caminho);
+        if (respItunes.ok) {
+            const dadosItunes = await respItunes.json();
+            if (dadosItunes.results && dadosItunes.results.length > 0) {
+                return dadosItunes.results.at(0).artworkUrl100.replace('100x100bb', '600x600bb');
+            }
+        }
+    } catch (e) {}
+
+    try {
+        const mbDom = ['musicbrainz', 'org'].join('.');
+        const mbUrl = 'https://' + mbDom + '/ws/2/release-group/?query=' + encodeURIComponent(termoBusca) + '&fmt=json&limit=3';
+        const respMb = await fetch(mbUrl, { headers: { 'Accept': 'application/json' } });
+        if (respMb.ok) {
+            const dadosMb = await respMb.json();
+            const grupos = dadosMb['release-groups'] || [];
+            const caaDom = ['coverartarchive', 'org'].join('.');
+            for (const grupo of grupos) {
+                const respCapa = await fetch('https://' + caaDom + '/release-group/' + grupo.id);
+                if (respCapa.ok) {
+                    const dadosCapa = await respCapa.json();
+                    if (dadosCapa.images && dadosCapa.images.length > 0) {
+                        const frente = dadosCapa.images.find(img => img.front) || dadosCapa.images.at(0);
+                        return frente.thumbnails.large || frente.image;
+                    }
+                }
+            }
+        }
+    } catch (e) {}
+
+    return 'imgs/Blonde_-_Frank_Ocean.jpeg';
+}
+
+function extrairCorDominante(urlImagem) {
+    return new Promise((resolve) => {
+        const img = new Image();
+        img.crossOrigin = 'Anonymous';
+
+img.onload = () => {
+try {
+const canvas = document.createElement('canvas');
+canvas.width = 20;
+canvas.height = 20;
+const ctx = canvas.getContext('2d');
+ctx.drawImage(img, 0, 0, 20, 20);
+const pixels = ctx.getImageData(0, 0, 20, 20).data;
+let r = 0, g = 0, b = 0, total = 0;
+for (let i = 0; i < pixels.length; i += 4) {
+r += pixels[i];
+g += pixels[i + 1];
+b += pixels[i + 2];
+total++;
+}
+r = Math.round(r / total);
+g = Math.round(g / total);
+b = Math.round(b / total);
+const toHex = (n) => n.toString(16).padStart(2, '0');
+resolve('#' + toHex(r) + toHex(g) + toHex(b));
+} catch (e) {
+resolve('#f7bbd7');
+}
+};
+img.onerror = () => resolve('#f7bbd7');
+img.src = urlImagem;
+});
+}

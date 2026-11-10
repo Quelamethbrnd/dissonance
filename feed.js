@@ -58,18 +58,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    const albumCovers = {
-        mitski: 'imgs/Mitskipuberty2.jpg',
-        'puberty 2': 'imgs/Mitskipuberty2.jpg',
-        'frank ocean': 'imgs/Blonde_-_Frank_Ocean.jpeg',
-        blond: 'imgs/Blonde_-_Frank_Ocean.jpeg',
-        blonde: 'imgs/Blonde_-_Frank_Ocean.jpeg',
-        radiohead: 'imgs/Radiohead_-_In_Rainbows.jpg',
-        'in rainbows': 'imgs/Radiohead_-_In_Rainbows.jpg',
-        kendrick: 'imgs/Kendrick_Lamar_-_Damn.png',
-        damn: 'imgs/Kendrick_Lamar_-_Damn.png'
-    };
-
     const reviewsPadrao = [
         {
             id: 1,
@@ -172,7 +160,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (reviewForm) {
-        reviewForm.addEventListener('submit', event => {
+        reviewForm.addEventListener('submit', async event => {
             event.preventDefault();
 
             const albumInput = reviewForm.querySelector('input');
@@ -189,15 +177,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (!albumName || !commentText) return;
 
-            let coverSrc = capaReviewBase64 || 'imgs/Blonde_-_Frank_Ocean.jpeg';
-            if (!capaReviewBase64) {
-                const searchKey = albumName.toLowerCase();
-                for (const key in albumCovers) {
-                    if (searchKey.includes(key)) {
-                        coverSrc = albumCovers[key];
-                        break;
-                    }
-                }
+            let coverSrc = capaReviewBase64;
+            if (!coverSrc) {
+                coverSrc = await buscarCapaOnline(albumName);
             }
 
             const lista = obterReviews();
@@ -333,3 +315,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
     carregarReviews();
 });
+
+async function buscarCapaOnline(termoBusca) {
+    try {
+        const mbBase = 'https://' + 'musicbrainz.org/ws/2/release-group/?query=';
+        const urlBusca = mbBase + encodeURIComponent(termoBusca) + '&fmt=json&limit=1';
+        const resp = await fetch(urlBusca);
+        const dados = await resp.json();
+
+        if (dados && dados['release-groups'] && dados['release-groups'].length > 0) {
+            const mbid = dados['release-groups'].at(0).id;
+            const caaBase = 'https://' + 'coverartarchive.org/release-group/';
+            const respCapa = await fetch(caaBase + mbid);
+
+            if (respCapa.ok) {
+                const dadosCapa = await respCapa.json();
+                if (dadosCapa.images && dadosCapa.images.length > 0) {
+                    const frente = dadosCapa.images.find(img => img.front) || dadosCapa.images.at(0);
+                    return frente.thumbnails.large || frente.image;
+                }
+            }
+        }
+    } catch (erro) {
+        console.log('Busca online falhou, usando capa padrão:', erro);
+    }
+    return 'imgs/Blonde_-_Frank_Ocean.jpeg';
+}
+
