@@ -28,36 +28,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const vinis = JSON.parse(localStorage.getItem('dissonance_vinyls_' + usuarioAtual)) || [];
         return vinis.some(v => v.album.toLowerCase() === albumNome.toLowerCase());
     }
-document.addEventListener('DOMContentLoaded', () => {
-    const usuarioAtual = localStorage.getItem('usuarioLogado') || '@ouvinte';
-    const greetingSpan = document.querySelector('.nav-user-greeting strong');
-    if (greetingSpan) greetingSpan.textContent = usuarioAtual;
-
-    const searchInput = document.getElementById('explore-search');
-    const filterButtons = document.querySelectorAll('.filter-btn');
-    const trendingGrid = document.getElementById('community-trending-grid');
-    const catalogGrid = document.getElementById('catalog-grid');
-
-    let generoAtivo = 'todos';
-    let termoBusca = '';
-
-    const catalogoBase = [
-        { album: 'Puberty 2', artist: 'Mitski', genre: 'indie', cover: 'imgs/Mitskipuberty2.jpg', color: '#2b2d42' },
-        { album: 'Blonde', artist: 'Frank Ocean', genre: 'rnb', cover: 'imgs/Blonde_-_Frank_Ocean.jpeg', color: '#f8f9fa' },
-        { album: 'In Rainbows', artist: 'Radiohead', genre: 'rock', cover: 'imgs/Radiohead_-_In_Rainbows.jpg', color: '#d9480f' },
-        { album: 'DAMN.', artist: 'Kendrick Lamar', genre: 'hiphop', cover: 'imgs/Kendrick_Lamar_-_Damn.png', color: '#82c91e' }
-    ];
-
-    function escaparHTML(str) {
-        const div = document.createElement('div');
-        div.textContent = str;
-        return div.innerHTML;
-    }
-
-    function jaEstaNaEstante(albumNome) {
-        const vinis = JSON.parse(localStorage.getItem('dissonance_vinyls_' + usuarioAtual)) || [];
-        return vinis.some(v => v.album.toLowerCase() === albumNome.toLowerCase());
-    }
     function renderizarExplorar() {
         const reviews = JSON.parse(localStorage.getItem('dissonance_reviews')) || [];
 
@@ -132,41 +102,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (catalogGrid) {
         catalogGrid.addEventListener('click', (e) => {
             const btn = e.target.closest('.btn-save-shelf');
-            if (!btn || btn.classList.contains('saved')) return;
-
-            const albumNome = btn.dataset.album;
-            const item = catalogoBase.find(a => a.album === albumNome);
-            if (!item) return;
-
-            const chave = 'dissonance_vinyls_' + usuarioAtual;
-            const lista = JSON.parse(localStorage.getItem(chave)) || [];
-            lista.unshift({
-                id: Date.now(),
-                album: item.album,
-                artist: item.artist,
-                color: item.color,
-                coverImage: item.cover,
-                listened: false
-            });
-            localStorage.setItem(chave, JSON.stringify(lista));
-            renderizarExplorar();
-        });
-    }
-
-    const logoutBtn = document.querySelector('.btn-logout');
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            localStorage.removeItem('usuarioLogado');
-            window.location.href = 'index.html';
-        });
-    }
-
-    renderizarExplorar();
-});
-    if (catalogGrid) {
-        catalogGrid.addEventListener('click', (e) => {
-            const btn = e.target.closest('.btn-save-shelf');
             if (!btn) return;
 
             const albumNome = btn.dataset.album;
@@ -193,3 +128,15 @@ document.addEventListener('DOMContentLoaded', () => {
             renderizarExplorar();
         });
     }
+
+    const logoutBtn = document.querySelector('.btn-logout');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            localStorage.removeItem('usuarioLogado');
+            window.location.href = 'index.html';
+        });
+    }
+
+    renderizarExplorar();
+});
