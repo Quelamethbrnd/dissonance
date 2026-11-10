@@ -496,3 +496,34 @@ body {
     transform: translate(-1px, -1px);
     box-shadow: 3px 3px 0px #000000;
 }
+
+.btn-upload-cover {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 5px 5px;
+    background-color: var(--bg-content);
+    color: var(--text-dark);
+    border: 1px solid var(--text-dark);
+    border-radius: 20px;
+    box-shadow: 2px 2px 0px #000000;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    margin-right: 8px;
+    vertical-align: middle;
+    transition: transform 0.1s, box-shadow 0.1s, background-color 0.2s;
+}
+
+.btn-upload-cover:hover {
+    background-color: var(--box-gray);
+    transform: translate(-1px, -1px);
+    box-shadow: 3px 3px 0px #000000;
+}
+
+.btn-upload-cover.has-image {
+    background-color: #8ce99a;
+    color: #000000;
+}

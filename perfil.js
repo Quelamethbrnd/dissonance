@@ -18,45 +18,46 @@
             bioText.textContent = savedBio
         }
 
+        // --- ESTANTE 3D DE VINIS ---
         const vinylStack = document.getElementById('vinyl-stack')
         const addVinylForm = document.getElementById('add-vinyl-form')
         const statVinyls = document.getElementById('stat-vinyls')
         const vinylCoverInput = document.getElementById('vinyl-cover-input')
         const vinylUploadLabel = document.getElementById('vinyl-upload-label')
 
-        let imagemLombadaBase64 = ''
+        let capaQuadradaBase64 = ''
 
         const vinisIniciais = [
             {
             id: 101,
             album: 'Puberty 2',
             artist: 'Mitski',
-            color: '#f7bbd7',
-            spineImage: 'imgs/Mitskipuberty2.jpg',
+            color: '#2b2d42',
+            coverImage: 'imgs/Mitskipuberty2.jpg',
             listened: true
             },
             {
             id: 102,
             album: 'Blonde',
             artist: 'Frank Ocean',
-            color: '#b2f2bb',
-            spineImage: 'imgs/Blonde_-_Frank_Ocean.jpeg',
+            color: '#f8f9fa',
+            coverImage: 'imgs/Blonde_-_Frank_Ocean.jpeg',
             listened: true
             },
             {
             id: 103,
             album: 'In Rainbows',
             artist: 'Radiohead',
-            color: '#ffe066',
-            spineImage: 'imgs/Radiohead_-_In_Rainbows.jpg',
+            color: '#d9480f',
+            coverImage: 'imgs/Radiohead_-_In_Rainbows.jpg',
             listened: false
             },
             {
             id: 104,
             album: 'DAMN.',
             artist: 'Kendrick Lamar',
-            color: '#ffa8a8',
-            spineImage: 'imgs/Kendrick_Lamar_-_Damn.png',
+            color: '#82c91e',
+            coverImage: 'imgs/Kendrick_Lamar_-_Damn.png',
             listened: false
             }
         ]
@@ -78,6 +79,17 @@
             )
         }
 
+        // Calcula se o texto da lombada deve ser preto ou branco com base na cor escolhida
+        function obterCorTextoContraste (hexColor) {
+            const hex = hexColor.replace('#', '')
+            const r = parseInt(hex.substring(0, 2), 16)
+            const g = parseInt(hex.substring(2, 4), 16)
+            const b = parseInt(hex.substring(4, 6), 16)
+            const luminancia = (0.299 * r + 0.587 * g + 0.114 * b) / 255
+            return luminancia > 0.55 ? '#000000' : '#ffffff'
+        }
+
+        // Processa a imagem quadrada da capa para o plano 3D
         if (vinylCoverInput) {
             vinylCoverInput.addEventListener('change', event => {
             const file = event.target.files.item(0)
@@ -88,23 +100,20 @@
                 const img = new Image()
                 img.onload = () => {
                 const canvas = document.createElement('canvas')
-                const targetW = 600
-                const targetH = 90
-                canvas.width = targetW
-                canvas.height = targetH
+                const size = 450
+                canvas.width = size
+                canvas.height = size
                 const ctx = canvas.getContext('2d')
 
-                const scale = Math.max(targetW / img.width, targetH / img.height)
-                const w = img.width * scale
-                const h = img.height * scale
-                const x = (targetW - w) / 2
-                const y = (targetH - h) / 2
+                const minSide = Math.min(img.width, img.height)
+                const sx = (img.width - minSide) / 2
+                const sy = (img.height - minSide) / 2
 
-                ctx.drawImage(img, x, y, w, h)
-                imagemLombadaBase64 = canvas.toDataURL('image/jpeg', 0.8)
+                ctx.drawImage(img, sx, sy, minSide, minSide, 0, 0, size, size)
+                capaQuadradaBase64 = canvas.toDataURL('image/jpeg', 0.8)
 
                 if (vinylUploadLabel) {
-                    vinylUploadLabel.textContent = '✓ Imagem Pronta'
+                    vinylUploadLabel.textContent = '✓ Capa Pronta'
                     vinylUploadLabel.classList.add('has-image')
                 }
                 }
@@ -125,49 +134,56 @@
 
             if (lista.length === 0) {
             vinylStack.innerHTML =
-                '<p style="font-size: 0.85rem;">Sua estante está vazia. Adicione um disco acima!</p>'
+                '<p style="font-size: 0.85rem; color: #aaa;">Sua estante 3D está vazia. Adicione um disco acima!</p>'
             return
             }
 
-            lista.forEach(vinil => {
-            const spine = document.createElement('div')
-            spine.classList.add('vinyl-spine')
-            if (vinil.listened) spine.classList.add('listened')
+            const metade = Math.ceil(lista.length / 2)
 
-            if (vinil.spineImage) {
-                spine.classList.add('has-bg-image')
-                spine.style.backgroundImage = `url('${vinil.spineImage}')`
+            lista.forEach((vinil, index) => {
+            const item3D = document.createElement('div')
+            item3D.classList.add('vinyl-3d-item')
+            if (vinil.listened) item3D.classList.add('listened')
+
+            // Metade superior inclina a capa para baixo; metade inferior inclina para cima
+            if (index < metade) {
+                item3D.classList.add('tilt-bottom')
             } else {
-                spine.style.backgroundColor = vinil.color || '#f7bbd7'
+                item3D.classList.add('tilt-top')
             }
 
-            spine.dataset.id = vinil.id
+            item3D.dataset.id = vinil.id
 
-            spine.innerHTML = `
-                        <div class="vinyl-spine-left">
-                            <div class="vinyl-checkbox">${
-                            vinil.listened ? '✓' : ''
-                            }</div>
-                            <div class="vinyl-info">
-                                <span class="vinyl-album-name">${escapeHTML(
-                                vinil.album
-                                )}</span>
-                                <span class="vinyl-artist-name">— ${escapeHTML(
-                                vinil.artist
-                                )}</span>
+            const corFundoLombada = vinil.color || '#f7bbd7'
+            const corTextoLombada = obterCorTextoContraste(corFundoLombada)
+            const imagemCapa =
+                vinil.coverImage || vinil.spineImage || 'imgs/Blonde_-_Frank_Ocean.jpeg'
+
+            item3D.innerHTML = `
+                        <div class="vinyl-spine-face" style="background-color: ${corFundoLombada}; color: ${corTextoLombada};">
+                            <div class="vinyl-spine-left">
+                                <div class="vinyl-checkbox">${
+                                vinil.listened ? '✓' : ''
+                                }</div>
+                                <div class="vinyl-title-group">
+                                    <span class="vinyl-album-name">${escapeHTML(
+                                    vinil.album
+                                    )}</span>
+                                    <span class="vinyl-artist-name">${escapeHTML(
+                                    vinil.artist
+                                    )}</span>
+                                </div>
+                            </div>
+                            <div class="vinyl-spine-right">
+                                <button type="button" class="btn-remove-vinyl" title="Remover da estante" data-id="${
+                                vinil.id
+                                }">✕</button>
                             </div>
                         </div>
-                        <div class="vinyl-spine-right">
-                            <span class="vinyl-status-badge">${
-                            vinil.listened ? 'Ouvido' : 'Na fila'
-                            }</span>
-                            <button type="button" class="btn-remove-vinyl" title="Remover da estante" data-id="${
-                            vinil.id
-                            }">✕</button>
-                        </div>
+                        <div class="vinyl-cover-plane" style="background-image: url('${imagemCapa}');"></div>
                     `
 
-            vinylStack.appendChild(spine)
+            vinylStack.appendChild(item3D)
             })
         }
 
@@ -182,9 +198,9 @@
             return
             }
 
-            const spine = event.target.closest('.vinyl-spine')
-            if (spine) {
-            const idToggle = Number(spine.dataset.id)
+            const item3D = event.target.closest('.vinyl-3d-item')
+            if (item3D) {
+            const idToggle = Number(item3D.dataset.id)
             const lista = obterVinis()
             const item = lista.find(v => v.id === idToggle)
             if (item) {
@@ -215,7 +231,7 @@
                 album: album,
                 artist: artist,
                 color: color,
-                spineImage: imagemLombadaBase64 || '',
+                coverImage: capaQuadradaBase64 || 'imgs/Blonde_-_Frank_Ocean.jpeg',
                 listened: false
                 })
 
@@ -223,7 +239,7 @@
 
                 addVinylForm.reset()
                 colorInput.value = '#f7bbd7'
-                imagemLombadaBase64 = ''
+                capaQuadradaBase64 = ''
                 if (vinylUploadLabel) {
                 vinylUploadLabel.textContent = '📷 Imagem'
                 vinylUploadLabel.classList.remove('has-image')
@@ -232,12 +248,13 @@
                 renderizarVinis()
             } catch (err) {
                 alert(
-                'Limite de armazenamento atingido. Remova algum disco antigo antes de adicionar novas imagens.'
+                'Limite de armazenamento atingido. Remova algum disco antigo antes de adicionar novas capas.'
                 )
             }
             })
         }
 
+        // --- REVIEWS PUBLICADAS ---
         const reviewsList = document.getElementById('user-reviews-list')
         const statReviews = document.getElementById('stat-reviews')
         const statLikes = document.getElementById('stat-likes')
@@ -266,36 +283,21 @@
             card.classList.add('review-card')
 
             card.innerHTML = `
-                        <img src="${review.cover_url}" alt="${escapeHTML(
-                review.album_name
-            )}" class="review-cover">
-                        <div class="review-body">
-                            <div class="review-header">
-                                <strong>${escapeHTML(review.album_name)}</strong>
-                                <span>${escapeHTML(review.rating)}</span>
-                            </div>
-                            <p class="review-text">${escapeHTML(review.comment)}</p>
-                            <div class="review-footer-row">
-                                <span>♥ ${review.likes} curtidas</span>
-                                <button class="btn-delete-review" data-id="${
-                                review.id
-                                }">Excluir review</button>
-                            </div>
-                        </div>
-                    `
+        ${escapeHTML(review.album_name)}
+        ${escapeHTML(review.rating)}
 
+        ${escapeHTML(review.comment)}
+
+        ♥ ${review.likes} curtidas
+        Excluir review`
             reviewsList.appendChild(card)
             })
         }
-
         reviewsList.addEventListener('click', event => {
             const deleteBtn = event.target.closest('.btn-delete-review')
             if (!deleteBtn) return
-
             if (!confirm('Tem certeza que deseja apagar esta review?')) return
-
             const reviewId = Number(deleteBtn.dataset.id)
-
             let todas = JSON.parse(localStorage.getItem('dissonance_reviews')) || []
             todas = todas.filter(r => r.id !== reviewId)
             localStorage.setItem('dissonance_reviews', JSON.stringify(todas))
