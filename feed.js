@@ -1,18 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     const usuarioAtual = localStorage.getItem('usuarioLogado') || '@ouvinte';
 
-    // Aplica tema e foto salvos
-    const themes = {
-        pink: { textPink: '#f1c5d9', btnPink: '#f7bbd7' },
-        cyan: { textPink: '#b2f2bb', btnPink: '#8ce99a' },
-        purple: { textPink: '#e5dbff', btnPink: '#d0bfff' },
-        yellow: { textPink: '#fff3bf', btnPink: '#ffe066' }
-    };
-    const temaSalvo = localStorage.getItem('temaSite') || 'pink';
-    const selectedTheme = themes[temaSalvo] || themes.pink;
-    document.documentElement.style.setProperty('--text-pink', selectedTheme.textPink);
-    document.documentElement.style.setProperty('--btn-pink', selectedTheme.btnPink);
-
+    // Aplica foto de perfil salva na barra lateral
     const savedAvatar = localStorage.getItem('avatar_' + usuarioAtual);
     const avatarContainer = document.querySelector('.avatar-circle');
     if (savedAvatar && avatarContainer) {
@@ -46,7 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
         'damn': 'imgs/Kendrick_Lamar_-_Damn.png'
     };
 
-    // Reviews iniciais de exemplo caso o banco local esteja vazio
+    // Reviews iniciais já com exemplos de comentários
     const reviewsPadrao = [
         {
             id: 1,
@@ -55,7 +44,10 @@ document.addEventListener('DOMContentLoaded', () => {
             rating: '★★★★★',
             comment: 'A produção desse álbum é impecável. A transição entre faixas calmas e explosivas nunca perde a força.',
             cover_url: 'imgs/Mitskipuberty2.jpg',
-            likes: 14
+            likes: 14,
+            commentsList: [
+                { id: 101, author: '@lucas_rock', text: 'Your Best American Girl é uma obra-prima!' }
+            ]
         },
         {
             id: 2,
@@ -64,7 +56,8 @@ document.addEventListener('DOMContentLoaded', () => {
             rating: '★★★★★',
             comment: 'Ouvindo no repeat hoje. Weird Fishes continua sendo uma das melhores músicas já feitas.',
             cover_url: 'imgs/Radiohead_-_In_Rainbows.jpg',
-            likes: 29
+            likes: 29,
+            commentsList: []
         }
     ];
 
@@ -77,15 +70,33 @@ document.addEventListener('DOMContentLoaded', () => {
         return JSON.parse(salvas);
     }
 
-    function carregarReviews() {
+    function salvarReviews(lista) {
+        localStorage.setItem('dissonance_reviews', JSON.stringify(lista));
+    }
+
+    function carregarReviews(idAberto = null) {
         const lista = obterReviews();
         const cardsAntigos = feedList.querySelectorAll('.review-card');
         cardsAntigos.forEach(card => card.remove());
 
         lista.forEach(review => {
+            const comentarios = review.commentsList || [];
             const newCard = document.createElement('article');
             newCard.classList.add('review-card');
             newCard.dataset.id = review.id;
+
+            // Monta o HTML dos comentários existentes
+            const comentariosHTML = comentarios.map(c => `
+                <div class="comment-item" data-comment-id="${c.id}">
+                    <div class="comment-item-content">
+                        <strong>${escapeHTML(c.author)}:</strong>
+                        <span>${escapeHTML(c.text)}</span>
+                    </div>
+                    ${c.author === usuarioAtual ? `<button type="button" class="btn-delete-comment" title="Apagar comentário">✕</button>` : ''}
+                </div>
+            `).join('');
+
+            const isOpenClass = (idAberto === review.id) ? 'open' : '';
 
             newCard.innerHTML = `
                 <img src="${review.cover_url}" alt="${escapeHTML(review.album_name)}" class="review-cover">
@@ -96,8 +107,19 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                     <p class="review-text">${escapeHTML(review.comment)}</p>
                     <div class="review-actions">
-                        <button class="action-btn btn-like">♡ Curtir (${review.likes})</button>
-                        <button class="action-btn">💬 Comentar (0)</button>
+                        <button type="button" class="action-btn btn-like">♡ Curtir (${review.likes})</button>
+                        <button type="button" class="action-btn btn-toggle-comments">💬 Comentar (${comentarios.length})</button>
+                    </div>
+
+                    <!-- Gaveta de Comentários -->
+                    <div class="comments-box ${isOpenClass}">
+                        <div class="comments-list">
+                            ${comentariosHTML || '<small style="opacity:0.7;">Nenhum comentário ainda. Seja o primeiro!</small>'}
+                        </div>
+                        <form class="comment-form">
+                            <input type="text" placeholder="Escreva um comentário..." required>
+                            <button type="submit" class="btn-send-comment">Enviar</button>
+                        </form>
                     </div>
                 </div>
             `;
@@ -105,6 +127,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Publicar nova review
     if (reviewForm) {
         reviewForm.addEventListener('submit', (event) => {
             event.preventDefault();
@@ -114,7 +137,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const commentTextarea = reviewForm.querySelector('textarea');
 
             const albumName = albumInput.value.trim();
-            const ratingStars = ratingSelect.options[ratingSelect.selectedIndex].text.split(' ')[0];
+            const ratingStars = ratingSelect.options[ratingSelect.selectedIndex].text.split(' ');
             const commentText = commentTextarea.value.trim();
 
             if (!albumName || !commentText) return;
@@ -136,66 +159,122 @@ document.addEventListener('DOMContentLoaded', () => {
                 rating: ratingStars,
                 comment: commentText,
                 cover_url: coverSrc,
-                likes: 0
+                likes: 0,
+                commentsList: []
             });
 
-            localStorage.setItem('dissonance_reviews', JSON.stringify(lista));
+            salvarReviews(lista);
             reviewForm.reset();
             carregarReviews();
         });
     }
 
+    // Interações nos cards (Curtir, Abrir Comentários, Excluir Comentário)
     feedList.addEventListener('click', (event) => {
-        const btn = event.target.closest('.btn-like');
-        if (!btn) return;
-
-        const card = btn.closest('.review-card');
+        const card = event.target.closest('.review-card');
+        if (!card) return;
         const reviewId = Number(card.dataset.id);
-        const lista = obterReviews();
-        const item = lista.find(r => r.id === reviewId);
 
-        if (item) {
-            if (btn.classList.contains('liked')) {
-                item.likes--;
-                btn.classList.remove('liked');
-                btn.style.color = '#444';
-                btn.textContent = `♡ Curtir (${item.likes})`;
-            } else {
-                item.likes++;
-                btn.classList.add('liked');
-                btn.style.color = '#d9387a';
-                btn.textContent = `♥ Curtido (${item.likes})`;
+        // 1. Curtir
+        const likeBtn = event.target.closest('.btn-like');
+        if (likeBtn) {
+            const lista = obterReviews();
+            const item = lista.find(r => r.id === reviewId);
+            if (item) {
+                if (likeBtn.classList.contains('liked')) {
+                    item.likes--;
+                    likeBtn.classList.remove('liked');
+                    likeBtn.style.color = '';
+                    likeBtn.textContent = `♡ Curtir (${item.likes})`;
+                } else {
+                    item.likes++;
+                    likeBtn.classList.add('liked');
+                    likeBtn.style.color = '#d9387a';
+                    likeBtn.textContent = `♥ Curtido (${item.likes})`;
+                }
+                salvarReviews(lista);
             }
-            localStorage.setItem('dissonance_reviews', JSON.stringify(lista));
+            return;
+        }
+
+        // 2. Abrir / Fechar Gaveta de Comentários
+        const toggleBtn = event.target.closest('.btn-toggle-comments');
+        if (toggleBtn) {
+            const commentsBox = card.querySelector('.comments-box');
+            commentsBox.classList.toggle('open');
+            if (commentsBox.classList.contains('open')) {
+                commentsBox.querySelector('input').focus();
+            }
+            return;
+        }
+
+        // 3. Excluir próprio comentário
+        const delCommentBtn = event.target.closest('.btn-delete-comment');
+        if (delCommentBtn) {
+            const commentItem = delCommentBtn.closest('.comment-item');
+            const commentId = Number(commentItem.dataset.commentId);
+            const lista = obterReviews();
+            const review = lista.find(r => r.id === reviewId);
+
+            if (review && review.commentsList) {
+                review.commentsList = review.commentsList.filter(c => c.id !== commentId);
+                salvarReviews(lista);
+                carregarReviews(reviewId); // Mantém a gaveta aberta após apagar
+            }
         }
     });
 
-    platformButtons.forEach((button) => {
+    // 4. Enviar novo comentário
+    feedList.addEventListener('submit', (event) => {
+        const commentForm = event.target.closest('.comment-form');
+        if (!commentForm) return;
+        event.preventDefault();
+
+        const card = commentForm.closest('.review-card');
+        const reviewId = Number(card.dataset.id);
+        const input = commentForm.querySelector('input');
+        const text = input.value.trim();
+
+        if (!text) return;
+
+        const lista = obterReviews();
+        const review = lista.find(r => r.id === reviewId);
+        if (review) {
+        if (!review.commentsList) review.commentsList = [];
+        review.commentsList.push({
+        id: Date.now(),
+        author: usuarioAtual,
+        text: text
+        });
+        salvarReviews(lista);
+        carregarReviews(reviewId); // Recarrega mantendo a caixa aberta
+        }
+        });
+        // Conexões de Tracking
+        platformButtons.forEach((button) => {
         button.addEventListener('click', () => {
-            const platformName = button.textContent.replace('✓ ', '').replace('+ Conectar ', '').replace(' Conectado', '');
-            if (button.classList.contains('connected')) {
-                button.classList.remove('connected');
-                button.textContent = `+ Conectar ${platformName}`;
-            } else {
-                button.classList.add('connected');
-                button.textContent = `✓ ${platformName} Conectado`;
-            }
+        const platformName = button.textContent.replace('✓ ', '').replace('+ Conectar ', '').replace(' Conectado', '');
+        if (button.classList.contains('connected')) {
+        button.classList.remove('connected');
+        button.textContent = + Conectar ${platformName};
+        } else {
+        button.classList.add('connected');
+        button.textContent = ✓ ${platformName} Conectado;
+        }
         });
-    });
-
-    if (logoutBtn) {
+        });
+        // Botão Sair
+        if (logoutBtn) {
         logoutBtn.addEventListener('click', (event) => {
-            event.preventDefault();
-            localStorage.removeItem('usuarioLogado');
-            window.location.href = 'index.html';
+        event.preventDefault();
+        localStorage.removeItem('usuarioLogado');
+        window.location.href = 'index.html';
         });
-    }
-
-    function escapeHTML(str) {
+        }
+        function escapeHTML(str) {
         const div = document.createElement('div');
         div.textContent = str;
         return div.innerHTML;
-    }
-
-    carregarReviews();
-});
+        }
+        carregarReviews();
+        });

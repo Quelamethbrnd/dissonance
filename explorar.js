@@ -1,7 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     const usuarioAtual = localStorage.getItem('usuarioLogado') || '@ouvinte';
 
-    // Aplica o tema de cores salvo
     const themes = {
         pink: { textPink: '#f1c5d9', btnPink: '#f7bbd7' },
         cyan: { textPink: '#b2f2bb', btnPink: '#8ce99a' },
@@ -22,7 +21,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function buscarReviews() {
         const todas = JSON.parse(localStorage.getItem('dissonance_reviews')) || [];
-        // Ordena das mais curtidas para as menos curtidas
         return todas.sort((a, b) => (b.likes || 0) - (a.likes || 0));
     }
 

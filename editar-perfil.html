@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Editar Perfil - Em Frequência Com Você</title>
+    <title>Editar Perfil - DISSONANCE</title>
     <link rel="stylesheet" href="style-editar.css">
     <link rel="preconnect" href="https://googleapis.com">
     <link rel="preconnect" href="https://gstatic.com" crossorigin>
@@ -15,7 +15,7 @@
 
         <!-- Cabeçalho Principal -->
         <header class="main-header">
-            <h1 class="main-title">EM FREQUENCIA <br> COM VOCE</h1>
+            <h1 class="main-title">DISSONANCE</h1>
         </header>
 
         <!-- Barra de Navegação Unificada -->
@@ -25,7 +25,7 @@
             </div>
             <div class="nav-links">
                 <a href="home.html" class="nav-item">Feed</a>
-                <a href="#" class="nav-item">Explorar</a>
+                <a href="explorar.html" class="nav-item">Explorar</a>
                 <a href="perfil.html" class="nav-item active">Perfil</a>
                 <a href="index.html" class="nav-item btn-logout">Sair</a>
             </div>
@@ -48,7 +48,7 @@
                         <label for="avatar-input" class="btn-upload">Escolher Nova Foto 📷</label>
                         <input type="file" id="avatar-input" accept="image/*" hidden>
                         <button type="button" id="btn-remove-avatar" class="btn-remove-photo">Remover foto</button>
-                        <small>Formatos aceitos: JPG, PNG ou GIF (máx. 2MB).</small>
+                        <small>Formatos aceitos: JPG, PNG ou GIF (redimensionado automaticamente).</small>
                     </div>
                 </div>
 
@@ -56,8 +56,12 @@
                 <div class="edit-section">
                     <h3>DADOS DO PERFIL</h3>
                     <div class="input-group">
-                        <label for="edit-username">Nome de Usuário (@username)</label>
-                        <input type="text" id="edit-username" placeholder="@seu_usuario" required>
+                        <label for="edit-username">Nome de Usuário (máx. 15 caracteres)</label>
+                        <div style="display: flex; gap: 10px;">
+                            <input type="text" id="edit-username" maxlength="16" readonly style="background-color: #e9ecef; color: #555; cursor: not-allowed;" required>
+                            <button type="button" id="btn-unlock-username" style="padding: 0 15px; border: 1px solid #000; background-color: #fff; font-weight: 700; cursor: pointer; font-family: 'Montserrat', sans-serif;">Alterar 🔒</button>
+                        </div>
+                        <small style="color: #666; font-size: 0.75rem;">Seu @username identifica suas reviews. Desbloqueie apenas se realmente quiser mudá-lo.</small>
                     </div>
 
                     <div class="input-group">
@@ -66,38 +70,49 @@
                     </div>
                 </div>
 
-                <!-- Seção 3: Personalização de Cores do Site -->
+                <!-- Seção 3: Personalização Avançada de Cores -->
                 <div class="edit-section">
-                    <h3>PALETA DE CORES DO SITE</h3>
-                    <p class="section-desc">Escolha um tema visual para aplicar nas páginas do seu perfil e feed:</p>
+                    <h3>PERSONALIZAÇÃO DO TEMA DO SITE</h3>
+                    <p class="section-desc">Escolha um modelo pronto ou crie sua própria combinação de cores:</p>
                     
-                    <div class="theme-options-grid">
-                        <!-- Tema 1: Original (Rosa Pastel) -->
-                        <label class="theme-card">
-                            <input type="radio" name="site-theme" value="pink" checked>
-                            <span class="color-swatch" style="background-color: #f7bbd7;"></span>
-                            <strong>Rosa Original</strong>
+                    <!-- Atalhos Rápidos -->
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px;">
+                        <button type="button" class="btn-preset" data-preset="pink" style="padding: 8px 14px; border: 1px solid #000; background: #f7bbd7; font-weight: 700; cursor: pointer;">Rosa Clássico</button>
+                        <button type="button" class="btn-preset" data-preset="dark" style="padding: 8px 14px; border: 1px solid #000; background: #18181b; color: #f1c5d9; font-weight: 700; cursor: pointer;">Modo Escuro 🌙</button>
+                        <button type="button" class="btn-preset" data-preset="cyber" style="padding: 8px 14px; border: 1px solid #000; background: #0f172a; color: #38bdf8; font-weight: 700; cursor: pointer;">Cyber Dark ⚡</button>
+                        <button type="button" class="btn-preset" data-preset="indie" style="padding: 8px 14px; border: 1px solid #000; background: #8ce99a; font-weight: 700; cursor: pointer;">Verde Indie</button>
+                    </div>
+
+                    <!-- Seletores de Cor Personalizados -->
+                    <div class="custom-colors-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">
+                        <label style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-content); border: 1px solid var(--text-dark); padding: 10px;">
+                            <span style="font-size: 0.85rem; font-weight: 700;">Fundo das Caixas</span>
+                            <input type="color" id="color-bg-content" value="#ffffff" style="cursor: pointer; border: none; width: 35px; height: 35px;">
                         </label>
 
-                        <!-- Tema 2: Ciano / Electric -->
-                        <label class="theme-card">
-                            <input type="radio" name="site-theme" value="cyan">
-                            <span class="color-swatch" style="background-color: #8ce99a;"></span>
-                            <strong>Verde Indie</strong>
+                        <label style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-content); border: 1px solid var(--text-dark); padding: 10px;">
+                            <span style="font-size: 0.85rem; font-weight: 700;">Fundo Externo / Secundário</span>
+                            <input type="color" id="color-box-gray" value="#f4f4f4" style="cursor: pointer; border: none; width: 35px; height: 35px;">
                         </label>
 
-                        <!-- Tema 3: Lilás / Vaporwave -->
-                        <label class="theme-card">
-                            <input type="radio" name="site-theme" value="purple">
-                            <span class="color-swatch" style="background-color: #d0bfff;"></span>
-                            <strong>Lilás Sintetizador</strong>
+                        <label style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-content); border: 1px solid var(--text-dark); padding: 10px;">
+                            <span style="font-size: 0.85rem; font-weight: 700;">Cor dos Botões e Destaques</span>
+                            <input type="color" id="color-btn-pink" value="#f7bbd7" style="cursor: pointer; border: none; width: 35px; height: 35px;">
                         </label>
 
-                        <!-- Tema 4: Amarelo Vinil -->
-                        <label class="theme-card">
-                            <input type="radio" name="site-theme" value="yellow">
-                            <span class="color-swatch" style="background-color: #ffe066;"></span>
-                            <strong>Amarelo Vinil</strong>
+                        <label style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-content); border: 1px solid var(--text-dark); padding: 10px;">
+                            <span style="font-size: 0.85rem; font-weight: 700;">Cor do Título do Cabeçalho</span>
+                            <input type="color" id="color-text-pink" value="#f1c5d9" style="cursor: pointer; border: none; width: 35px; height: 35px;">
+                        </label>
+
+                        <label style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-content); border: 1px solid var(--text-dark); padding: 10px;">
+                            <span style="font-size: 0.85rem; font-weight: 700;">Cor dos Textos e Bordas</span>
+                            <input type="color" id="color-text-dark" value="#000000" style="cursor: pointer; border: none; width: 35px; height: 35px;">
+                        </label>
+
+                        <label style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-content); border: 1px solid var(--text-dark); padding: 10px;">
+                            <span style="font-size: 0.85rem; font-weight: 700;">Fundo do Cabeçalho</span>
+                            <input type="color" id="color-bg-header" value="#000000" style="cursor: pointer; border: none; width: 35px; height: 35px;">
                         </label>
                     </div>
                 </div>
@@ -113,7 +128,6 @@
 
     </div>
 
-    <script src="j/editar-perfil.js"></script>
-    
+    <script src="editar-perfil.js"></script>
 </body>
 </html>

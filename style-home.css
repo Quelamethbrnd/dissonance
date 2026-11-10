@@ -412,3 +412,87 @@ body {
     color: var(--text-dark);
     text-decoration: underline;
 }
+
+/* --- SEÇÃO DE COMENTÁRIOS NAS REVIEWS --- */
+.comments-box {
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px dashed var(--text-dark);
+    display: none; /* Fica oculta até clicar em Comentar */
+    flex-direction: column;
+    gap: 10px;
+}
+
+.comments-box.open {
+    display: flex;
+}
+
+.comments-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.comment-item {
+    background-color: var(--box-gray);
+    border: 1px solid var(--text-dark);
+    padding: 8px 12px;
+    font-size: 0.85rem;
+    line-height: 1.4;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.comment-item-content strong {
+    color: var(--text-dark);
+    margin-right: 6px;
+}
+
+.comment-item-content span {
+    color: var(--text-muted);
+}
+
+.btn-delete-comment {
+    background: none;
+    border: none;
+    color: #c92a2a;
+    font-weight: 700;
+    font-size: 0.75rem;
+    cursor: pointer;
+}
+
+.comment-form {
+    display: flex;
+    gap: 8px;
+    margin-top: 4px;
+}
+
+.comment-form input {
+    flex-grow: 1;
+    padding: 8px 10px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.85rem;
+    border: 1px solid var(--text-dark);
+    background-color: var(--bg-content);
+    color: var(--text-dark);
+    outline: none;
+}
+
+.btn-send-comment {
+    background-color: var(--btn-pink);
+    color: #000000;
+    border: 1px solid var(--text-dark);
+    box-shadow: 2px 2px 0px #000000;
+    padding: 0 16px;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 700;
+    font-size: 0.8rem;
+    cursor: pointer;
+}
+
+.btn-send-comment:hover {
+    transform: translate(-1px, -1px);
+    box-shadow: 3px 3px 0px #000000;
+}

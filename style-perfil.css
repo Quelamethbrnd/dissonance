@@ -9,6 +9,7 @@
     --bg-content: #ffffff;
     --text-pink: #f1c5d9;
     --text-dark: #000000;
+    --text-muted: #333333;
     --btn-pink: #f7bbd7;
     --box-gray: #f4f4f4;
 }
@@ -116,7 +117,7 @@ body {
     display: flex;
     flex-direction: column;
     gap: 30px;
-    max-height: 700px;
+    max-height: 720px;
     overflow-y: auto;
 }
 
@@ -143,6 +144,7 @@ body {
     align-items: center;
     font-size: 2.8rem;
     flex-shrink: 0;
+    overflow: hidden;
 }
 
 .profile-details {
@@ -164,7 +166,8 @@ body {
 }
 
 .btn-edit-profile {
-    background-color: var(--bg-content);
+    background-color: var(--btn-pink);
+    color: #000000;
     border: 1px solid var(--text-dark);
     box-shadow: 2px 2px 0px #000;
     padding: 6px 14px;
@@ -175,13 +178,9 @@ body {
     cursor: pointer;
 }
 
-.btn-edit-profile:hover {
-    background-color: var(--btn-pink);
-}
-
 .profile-bio {
     font-size: 0.95rem;
-    color: #333;
+    color: var(--text-muted);
 }
 
 /* Estatísticas */
@@ -208,53 +207,188 @@ body {
 .stat-box span {
     font-size: 0.75rem;
     text-transform: uppercase;
-    color: #555;
+    color: var(--text-muted);
 }
 
-/* Títulos das Seções */
+/* --- ESTANTE DE VINIS (CHECKLIST VISUAL) --- */
+.section-header-flex {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    border-bottom: 2px solid var(--text-dark);
+    padding-bottom: 6px;
+    margin-bottom: 15px;
+}
+
 .section-title {
     font-size: 1rem;
     font-weight: 900;
     letter-spacing: 1px;
+}
+
+.vinyl-hint {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-weight: 700;
+}
+
+.add-vinyl-form {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.add-vinyl-form input[type="text"] {
+    flex: 1;
+    padding: 9px 12px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.85rem;
+    border: 1px solid var(--text-dark);
+    background-color: var(--bg-content);
+    color: var(--text-dark);
+}
+
+.add-vinyl-form input[type="color"] {
+    width: 42px;
+    height: 38px;
+    border: 1px solid var(--text-dark);
+    cursor: pointer;
+    padding: 2px;
+    background: var(--bg-content);
+}
+
+.btn-add-vinyl {
+    background-color: var(--btn-pink);
+    color: #000000;
+    border: 1px solid var(--text-dark);
+    box-shadow: 2px 2px 0px #000;
+    padding: 0 18px;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 700;
+    font-size: 0.85rem;
+    cursor: pointer;
+}
+
+/* Pilha de Lombadas de Vinis */
+.vinyl-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 15px;
+    background-color: var(--box-gray);
+    border: 2px solid var(--text-dark);
+    box-shadow: 5px 5px 0px #000;
+}
+
+.vinyl-spine {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    border: 2px solid #000000;
+    box-shadow: 3px 3px 0px #000000;
+    cursor: pointer;
+    transition: transform 0.15s ease, opacity 0.2s ease;
+    color: #000000; /* Texto sempre legível na lombada colorida */
+}
+
+.vinyl-spine:hover {
+    transform: translateX(6px);
+}
+
+.vinyl-spine-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.vinyl-checkbox {
+    width: 22px;
+    height: 22px;
+    border: 2px solid #000000;
+    background-color: #ffffff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: 900;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+}
+
+.vinyl-thumb {
+    width: 36px;
+    height: 36px;
+    object-fit: cover;
+    border: 1px solid #000000;
+    flex-shrink: 0;
+}
+
+.vinyl-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.vinyl-album-name {
+    font-weight: 900;
+    font-size: 0.95rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.vinyl-artist-name {
+    font-size: 0.85rem;
+    font-weight: 700;
+    opacity: 0.85;
+}
+
+/* Estado quando o disco já foi ouvido */
+.vinyl-spine.listened {
+    opacity: 0.78;
+}
+
+.vinyl-spine.listened .vinyl-album-name {
+    text-decoration: line-through;
+}
+
+.vinyl-spine-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.vinyl-status-badge {
+    font-size: 0.7rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    background-color: #ffffff;
+    border: 1px solid #000000;
+    padding: 3px 8px;
+    border-radius: 10px;
+}
+
+.btn-remove-vinyl {
+    background: none;
+    border: none;
+    font-weight: 900;
+    font-size: 1rem;
+    cursor: pointer;
+    color: #000000;
+    padding: 2px 6px;
+}
+
+.btn-remove-vinyl:hover {
+    color: #c92a2a;
+}
+
+/* Lista de Reviews do Usuário */
+.user-reviews-section .section-title {
     border-bottom: 2px solid var(--text-dark);
     padding-bottom: 6px;
     margin-bottom: 18px;
 }
 
-/* Vitrine Top 4 Álbuns */
-.favorites-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 20px;
-}
-
-.fav-album {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-}
-
-.fav-album img {
-    width: 100%;
-    aspect-ratio: 1 / 1;
-    object-fit: cover;
-    border: 2px solid var(--text-dark);
-    box-shadow: 4px 4px 0px #000;
-    transition: transform 0.2s ease;
-}
-
-.fav-album img:hover {
-    transform: translate(-2px, -2px);
-}
-
-.fav-album span {
-    font-size: 0.85rem;
-    font-weight: 700;
-    text-align: center;
-}
-
-/* Lista de Reviews do Usuário */
 .user-reviews-list {
     display: flex;
     flex-direction: column;
@@ -294,7 +428,7 @@ body {
 
 .review-text {
     font-size: 0.9rem;
-    color: #333;
+    color: var(--text-muted);
     margin: 8px 0;
 }
 
@@ -315,4 +449,65 @@ body {
     font-weight: 700;
     cursor: pointer;
     text-decoration: underline;
+}
+
+/* Botão de upload da lombada no formulário */
+.btn-upload-spine {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 14px;
+    background-color: var(--bg-content);
+    color: var(--text-dark);
+    border: 1px solid var(--text-dark);
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background-color 0.2s;
+}
+
+.btn-upload-spine:hover {
+    background-color: var(--btn-pink);
+    color: #000000;
+}
+
+.btn-upload-spine.has-image {
+    background-color: #8ce99a;
+    color: #000000;
+}
+
+/* Ajuste da lombada quando possui imagem preenchida */
+.vinyl-spine.has-bg-image {
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    position: relative;
+}
+
+/* Camada sutil para garantir leitura do texto sobre qualquer capa */
+.vinyl-spine.has-bg-image::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, rgba(0, 0, 0, 0.72) 0%, rgba(0, 0, 0, 0.35) 60%, rgba(0, 0, 0, 0.65) 100%);
+    z-index: 1;
+}
+
+.vinyl-spine.has-bg-image .vinyl-spine-left,
+.vinyl-spine.has-bg-image .vinyl-spine-right {
+    position: relative;
+    z-index: 2;
+}
+
+.vinyl-spine.has-bg-image .vinyl-album-name,
+.vinyl-spine.has-bg-image .vinyl-artist-name,
+.vinyl-spine.has-bg-image .btn-remove-vinyl {
+    color: #ffffff;
+    text-shadow: 1px 1px 2px #000000;
+}
+
+.vinyl-spine.has-bg-image .vinyl-status-badge {
+    background-color: rgba(255, 255, 255, 0.92);
+    color: #000000;
 }
