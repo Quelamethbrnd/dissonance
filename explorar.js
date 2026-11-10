@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (greetingSpan) greetingSpan.textContent = usuarioAtual;
 
     const searchInput = document.getElementById('explore-search');
-    const filterButtons = document.querySelectorAll('.filter-btn');
+    const filtersContainer = document.querySelector('.genre-filters');
     const trendingGrid = document.getElementById('community-trending-grid');
     const catalogGrid = document.getElementById('catalog-grid');
 
@@ -14,10 +14,10 @@ document.addEventListener('DOMContentLoaded', () => {
     let timerBusca = null;
 
     const catalogoBase = [
-        { album: 'Puberty 2', artist: 'Mitski', genre: 'indie', cover: 'imgs/Mitskipuberty2.jpg', color: '#2b2d42' },
-        { album: 'Blonde', artist: 'Frank Ocean', genre: 'rnb', cover: 'imgs/Blonde_-_Frank_Ocean.jpeg', color: '#f8f9fa' },
-        { album: 'In Rainbows', artist: 'Radiohead', genre: 'rock', cover: 'imgs/Radiohead_-_In_Rainbows.jpg', color: '#d9480f' },
-        { album: 'DAMN.', artist: 'Kendrick Lamar', genre: 'hiphop', cover: 'imgs/Kendrick_Lamar_-_Damn.png', color: '#82c91e' }
+        { album: 'Puberty 2', artist: 'Mitski', genre: 'Alternative', cover: 'imgs/Mitskipuberty2.jpg', color: '#2b2d42' },
+        { album: 'Blonde', artist: 'Frank Ocean', genre: 'R&B/Soul', cover: 'imgs/Blonde_-_Frank_Ocean.jpeg', color: '#f8f9fa' },
+        { album: 'In Rainbows', artist: 'Radiohead', genre: 'Rock', cover: 'imgs/Radiohead_-_In_Rainbows.jpg', color: '#d9480f' },
+        { album: 'DAMN.', artist: 'Kendrick Lamar', genre: 'Hip-Hop/Rap', cover: 'imgs/Kendrick_Lamar_-_Damn.png', color: '#82c91e' }
     ];
 
     function escaparHTML(str) {
@@ -29,6 +29,20 @@ document.addEventListener('DOMContentLoaded', () => {
     function jaEstaNaEstante(albumNome) {
         const vinis = JSON.parse(localStorage.getItem('dissonance_vinyls_' + usuarioAtual)) || [];
         return vinis.some(v => v.album.toLowerCase() === albumNome.toLowerCase());
+    }
+
+    function atualizarBotoesGenero(listaAtual) {
+        if (!filtersContainer) return;
+        const generosUnicos = [...new Set(listaAtual.map(item => item.genre).filter(Boolean))];
+
+        filtersContainer.innerHTML =
+            '<button type="button" class="filter-btn ' + (generoAtivo === 'todos' ? 'active' : '') + '" data-genre="todos">Todos</button>';
+
+        generosUnicos.forEach(gen => {
+            const ativo = (generoAtivo.toLowerCase() === gen.toLowerCase()) ? 'active' : '';
+            filtersContainer.innerHTML +=
+                '<button type="button" class="filter-btn ' + ativo + '" data-genre="' + escaparHTML(gen) + '">' + escaparHTML(gen) + '</button>';
+        });
     }
     function renderizarExplorar() {
         const reviews = JSON.parse(localStorage.getItem('dissonance_reviews')) || [];
@@ -50,7 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         '<img src="' + rev.cover_url + '" alt="' + escaparHTML(rev.album_name) + '">' +
                         '<div class="album-card-title">' + escaparHTML(rev.album_name) + '</div>' +
                         '<div class="album-card-artist">Por ' + escaparHTML(rev.username) + '</div>' +
-                        '<div class="album-card-meta"><span>' + escaparHTML(rev.rating) + '</span><span>♥ ' + rev.likes + '</span></div>';
+                        '<div class="album-card-meta"><span>' + escaparHTML(rev.rating) + '</span><span>♥ ' + (rev.likes || 0) + '</span></div>';
                     trendingGrid.appendChild(card);
                 });
             }
@@ -58,16 +72,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (catalogGrid) {
             catalogGrid.innerHTML = '';
-            const listaExibir = (termoBusca.length >= 2 && resultadosOnline.length > 0)
-                ? resultadosOnline
-                : catalogoBase.filter(item => {
-                    const bateGenero = (generoAtivo === 'todos') || (item.genre === generoAtivo);
-                    const bateTexto = item.album.toLowerCase().includes(termoBusca) || item.artist.toLowerCase().includes(termoBusca);
-                    return bateGenero && bateTexto;
-                });
+            const listaBase = resultadosOnline.length > 0 ? resultadosOnline : catalogoBase;
+            atualizarBotoesGenero(listaBase);
+
+            const listaExibir = listaBase.filter(item => {
+                const bateGenero = (generoAtivo === 'todos') || (item.genre.toLowerCase() === generoAtivo.toLowerCase());
+                const bateTexto = !termoBusca ||
+                    item.album.toLowerCase().includes(termoBusca) ||
+                    item.artist.toLowerCase().includes(termoBusca);
+                return bateGenero && bateTexto;
+            });
 
             if (listaExibir.length === 0) {
-                catalogGrid.innerHTML = '<p>Nenhum álbum encontrado.</p>';
+                catalogGrid.innerHTML = '<p>Nenhum álbum encontrado nesse gênero.</p>';
             } else {
                 listaExibir.forEach(item => {
                     const salvo = jaEstaNaEstante(item.album);
@@ -77,7 +94,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         '<img src="' + item.cover + '" alt="' + escaparHTML(item.album) + '">' +
                         '<div class="album-card-title">' + escaparHTML(item.album) + '</div>' +
                         '<div class="album-card-artist">' + escaparHTML(item.artist) + '</div>' +
-                        '<div class="album-card-meta"><span class="genre-tag">' + item.genre + '</span></div>' +
+                        '<div class="album-card-meta"><span class="genre-tag">' + escaparHTML(item.genre) + '</span></div>' +
                         '<button type="button" class="btn-save-shelf ' + (salvo ? 'saved' : '') + '" ' +
                             'data-album="' + escaparHTML(item.album) + '" ' +
                             'data-artist="' + escaparHTML(item.artist) + '" ' +
@@ -93,6 +110,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (searchInput) {
         searchInput.addEventListener('input', (e) => {
             termoBusca = e.target.value.toLowerCase().trim();
+            generoAtivo = 'todos';
             clearTimeout(timerBusca);
 
             if (termoBusca.length < 2) {
@@ -102,33 +120,29 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             timerBusca = setTimeout(async () => {
-                const dados = await buscarCatalogoDeezer(termoBusca);
+                const dados = await buscarAlbunsItunes(termoBusca);
                 resultadosOnline = dados.map(d => ({
-                    album: d.title,
-                    artist: d.artist ? d.artist.name : 'Artista',
-                    genre: 'deezer',
-                    cover: d.cover_big || d.cover_medium || 'imgs/Blonde_-_Frank_Ocean.jpeg',
-                    color: '#f7bbd7'
+                    album: d.collectionName,
+                    artist: d.artistName,
+                    genre: d.primaryGenreName || 'Música',
+                    cover: d.artworkUrl100 ? d.artworkUrl100.replace('100x100bb', '600x600bb') : 'imgs/Blonde_-_Frank_Ocean.jpeg'
                 }));
                 renderizarExplorar();
             }, 400);
         });
     }
 
-    filterButtons.forEach(btn => {
-        btn.addEventListener('click', () => {
-            filterButtons.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
+    if (filtersContainer) {
+        filtersContainer.addEventListener('click', (e) => {
+            const btn = e.target.closest('.filter-btn');
+            if (!btn) return;
             generoAtivo = btn.dataset.genre;
-            termoBusca = '';
-            if (searchInput) searchInput.value = '';
-            resultadosOnline = [];
             renderizarExplorar();
         });
-    });
+    }
 
     if (catalogGrid) {
-        catalogGrid.addEventListener('click', (e) => {
+        catalogGrid.addEventListener('click', async (e) => {
             const btn = e.target.closest('.btn-save-shelf');
             if (!btn) return;
 
@@ -142,11 +156,12 @@ document.addEventListener('DOMContentLoaded', () => {
             if (btn.classList.contains('saved')) {
                 lista = lista.filter(v => v.album.toLowerCase() !== albumNome.toLowerCase());
             } else {
+                const corAuto = await extrairCorDominante(capaUrl);
                 lista.unshift({
                     id: Date.now(),
                     album: albumNome,
                     artist: artistaNome,
-                    color: '#f7bbd7',
+                    color: corAuto,
                     coverImage: capaUrl,
                     listened: false
                 });
@@ -169,47 +184,45 @@ document.addEventListener('DOMContentLoaded', () => {
     renderizarExplorar();
 });
 
-async function buscarCatalogoDeezer(termo) {
+async function buscarAlbunsItunes(termo) {
     try {
-        const mbBase = 'https://' + 'musicbrainz.org/ws/2/release-group/?query=';
-        const urlBusca = mbBase + encodeURIComponent(termo) + '&fmt=json&limit=6';
-        const resp = await fetch(urlBusca);
-        const dados = await resp.json();
-
-        if (!dados || !dados['release-groups']) return [];
-
-        const resultados = await Promise.all(
-            dados['release-groups'].map(async (rg) => {
-                const artista = (rg['artist-credit'] && rg['artist-credit'].at(0))
-                    ? rg['artist-credit'].at(0).name
-                    : 'Artista';
-                let capaUrl = 'imgs/Blonde_-_Frank_Ocean.jpeg';
-
-                try {
-                    const caaBase = 'https://' + 'coverartarchive.org/release-group/';
-                    const rCapa = await fetch(caaBase + rg.id);
-                    if (rCapa.ok) {
-                        const dCapa = await rCapa.json();
-                        if (dCapa.images && dCapa.images.length > 0) {
-                            const frente = dCapa.images.find(i => i.front) || dCapa.images.at(0);
-                            capaUrl = frente.thumbnails.small || frente.thumbnails.large || frente.image;
-                        }
-                    }
-                } catch (e) {}
-
-                return {
-                    title: rg.title,
-                    artist: { name: artista },
-                    cover_big: capaUrl,
-                    cover_medium: capaUrl
-                };
-            })
-        );
-
-        return resultados;
-    } catch (erro) {
-        console.log('Erro na busca do explorar:', erro);
-        return [];
-    }
+        const dominio = ['itunes', 'apple', 'com'].join('.');
+        const caminho = '/search?term=' + encodeURIComponent(termo) + '&media=music&entity=album&limit=12';
+        const resp = await fetch('https://' + dominio + caminho);
+        if (resp.ok) {
+            const dados = await resp.json();
+            return dados.results || [];
+        }
+    } catch (e) {}
+    return [];
 }
 
+function extrairCorDominante(urlImagem) {
+    return new Promise((resolve) => {
+        const img = new Image();
+        img.crossOrigin = 'Anonymous';
+        img.onload = () => {
+            try {
+                const canvas = document.createElement('canvas');
+                canvas.width = 20;
+                canvas.height = 20;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, 20, 20);
+                const pixels = ctx.getImageData(0, 0, 20, 20).data;
+                let r = 0, g = 0, b = 0, total = 0;
+                for (let i = 0; i < pixels.length; i += 4) {
+                    r += pixels[i];
+                    g += pixels[i + 1];
+                    b += pixels[i + 2];
+                    total++;
+                }
+                const toHex = (n) => Math.round(n / total).toString(16).padStart(2, '0');
+                resolve('#' + toHex(r) + toHex(g) + toHex(b));
+            } catch (e) {
+                resolve('#f7bbd7');
+            }
+        };
+        img.onerror = () => resolve('#f7bbd7');
+        img.src = urlImagem;
+    });
+}

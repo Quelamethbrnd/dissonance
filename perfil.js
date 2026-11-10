@@ -1,20 +1,87 @@
 document.addEventListener('DOMContentLoaded', () => {
     const usuarioAtual = localStorage.getItem('usuarioLogado') || '@ouvinte';
 
-    const savedAvatar = localStorage.getItem('avatar_' + usuarioAtual);
+    const params = new URLSearchParams(window.location.search);
+    const userParam = params.get('user');
+    const perfilAlvo = (userParam && userParam.trim() !== '') ? userParam.trim() : usuarioAtual;
+    const ehMeuPerfil = (perfilAlvo === usuarioAtual);
+
+    const savedAvatar = localStorage.getItem('avatar_' + perfilAlvo);
     const avatarContainer = document.querySelector('.profile-avatar-large');
     if (savedAvatar && avatarContainer) {
         avatarContainer.innerHTML = '<img src="' + savedAvatar + '" alt="Avatar" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">';
+    } else if (avatarContainer && !ehMeuPerfil) {
+        const inicial = perfilAlvo.replace('@', '').charAt(0).toUpperCase() || 'U';
+        avatarContainer.textContent = inicial;
     }
 
     const greetingSpan = document.querySelector('.nav-user-greeting strong');
     const profileUsername = document.getElementById('profile-username');
     if (greetingSpan) greetingSpan.textContent = usuarioAtual;
-    if (profileUsername) profileUsername.textContent = usuarioAtual;
+    if (profileUsername) profileUsername.textContent = perfilAlvo;
 
+    const biosPadrao = {
+        '@ana_indie': 'Apaixonada por indie rock, shoegaze e vinis coloridos.',
+        '@lucas_rock': 'Colecionador de clássicos do rock alternativo e grunge.'
+    };
     const bioText = document.getElementById('profile-bio-text');
-    const savedBio = localStorage.getItem('bio_' + usuarioAtual);
+    const savedBio = localStorage.getItem('bio_' + perfilAlvo) || biosPadrao[perfilAlvo];
     if (savedBio && bioText) bioText.textContent = savedBio;
+
+    function obterSeguidos() {
+        return JSON.parse(localStorage.getItem('dissonance_following_' + usuarioAtual)) || [];
+    }
+
+    function contarSeguidoresDe(alvo) {
+        let total = (alvo === '@ana_indie' || alvo === '@lucas_rock') ? 12 : 0;
+        for (let i = 0; i < localStorage.length; i++) {
+            const chave = localStorage.key(i);
+            if (chave && chave.startsWith('dissonance_following_')) {
+                const lista = JSON.parse(localStorage.getItem(chave)) || [];
+                if (lista.includes(alvo)) total++;
+            }
+        }
+        return total;
+    }
+
+    const editProfileBtn = document.querySelector('.btn-edit-profile, a[href="editar-perfil.html"]');
+    const statsContainer = document.querySelector('.profile-stats');
+
+    if (statsContainer && !document.getElementById('stat-followers')) {
+        const statBox = document.createElement('div');
+        statBox.className = 'stat-box';
+        statBox.innerHTML = '<strong id="stat-followers">' + contarSeguidoresDe(perfilAlvo) + '</strong><span>SEGUIDORES</span>';
+        statsContainer.appendChild(statBox);
+    }
+
+    if (!ehMeuPerfil && editProfileBtn) {
+        const followBtn = document.createElement('button');
+        followBtn.type = 'button';
+        followBtn.className = 'btn-follow-user';
+
+        const atualizarEstadoBotao = () => {
+            const jaSegue = obterSeguidos().includes(perfilAlvo);
+            followBtn.textContent = jaSegue ? '✓ Seguindo' : '+ Seguir';
+            followBtn.classList.toggle('following', jaSegue);
+            const statFollowers = document.getElementById('stat-followers');
+            if (statFollowers) statFollowers.textContent = contarSeguidoresDe(perfilAlvo);
+        };
+
+        atualizarEstadoBotao();
+
+        followBtn.addEventListener('click', () => {
+            let seguidos = obterSeguidos();
+            if (seguidos.includes(perfilAlvo)) {
+                seguidos = seguidos.filter(u => u !== perfilAlvo);
+            } else {
+                seguidos.push(perfilAlvo);
+            }
+            localStorage.setItem('dissonance_following_' + usuarioAtual, JSON.stringify(seguidos));
+            atualizarEstadoBotao();
+        });
+
+        editProfileBtn.replaceWith(followBtn);
+    }
 
     const vinylStack = document.getElementById('vinyl-stack');
     const addVinylForm = document.getElementById('add-vinyl-form');
@@ -23,6 +90,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const vinylUploadLabel = document.getElementById('vinyl-upload-label');
     let capaQuadradaBase64 = '';
 
+    if (!ehMeuPerfil && addVinylForm) {
+        addVinylForm.style.display = 'none';
+    }
     const vinisIniciais = [
         { id: 101, album: 'Puberty 2', artist: 'Mitski', color: '#2b2d42', coverImage: 'imgs/Mitskipuberty2.jpg', listened: true },
         { id: 102, album: 'Blonde', artist: 'Frank Ocean', color: '#f8f9fa', coverImage: 'imgs/Blonde_-_Frank_Ocean.jpeg', listened: true },
@@ -31,16 +101,20 @@ document.addEventListener('DOMContentLoaded', () => {
     ];
 
     function obterVinis() {
-        const chave = 'dissonance_vinyls_' + usuarioAtual;
+        const chave = 'dissonance_vinyls_' + perfilAlvo;
         const salvos = localStorage.getItem(chave);
         if (!salvos) {
-            localStorage.setItem(chave, JSON.stringify(vinisIniciais));
-            return vinisIniciais;
+            if (ehMeuPerfil) {
+                localStorage.setItem(chave, JSON.stringify(vinisIniciais));
+                return vinisIniciais;
+            }
+            return vinisIniciais.slice(0, 2);
         }
         return JSON.parse(salvos);
     }
 
     function salvarVinis(lista) {
+        if (!ehMeuPerfil) return;
         localStorage.setItem('dissonance_vinyls_' + usuarioAtual, JSON.stringify(lista));
     }
 
@@ -53,7 +127,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return luminancia > 0.55 ? '#000000' : '#ffffff';
     }
 
-    if (vinylCoverInput) {
+    if (vinylCoverInput && ehMeuPerfil) {
         vinylCoverInput.addEventListener('change', (event) => {
             const file = event.target.files.item(0);
             if (!file) return;
@@ -81,6 +155,7 @@ document.addEventListener('DOMContentLoaded', () => {
             reader.readAsDataURL(file);
         });
     }
+
     function renderizarVinis() {
         if (!vinylStack) return;
         const lista = obterVinis();
@@ -89,7 +164,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (statVinyls) statVinyls.textContent = ouvidosCount + '/' + lista.length;
 
         if (lista.length === 0) {
-            vinylStack.innerHTML = '<p style="font-size: 0.85rem; color: #aaa;">Sua estante 3D está vazia. Adicione um disco acima!</p>';
+            vinylStack.innerHTML = '<p style="font-size: 0.85rem; color: #aaa;">A estante 3D está vazia.</p>';
             return;
         }
 
@@ -105,6 +180,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const corTexto = obterCorTextoContraste(corFundo);
             const capa = vinil.coverImage || vinil.spineImage || 'imgs/Blonde_-_Frank_Ocean.jpeg';
             const checkIcon = vinil.listened ? '✓' : '';
+            const btnRemoverHTML = ehMeuPerfil
+                ? '<button type="button" class="btn-remove-vinyl" title="Remover" data-id="' + vinil.id + '">✕</button>'
+                : '';
 
             item3D.innerHTML =
                 '<div class="vinyl-spine-face" style="background-color:' + corFundo + ';color:' + corTexto + ';">' +
@@ -115,9 +193,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             '<span class="vinyl-artist-name">' + escapeHTML(vinil.artist) + '</span>' +
                         '</div>' +
                     '</div>' +
-                    '<div class="vinyl-spine-right">' +
-                        '<button type="button" class="btn-remove-vinyl" title="Remover" data-id="' + vinil.id + '">✕</button>' +
-                    '</div>' +
+                    '<div class="vinyl-spine-right">' + btnRemoverHTML + '</div>' +
                 '</div>' +
                 '<div class="vinyl-cover-plane" style="background-image:url(\'' + capa + '\');"></div>';
 
@@ -125,7 +201,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    if (vinylStack) {
+    if (vinylStack && ehMeuPerfil) {
         vinylStack.addEventListener('click', (event) => {
             const removeBtn = event.target.closest('.btn-remove-vinyl');
             if (removeBtn) {
@@ -149,7 +225,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    if (addVinylForm) {
+    if (addVinylForm && ehMeuPerfil) {
         addVinylForm.addEventListener('submit', async (event) => {
             event.preventDefault();
             const album = document.getElementById('vinyl-album').value.trim();
@@ -195,22 +271,31 @@ document.addEventListener('DOMContentLoaded', () => {
     const statReviews = document.getElementById('stat-reviews');
     const statLikes = document.getElementById('stat-likes');
 
+    function montarAvatarHTML(username) {
+        const foto = localStorage.getItem('avatar_' + username);
+        if (foto) {
+            return '<img src="' + foto + '" alt="' + escapeHTML(username) + '" class="review-avatar">';
+        }
+        const inicial = username.replace('@', '').charAt(0).toUpperCase() || 'U';
+        return '<div class="review-avatar">' + inicial + '</div>';
+    }
+
     function carregarMinhasReviews(idAberto = null) {
         const todas = JSON.parse(localStorage.getItem('dissonance_reviews')) || [];
-        const minhas = todas.filter(r => r.username === usuarioAtual);
+        const doPerfil = todas.filter(r => r.username === perfilAlvo);
 
-        if (statReviews) statReviews.textContent = minhas.length;
-        const totalCurtidas = minhas.reduce((soma, item) => soma + (item.likes || 0), 0);
+        if (statReviews) statReviews.textContent = doPerfil.length;
+        const totalCurtidas = doPerfil.reduce((soma, item) => soma + (item.likes || 0), 0);
         if (statLikes) statLikes.textContent = totalCurtidas;
 
         if (!reviewsList) return;
-        if (minhas.length === 0) {
-            reviewsList.innerHTML = '<p>Você ainda não publicou nenhuma review. Vá até o Feed para avaliar um álbum!</p>';
+        if (doPerfil.length === 0) {
+            reviewsList.innerHTML = '<p>Nenhuma review publicada ainda.</p>';
             return;
         }
 
         reviewsList.innerHTML = '';
-        minhas.forEach(review => {
+        doPerfil.forEach(review => {
             const comentarios = review.commentsList || [];
             const card = document.createElement('article');
             card.classList.add('review-card');
@@ -237,25 +322,34 @@ document.addEventListener('DOMContentLoaded', () => {
             const estiloLike = jaCurtiu ? 'style="background-color: var(--btn-pink); color: #000000;"' : '';
             const textoLike = jaCurtiu ? '♥ Curtido (' + (review.likes || 0) + ')' : '♡ Curtir (' + (review.likes || 0) + ')';
 
+            const avatarHTML = montarAvatarHTML(review.username);
+            const anexoHTML = review.media_url
+                ? '<img src="' + review.media_url + '" alt="Anexo do post" class="review-media-attachment">'
+                : '';
+            const btnExcluirHTML = ehMeuPerfil
+                ? '<button type="button" class="btn-delete-review" data-id="' + review.id + '">Excluir review</button>'
+                : '';
+
             card.innerHTML =
-                '<img src="' + review.cover_url + '" alt="' + escapeHTML(review.album_name) + '" class="review-cover">' +
+                avatarHTML +
                 '<div class="review-body">' +
                     '<div class="review-header">' +
                         '<strong>' + escapeHTML(review.album_name) + '</strong>' +
                         '<span>' + escapeHTML(review.rating) + '</span>' +
                     '</div>' +
                     '<p class="review-text">' + escapeHTML(review.comment) + '</p>' +
+                    anexoHTML +
                     '<div class="review-footer-row">' +
                         '<div class="review-actions-group">' +
                             '<button type="button" class="action-btn-perfil btn-like-perfil" ' + estiloLike + '>' + textoLike + '</button>' +
                             '<button type="button" class="action-btn-perfil btn-toggle-perfil-comments">💬 Comentários (' + comentarios.length + ')</button>' +
                         '</div>' +
-                        '<button type="button" class="btn-delete-review" data-id="' + review.id + '">Excluir review</button>' +
+                        btnExcluirHTML +
                     '</div>' +
                     '<div class="perfil-comments-box ' + openClass + '">' +
                         '<div class="perfil-comments-list">' + comentariosHTML + '</div>' +
                         '<form class="perfil-comment-form">' +
-                            '<input type="text" placeholder="Responder na sua review..." required>' +
+                            '<input type="text" placeholder="Escreva um comentário..." required>' +
                             '<button type="submit" class="btn-send-perfil-comment">Enviar</button>' +
                         '</form>' +
                     '</div>' +
@@ -272,7 +366,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const reviewId = Number(card.dataset.id);
 
             const deleteBtn = event.target.closest('.btn-delete-review');
-            if (deleteBtn) {
+            if (deleteBtn && ehMeuPerfil) {
                 if (!confirm('Tem certeza que deseja apagar esta review?')) return;
                 let todas = JSON.parse(localStorage.getItem('dissonance_reviews')) || [];
                 todas = todas.filter(r => r.id !== reviewId);
@@ -380,27 +474,6 @@ async function buscarCapaOnline(termoBusca) {
         }
     } catch (e) {}
 
-    try {
-        const mbDom = ['musicbrainz', 'org'].join('.');
-        const mbUrl = 'https://' + mbDom + '/ws/2/release-group/?query=' + encodeURIComponent(termoBusca) + '&fmt=json&limit=3';
-        const respMb = await fetch(mbUrl, { headers: { 'Accept': 'application/json' } });
-        if (respMb.ok) {
-            const dadosMb = await respMb.json();
-            const grupos = dadosMb['release-groups'] || [];
-            const caaDom = ['coverartarchive', 'org'].join('.');
-            for (const grupo of grupos) {
-                const respCapa = await fetch('https://' + caaDom + '/release-group/' + grupo.id);
-                if (respCapa.ok) {
-                    const dadosCapa = await respCapa.json();
-                    if (dadosCapa.images && dadosCapa.images.length > 0) {
-                        const frente = dadosCapa.images.find(img => img.front) || dadosCapa.images.at(0);
-                        return frente.thumbnails.large || frente.image;
-                    }
-                }
-            }
-        }
-    } catch (e) {}
-
     return 'imgs/Blonde_-_Frank_Ocean.jpeg';
 }
 
@@ -409,31 +482,30 @@ function extrairCorDominante(urlImagem) {
         const img = new Image();
         img.crossOrigin = 'Anonymous';
 
-img.onload = () => {
-try {
-const canvas = document.createElement('canvas');
-canvas.width = 20;
-canvas.height = 20;
-const ctx = canvas.getContext('2d');
-ctx.drawImage(img, 0, 0, 20, 20);
-const pixels = ctx.getImageData(0, 0, 20, 20).data;
-let r = 0, g = 0, b = 0, total = 0;
-for (let i = 0; i < pixels.length; i += 4) {
-r += pixels[i];
-g += pixels[i + 1];
-b += pixels[i + 2];
-total++;
-}
-r = Math.round(r / total);
-g = Math.round(g / total);
-b = Math.round(b / total);
-const toHex = (n) => n.toString(16).padStart(2, '0');
-resolve('#' + toHex(r) + toHex(g) + toHex(b));
-} catch (e) {
-resolve('#f7bbd7');
-}
-};
-img.onerror = () => resolve('#f7bbd7');
-img.src = urlImagem;
-});
-}
+        img.onload = () => {
+            try {
+                const canvas = document.createElement('canvas');
+                canvas.width = 20;
+                canvas.height = 20;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, 20, 20);
+
+                const pixels = ctx.getImageData(0, 0, 20, 20).data;
+                let r = 0, g = 0, b = 0, total = 0;
+
+            for (let i = 0; i < pixels.length; i += 4) {
+            r += pixels[i];
+            g += pixels[i + 1];
+            b += pixels[i + 2];
+            total++;
+            }
+            const toHex = (n) => Math.round(n / total).toString(16).padStart(2, '0');
+            resolve('#' + toHex(r) + toHex(g) + toHex(b));
+            } catch (e) {
+            resolve('#f7bbd7');
+            }
+            };
+            img.onerror = () => resolve('#f7bbd7');
+            img.src = urlImagem;
+            });
+            }

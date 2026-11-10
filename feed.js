@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const logoutBtn = document.querySelector('.btn-logout');
     const reviewCoverInput = document.getElementById('review-cover-input');
     const reviewUploadLabel = document.getElementById('review-upload-label');
-    let capaReviewBase64 = '';
+    let midiaAnexoBase64 = '';
 
     if (reviewCoverInput) {
         reviewCoverInput.addEventListener('change', event => {
@@ -32,23 +32,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const reader = new FileReader();
             reader.onload = e => {
+                if (file.type === 'image/gif') {
+                    midiaAnexoBase64 = e.target.result;
+                    if (reviewUploadLabel) {
+                        reviewUploadLabel.textContent = '✓ GIF Pronto';
+                        reviewUploadLabel.classList.add('has-image');
+                    }
+                    return;
+                }
+
                 const img = new Image();
                 img.onload = () => {
                     const canvas = document.createElement('canvas');
-                    const size = 300;
-                    canvas.width = size;
-                    canvas.height = size;
+                    const maxWidth = 600;
+                    const scale = Math.min(1, maxWidth / img.width);
+                    canvas.width = img.width * scale;
+                    canvas.height = img.height * scale;
                     const ctx = canvas.getContext('2d');
 
-                    const minSide = Math.min(img.width, img.height);
-                    const sx = (img.width - minSide) / 2;
-                    const sy = (img.height - minSide) / 2;
-
-                    ctx.drawImage(img, sx, sy, minSide, minSide, 0, 0, size, size);
-                    capaReviewBase64 = canvas.toDataURL('image/jpeg', 0.8);
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    midiaAnexoBase64 = canvas.toDataURL('image/jpeg', 0.82);
 
                     if (reviewUploadLabel) {
-                        reviewUploadLabel.textContent = '✓ Capa Pronta';
+                        reviewUploadLabel.textContent = '✓ Mídia Pronta';
                         reviewUploadLabel.classList.add('has-image');
                     }
                 };
@@ -65,7 +71,7 @@ document.addEventListener('DOMContentLoaded', () => {
             album_name: 'Puberty 2',
             rating: '★★★★★',
             comment: 'A produção desse álbum é impecável. A transição entre faixas calmas e explosivas nunca perde a força.',
-            cover_url: 'imgs/Mitskipuberty2.jpg',
+            media_url: '',
             likes: 14,
             likedBy: [],
             commentsList: [
@@ -78,7 +84,7 @@ document.addEventListener('DOMContentLoaded', () => {
             album_name: 'In Rainbows',
             rating: '★★★★★',
             comment: 'Ouvindo no repeat hoje. Weird Fishes continua sendo uma das melhores músicas já feitas.',
-            cover_url: 'imgs/Radiohead_-_In_Rainbows.jpg',
+            media_url: '',
             likes: 29,
             likedBy: [],
             commentsList: []
@@ -96,6 +102,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function salvarReviews(lista) {
         localStorage.setItem('dissonance_reviews', JSON.stringify(lista));
+    }
+
+    function montarAvatarHTML(username) {
+        const link = 'perfil.html?user=' + encodeURIComponent(username);
+        const foto = localStorage.getItem('avatar_' + username);
+        if (foto) {
+            return '<a href="' + link + '"><img src="' + foto + '" alt="' + escapeHTML(username) + '" class="review-avatar"></a>';
+        }
+        const inicial = username.replace('@', '').charAt(0).toUpperCase() || 'U';
+        return '<a href="' + link + '" style="text-decoration:none;"><div class="review-avatar">' + inicial + '</div></a>';
     }
     function carregarReviews(idAberto = null) {
         if (!feedList) return;
@@ -117,7 +133,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 comentariosHTML +=
                     '<div class="comment-item" data-comment-id="' + c.id + '">' +
                         '<div class="comment-item-content">' +
-                            '<strong>' + escapeHTML(c.author) + ':</strong>' +
+                            '<a href="perfil.html?user=' + encodeURIComponent(c.author) + '" class="user-profile-link"><strong>' + escapeHTML(c.author) + ':</strong></a>' +
                             '<span>' + escapeHTML(c.text) + '</span>' +
                         '</div>' +
                         btnDel +
@@ -134,14 +150,20 @@ document.addEventListener('DOMContentLoaded', () => {
             const estiloLike = jaCurtiu ? 'style="color:#d9387a;"' : '';
             const textoLike = jaCurtiu ? '♥ Curtido (' + review.likes + ')' : '♡ Curtir (' + review.likes + ')';
 
+            const avatarHTML = montarAvatarHTML(review.username);
+            const anexoHTML = review.media_url
+                ? '<img src="' + review.media_url + '" alt="Anexo do post" class="review-media-attachment">'
+                : '';
+
             newCard.innerHTML =
-                '<img src="' + review.cover_url + '" alt="' + escapeHTML(review.album_name) + '" class="review-cover">' +
+                avatarHTML +
                 '<div class="review-body">' +
                     '<div class="review-header">' +
-                        '<span class="reviewer-name"><strong>' + escapeHTML(review.username) + '</strong> avaliou <strong>' + escapeHTML(review.album_name) + '</strong></span>' +
+                        '<span class="reviewer-name"><a href="perfil.html?user=' + encodeURIComponent(review.username) + '" class="user-profile-link"><strong>' + escapeHTML(review.username) + '</strong></a> avaliou <strong>' + escapeHTML(review.album_name) + '</strong></span>' +
                         '<span class="review-stars">' + escapeHTML(review.rating) + '</span>' +
                     '</div>' +
                     '<p class="review-text">' + escapeHTML(review.comment) + '</p>' +
+                    anexoHTML +
                     '<div class="review-actions">' +
                         '<button type="button" class="' + classeLike + '" ' + estiloLike + '>' + textoLike + '</button>' +
                         '<button type="button" class="action-btn btn-toggle-comments">💬 Comentar (' + comentarios.length + ')</button>' +
@@ -160,7 +182,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (reviewForm) {
-        reviewForm.addEventListener('submit', async event => {
+        reviewForm.addEventListener('submit', event => {
             event.preventDefault();
 
             const albumInput = reviewForm.querySelector('input');
@@ -177,11 +199,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (!albumName || !commentText) return;
 
-            let coverSrc = capaReviewBase64;
-            if (!coverSrc) {
-                coverSrc = await buscarCapaOnline(albumName);
-            }
-
             const lista = obterReviews();
             lista.unshift({
                 id: Date.now(),
@@ -189,7 +206,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 album_name: albumName,
                 rating: ratingStars,
                 comment: commentText,
-                cover_url: coverSrc,
+                media_url: midiaAnexoBase64,
                 likes: 0,
                 likedBy: [],
                 commentsList: []
@@ -197,9 +214,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
             salvarReviews(lista);
             reviewForm.reset();
-            capaReviewBase64 = '';
+            midiaAnexoBase64 = '';
             if (reviewUploadLabel) {
-                reviewUploadLabel.textContent = '📷 Upload de Imagem';
+                reviewUploadLabel.textContent = '📷 Upload de Imagem/GIF';
                 reviewUploadLabel.classList.remove('has-image');
             }
             carregarReviews();
@@ -315,30 +332,3 @@ document.addEventListener('DOMContentLoaded', () => {
 
     carregarReviews();
 });
-
-async function buscarCapaOnline(termoBusca) {
-    try {
-        const mbBase = 'https://' + 'musicbrainz.org/ws/2/release-group/?query=';
-        const urlBusca = mbBase + encodeURIComponent(termoBusca) + '&fmt=json&limit=1';
-        const resp = await fetch(urlBusca);
-        const dados = await resp.json();
-
-        if (dados && dados['release-groups'] && dados['release-groups'].length > 0) {
-            const mbid = dados['release-groups'].at(0).id;
-            const caaBase = 'https://' + 'coverartarchive.org/release-group/';
-            const respCapa = await fetch(caaBase + mbid);
-
-            if (respCapa.ok) {
-                const dadosCapa = await respCapa.json();
-                if (dadosCapa.images && dadosCapa.images.length > 0) {
-                    const frente = dadosCapa.images.find(img => img.front) || dadosCapa.images.at(0);
-                    return frente.thumbnails.large || frente.image;
-                }
-            }
-        }
-    } catch (erro) {
-        console.log('Busca online falhou, usando capa padrão:', erro);
-    }
-    return 'imgs/Blonde_-_Frank_Ocean.jpeg';
-}
-

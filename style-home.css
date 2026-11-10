@@ -527,3 +527,32 @@ body {
     background-color: #8ce99a;
     color: #000000;
 }
+
+.review-avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: 6px;
+    object-fit: cover;
+    border: 2px solid #000000;
+    flex-shrink: 0;
+    background-color: var(--btn-pink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 1.4rem;
+    color: #000000;
+}
+
+.review-media-attachment {
+    width: auto;
+    max-width: 100%;
+    max-height: 420px;
+    height: auto;
+    object-fit: contain;
+    border-radius: 8px;
+    border: 2px solid #000000;
+    margin-top: 8px;
+    margin-bottom: 10px;
+    display: block;
+}
