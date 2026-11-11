@@ -82,7 +82,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         editProfileBtn.replaceWith(followBtn);
     }
-
     const vinylStack = document.getElementById('vinyl-stack');
     const addVinylForm = document.getElementById('add-vinyl-form');
     const statVinyls = document.getElementById('stat-vinyls');
@@ -93,6 +92,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!ehMeuPerfil && addVinylForm) {
         addVinylForm.style.display = 'none';
     }
+
     const vinisIniciais = [
         { id: 101, album: 'Puberty 2', artist: 'Mitski', color: '#2b2d42', coverImage: 'imgs/Mitskipuberty2.jpg', listened: true },
         { id: 102, album: 'Blonde', artist: 'Frank Ocean', color: '#f8f9fa', coverImage: 'imgs/Blonde_-_Frank_Ocean.jpeg', listened: true },
@@ -200,7 +200,6 @@ document.addEventListener('DOMContentLoaded', () => {
             vinylStack.appendChild(item3D);
         });
     }
-
     if (vinylStack && ehMeuPerfil) {
         vinylStack.addEventListener('click', (event) => {
             const removeBtn = event.target.closest('.btn-remove-vinyl');
@@ -209,6 +208,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const idRemover = Number(removeBtn.dataset.id);
                 salvarVinis(obterVinis().filter(v => v.id !== idRemover));
                 renderizarVinis();
+                atualizarPetMusical();
                 return;
             }
             const item3D = event.target.closest('.vinyl-3d-item');
@@ -220,53 +220,93 @@ document.addEventListener('DOMContentLoaded', () => {
                     item.listened = !item.listened;
                     salvarVinis(lista);
                     renderizarVinis();
+                    atualizarPetMusical();
                 }
             }
         });
     }
 
-    if (addVinylForm && ehMeuPerfil) {
-        addVinylForm.addEventListener('submit', async (event) => {
-            event.preventDefault();
-            const album = document.getElementById('vinyl-album').value.trim();
-            const artist = document.getElementById('vinyl-artist').value.trim();
-            const colorInput = document.getElementById('vinyl-spine-color');
-            let color = colorInput.value;
-            if (!album || !artist) return;
+    const vinylModal = document.getElementById('vinyl-display-modal');
+    const closeVinylModalBtn = document.getElementById('btn-close-vinyl-modal');
+    const showcaseSleeve = document.getElementById('showcase-sleeve');
+    const showcaseDisc = document.getElementById('showcase-disc');
+    const showcaseLabel = document.getElementById('showcase-disc-label');
+    const showcaseTitle = document.getElementById('showcase-album-title');
+    const showcaseArtist = document.getElementById('showcase-artist-name');
+    const btnToggleListened = document.getElementById('btn-showcase-toggle-listened');
+    const btnShowcaseForum = document.getElementById('btn-showcase-forum');
+    let vinilSelecionadoId = null;
 
-            let capaFinal = capaQuadradaBase64;
-            if (!capaFinal) {
-                capaFinal = await buscarCapaOnline(album + ' ' + artist);
+    function abrirDisplayVinil(vinil) {
+        if (!vinylModal || !vinil) return;
+        vinilSelecionadoId = vinil.id;
+        const capa = vinil.coverImage || vinil.spineImage || 'imgs/Blonde_-_Frank_Ocean.jpeg';
+        const corDisco = vinil.color || '#f7bbd7';
+
+        showcaseSleeve.style.backgroundImage = 'url("' + capa + '")';
+        showcaseLabel.style.backgroundImage = 'url("' + capa + '")';
+        showcaseDisc.style.backgroundColor = corDisco;
+        showcaseTitle.textContent = vinil.album;
+        showcaseArtist.textContent = vinil.artist;
+
+        if (btnShowcaseForum) {
+            btnShowcaseForum.href = 'album.html?album=' + encodeURIComponent(vinil.album) + '&artist=' + encodeURIComponent(vinil.artist);
+        }
+
+        if (btnToggleListened) {
+            if (!ehMeuPerfil) {
+                btnToggleListened.style.display = 'none';
+            } else {
+                btnToggleListened.style.display = 'inline-block';
+                btnToggleListened.textContent = vinil.listened ? '✓ Ouvido (Desmarcar)' : 'Marcar como Ouvido';
             }
+        }
 
-            if (color.toLowerCase() === '#f7bbd7') {
-                color = await extrairCorDominante(capaFinal);
-            }
+        vinylModal.classList.add('open');
+    }
 
-            try {
-                const lista = obterVinis();
-                lista.unshift({
-                    id: Date.now(),
-                    album: album,
-                    artist: artist,
-                    color: color,
-                    coverImage: capaFinal,
-                    listened: false
-                });
+    if (closeVinylModalBtn && vinylModal) {
+        closeVinylModalBtn.addEventListener('click', () => vinylModal.classList.remove('open'));
+        vinylModal.addEventListener('click', (e) => {
+            if (e.target === vinylModal) vinylModal.classList.remove('open');
+        });
+    }
+
+    if (btnToggleListened) {
+        btnToggleListened.addEventListener('click', () => {
+            if (!ehMeuPerfil || vinilSelecionadoId === null) return;
+            const lista = obterVinis();
+            const item = lista.find(v => v.id === vinilSelecionadoId);
+            if (item) {
+                item.listened = !item.listened;
                 salvarVinis(lista);
-                addVinylForm.reset();
-                document.getElementById('vinyl-spine-color').value = '#f7bbd7';
-                capaQuadradaBase64 = '';
-                if (vinylUploadLabel) {
-                    vinylUploadLabel.textContent = '📷 Imagem';
-                    vinylUploadLabel.classList.remove('has-image');
-                }
                 renderizarVinis();
-            } catch (err) {
-                alert('Limite de armazenamento atingido.');
+                atualizarPetMusical();
+                btnToggleListened.textContent = item.listened ? '✓ Ouvido (Desmarcar)' : 'Marcar como Ouvido';
             }
         });
     }
+
+    if (vinylStack) {
+        vinylStack.addEventListener('click', (event) => {
+            const removeBtn = event.target.closest('.btn-remove-vinyl');
+            if (removeBtn && ehMeuPerfil) {
+                event.stopPropagation();
+                const idRemover = Number(removeBtn.dataset.id);
+                salvarVinis(obterVinis().filter(v => v.id !== idRemover));
+                renderizarVinis();
+                atualizarPetMusical();
+                return;
+            }
+            const item3D = event.target.closest('.vinyl-3d-item');
+            if (item3D) {
+                const idClicado = Number(item3D.dataset.id);
+                const vinilEncontrado = obterVinis().find(v => v.id === idClicado);
+                abrirDisplayVinil(vinilEncontrado);
+            }
+        });
+    }
+
     const reviewsList = document.getElementById('user-reviews-list');
     const statReviews = document.getElementById('stat-reviews');
     const statLikes = document.getElementById('stat-likes');
@@ -358,7 +398,6 @@ document.addEventListener('DOMContentLoaded', () => {
             reviewsList.appendChild(card);
         });
     }
-
     if (reviewsList) {
         reviewsList.addEventListener('click', (event) => {
             const card = event.target.closest('.review-card');
@@ -372,6 +411,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 todas = todas.filter(r => r.id !== reviewId);
                 localStorage.setItem('dissonance_reviews', JSON.stringify(todas));
                 carregarMinhasReviews();
+                atualizarPetMusical();
                 return;
             }
 
@@ -442,6 +482,152 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    const spritesPixel2D = {
+        cat: '<svg viewBox="0 0 16 16" shape-rendering="crispEdges" width="100%" height="100%">' +
+            '<rect x="2" y="4" width="2" height="5" fill="#f7bbd7" stroke="#000" stroke-width="0.6"/>' +
+            '<rect x="12" y="4" width="2" height="5" fill="#f7bbd7" stroke="#000" stroke-width="0.6"/>' +
+            '<rect x="3" y="2" width="10" height="1" fill="#000"/>' +
+            '<rect x="4" y="3" width="2" height="2" fill="#2b2d42"/>' +
+            '<rect x="10" y="3" width="2" height="2" fill="#2b2d42"/>' +
+            '<rect x="4" y="5" width="8" height="7" fill="#ffffff" stroke="#000" stroke-width="0.6"/>' +
+            '<rect x="5" y="7" width="2" height="2" fill="#000"/>' +
+            '<rect x="9" y="7" width="2" height="2" fill="#000"/>' +
+            '<rect x="7" y="9" width="2" height="1" fill="#ff6b6b"/>' +
+            '<rect x="5" y="12" width="6" height="3" fill="#f7bbd7" stroke="#000" stroke-width="0.6"/>' +
+        '</svg>',
+        dog: '<svg viewBox="0 0 16 16" shape-rendering="crispEdges" width="100%" height="100%">' +
+            '<rect x="2" y="5" width="2" height="5" fill="#38bdf8" stroke="#000" stroke-width="0.6"/>' +
+            '<rect x="12" y="5" width="2" height="5" fill="#38bdf8" stroke="#000" stroke-width="0.6"/>' +
+            '<rect x="3" y="3" width="10" height="1" fill="#000"/>' +
+            '<rect x="4" y="4" width="8" height="8" fill="#d97706" stroke="#000" stroke-width="0.6"/>' +
+            '<rect x="5" y="7" width="2" height="2" fill="#000"/>' +
+            '<rect x="9" y="7" width="2" height="2" fill="#000"/>' +
+            '<rect x="7" y="9" width="2" height="2" fill="#000"/>' +
+            '<rect x="5" y="12" width="6" height="3" fill="#38bdf8" stroke="#000" stroke-width="0.6"/>' +
+        '</svg>',
+        frog: '<svg viewBox="0 0 16 16" shape-rendering="crispEdges" width="100%" height="100%">' +
+            '<rect x="4" y="3" width="3" height="3" fill="#51cf66" stroke="#000" stroke-width="0.6"/>' +
+            '<rect x="9" y="3" width="3" height="3" fill="#51cf66" stroke="#000" stroke-width="0.6"/>' +
+            '<rect x="5" y="4" width="1" height="1" fill="#000"/>' +
+            '<rect x="10" y="4" width="1" height="1" fill="#000"/>' +
+            '<rect x="3" y="6" width="10" height="6" fill="#51cf66" stroke="#000" stroke-width="0.6"/>' +
+            '<rect x="5" y="9" width="6" height="1" fill="#000"/>' +
+            '<rect x="5" y="12" width="6" height="3" fill="#2b2d42" stroke="#000" stroke-width="0.6"/>' +
+            '<rect x="7" y="13" width="2" height="1" fill="#f7bbd7"/>' +
+        '</svg>',
+        bunny: '<svg viewBox="0 0 16 16" shape-rendering="crispEdges" width="100%" height="100%">' +
+            '<rect x="5" y="1" width="2" height="4" fill="#ffffff" stroke="#000" stroke-width="0.6"/>' +
+            '<rect x="9" y="1" width="2" height="4" fill="#ffffff" stroke="#000" stroke-width="0.6"/>' +
+            '<rect x="4" y="5" width="8" height="7" fill="#ffffff" stroke="#000" stroke-width="0.6"/>' +
+            '<rect x="5" y="7" width="2" height="2" fill="#d9387a"/>' +
+            '<rect x="9" y="7" width="2" height="2" fill="#d9387a"/>' +
+            '<rect x="7" y="9" width="2" height="1" fill="#ff8787"/>' +
+            '<rect x="5" y="12" width="6" height="3" fill="#b2f2bb" stroke="#000" stroke-width="0.6"/>' +
+        '</svg>',
+        fox: '<svg viewBox="0 0 16 16" shape-rendering="crispEdges" width="100%" height="100%">' +
+            '<rect x="3" y="2" width="3" height="3" fill="#ff6b35" stroke="#000" stroke-width="0.6"/>' +
+            '<rect x="10" y="2" width="3" height="3" fill="#ff6b35" stroke="#000" stroke-width="0.6"/>' +
+            '<rect x="3" y="5" width="10" height="7" fill="#ff6b35" stroke="#000" stroke-width="0.6"/>' +
+            '<rect x="4" y="9" width="8" height="3" fill="#ffffff"/>' +
+            '<rect x="5" y="7" width="2" height="2" fill="#000"/>' +
+            '<rect x="9" y="7" width="2" height="2" fill="#000"/>' +
+            '<rect x="7" y="9" width="2" height="1" fill="#000"/>' +
+            '<rect x="5" y="12" width="6" height="3" fill="#2b2d42" stroke="#000" stroke-width="0.6"/>' +
+        '</svg>'
+    };
+    const chavePet = 'dissonance_pet_' + perfilAlvo;
+    const petSpriteEl = document.getElementById('pet-sprite-container');
+    const petNameEl = document.getElementById('pet-name-display');
+    const petMoodEl = document.getElementById('pet-mood-text');
+    const petEnergyLabel = document.getElementById('pet-energy-label');
+    const petEnergyBar = document.getElementById('pet-energy-bar');
+    const btnConfigPet = document.getElementById('btn-config-pet');
+    const btnFeedPet = document.getElementById('btn-feed-pet');
+    const petSetupForm = document.getElementById('pet-setup-form');
+
+    if (!ehMeuPerfil) {
+        if (btnConfigPet) btnConfigPet.style.display = 'none';
+        if (btnFeedPet) btnFeedPet.style.display = 'none';
+    }
+
+    function obterPet() {
+        const salvo = localStorage.getItem(chavePet);
+        if (!salvo) {
+            const padrao = { spriteKey: 'cat', especie: 'Gatinho de Fones', nome: 'Mochi', bonusManual: 0 };
+            if (ehMeuPerfil) localStorage.setItem(chavePet, JSON.stringify(padrao));
+            return padrao;
+        }
+        const parsed = JSON.parse(salvo);
+        if (!parsed.spriteKey) parsed.spriteKey = 'cat';
+        return parsed;
+    }
+
+    function atualizarPetMusical() {
+        if (!petSpriteEl) return;
+        const pet = obterPet();
+
+        const todasReviews = JSON.parse(localStorage.getItem('dissonance_reviews')) || [];
+        const reviewsDoPerfil = todasReviews.filter(r => r.username === perfilAlvo).length;
+        const vinisOuvidos = obterVinis().filter(v => v.listened).length;
+        const appsConectados = JSON.parse(localStorage.getItem('dissonance_apps_' + perfilAlvo)) || ['Spotify'];
+
+        const pontosConsistencia = (reviewsDoPerfil * 15) + (vinisOuvidos * 12) + (appsConectados.length * 10) + (pet.bonusManual || 0);
+        const energia = Math.min(100, Math.max(15, pontosConsistencia));
+
+        petSpriteEl.innerHTML = spritesPixel2D[pet.spriteKey] || spritesPixel2D.cat;
+        petNameEl.textContent = pet.nome + ' (' + pet.especie + ')';
+        petEnergyLabel.textContent = energia + '%';
+        petEnergyBar.style.width = energia + '%';
+
+        if (energia >= 80) {
+            petSpriteEl.classList.remove('sleepy');
+            petMoodEl.textContent = 'Em chamas! Dançando no ritmo da semana.';
+            petEnergyBar.style.background = '#51cf66';
+        } else if (energia >= 45) {
+            petSpriteEl.classList.remove('sleepy');
+            petMoodEl.textContent = 'De boa curtindo os álbuns salvos.';
+            petEnergyBar.style.background = 'var(--btn-pink, #f7bbd7)';
+        } else {
+            petSpriteEl.classList.add('sleepy');
+            petMoodEl.textContent = 'Com fome de música! Precisa ouvir discos ou postar reviews.';
+            petEnergyBar.style.background = '#ffd43b';
+        }
+    }
+
+    if (ehMeuPerfil && btnConfigPet && petSetupForm) {
+        btnConfigPet.addEventListener('click', () => {
+            const pet = obterPet();
+            document.getElementById('pet-name-input').value = pet.nome;
+            petSetupForm.style.display = petSetupForm.style.display === 'none' ? 'block' : 'none';
+        });
+
+        petSetupForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const [spriteKey, especie] = document.getElementById('pet-species-select').value.split('|');
+            const nome = document.getElementById('pet-name-input').value.trim() || 'Mochi';
+            const petAtual = obterPet();
+
+            localStorage.setItem(chavePet, JSON.stringify({
+                spriteKey: spriteKey,
+                especie: especie,
+                nome: nome,
+                bonusManual: petAtual.bonusManual || 0
+            }));
+
+            petSetupForm.style.display = 'none';
+            atualizarPetMusical();
+        });
+    }
+
+    if (ehMeuPerfil && btnFeedPet) {
+        btnFeedPet.addEventListener('click', () => {
+            const pet = obterPet();
+            pet.bonusManual = Math.min(40, (pet.bonusManual || 0) + 10);
+            localStorage.setItem(chavePet, JSON.stringify(pet));
+            atualizarPetMusical();
+        });
+    }
+
     const logoutBtn = document.querySelector('.btn-logout');
     if (logoutBtn) {
         logoutBtn.addEventListener('click', (event) => {
@@ -459,6 +645,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     renderizarVinis();
     carregarMinhasReviews();
+    atualizarPetMusical();
 });
 
 async function buscarCapaOnline(termoBusca) {
@@ -493,19 +680,19 @@ function extrairCorDominante(urlImagem) {
                 const pixels = ctx.getImageData(0, 0, 20, 20).data;
                 let r = 0, g = 0, b = 0, total = 0;
 
-            for (let i = 0; i < pixels.length; i += 4) {
-            r += pixels[i];
-            g += pixels[i + 1];
-            b += pixels[i + 2];
-            total++;
-            }
-            const toHex = (n) => Math.round(n / total).toString(16).padStart(2, '0');
-            resolve('#' + toHex(r) + toHex(g) + toHex(b));
+                for (let i = 0; i < pixels.length; i += 4) {
+                    r += pixels[i];
+                    g += pixels[i + 1];
+                    b += pixels[i + 2];
+                    total++;
+                }
+                const toHex = (n) => Math.round(n / total).toString(16).padStart(2, '0');
+                resolve('#' + toHex(r) + toHex(g) + toHex(b));
             } catch (e) {
-            resolve('#f7bbd7');
+                resolve('#f7bbd7');
             }
-            };
-            img.onerror = () => resolve('#f7bbd7');
-            img.src = urlImagem;
-            });
-            }
+        };
+        img.onerror = () => resolve('#f7bbd7');
+        img.src = urlImagem;
+    });
+}

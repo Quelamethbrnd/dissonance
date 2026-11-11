@@ -5,29 +5,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Perfil - DISSONANCE</title>
-    <link rel="apple-touch-icon" sizes="180x180" href="favicon_io/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="favicon_io/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="favicon_io/favicon-16x16.png">
-    <link rel="manifest" href="favicon_io/site.webmanifest">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style-home.css">
     <link rel="stylesheet" href="style-perfil.css">
-    <link rel="preconnect" href="https://googleapis.com">
-    <link rel="preconnect" href="https://gstatic.com" crossorigin>
-    <link href="https://googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon_io/favicon-32x32.png">
 </head>
 
 <body>
-
     <div class="app-container">
-
-        <!-- Cabeçalho Principal -->
-        <header class="main-header">
-            <h1 class="main-title">DISSONANCE</h1>
+        <header class="top-banner">
+            <h1 class="logo-title">DISSONANCE</h1>
         </header>
 
-        <!-- Barra de Navegação Unificada -->
         <nav class="navbar">
-            <div class="nav-user-greeting">
-                <span>Olá, <strong>@ouvinte</strong></span>
+            <div class="nav-brand">
+                <span class="nav-user-greeting">Olá, <strong>@ouvinte</strong></span>
             </div>
             <div class="nav-links">
                 <a href="home.html" class="nav-item">Feed</a>
@@ -38,79 +30,155 @@
             </div>
         </nav>
 
-        <!-- Conteúdo do Perfil -->
-        <main class="profile-layout">
+        <main class="profile-page-content">
+            <section class="profile-header-centered">
+                <div class="profile-avatar-large"></div>
+                <div class="profile-title-row">
+                    <h2 id="profile-username">@ouvinte</h2>
+                    <a href="editar-perfil.html" class="btn-edit-profile">Editar Perfil ✎</a>
+                </div>
+                <p id="profile-bio-text" class="profile-bio">Em sintonia com indie, R&B e rock alternativo.</p>
 
-            <!-- Cartão de Informações do Usuário -->
-            <section class="profile-header-card">
-                <div class="profile-avatar-large">🎧</div>
-
-                <div class="profile-details">
-                    <div class="profile-top-row">
-                        <h2 id="profile-username">@ouvinte</h2>
-                        <a href="editar-perfil.html" class="btn-edit-profile" style="text-decoration:none;">Editar
-                            Perfil ✎</a>
+                <div class="profile-stats">
+                    <div class="stat-box">
+                        <strong id="stat-reviews">0</strong>
+                        <span>REVIEWS</span>
                     </div>
-                    <p class="profile-bio" id="profile-bio-text">Em sintonia com indie, R&B e rock alternativo.</p>
-
-                    <!-- Estatísticas Dinâmicas -->
-                    <div class="profile-stats">
-                        <div class="stat-box">
-                            <strong id="stat-reviews">0</strong>
-                            <span>Reviews</span>
-                        </div>
-                        <div class="stat-box">
-                            <strong id="stat-likes">0</strong>
-                            <span>Curtidas</span>
-                        </div>
-                        <div class="stat-box">
-                            <strong id="stat-vinyls">0/0</strong>
-                            <span>Vinis Ouvidos</span>
-                        </div>
+                    <div class="stat-box">
+                        <strong id="stat-likes">0</strong>
+                        <span>CURTIDAS</span>
+                    </div>
+                    <div class="stat-box">
+                        <strong id="stat-vinyls">0/0</strong>
+                        <span>VINIS OUVIDOS</span>
                     </div>
                 </div>
             </section>
 
-            <!-- NOVA SEÇÃO: Biblioteca Pessoal de Vinis (Checklist Visual) -->
-            <section class="vinyl-library-section">
-                <div class="section-header-flex">
-                    <h3 class="section-title">MINHA ESTANTE DE VINIS (CHECKLIST)</h3>
-                    <span class="vinyl-hint">Clique no disco para marcar como ouvido</span>
+            <section class="profile-middle-grid">
+                <div id="music-pet-card" class="music-pet-card">
+                    <div class="pet-card-top">
+                        <span> COMPANHEIRO MUSICAL</span>
+                        <button type="button" id="btn-config-pet" class="btn-pet-config">Trocar Pet</button>
+                    </div>
+
+                    <div id="pet-visual-stage" class="pet-visual-stage">
+                        <div id="pet-sprite-container" class="pixel-pet-sprite"></div>
+                        <strong id="pet-name-display">Mochi</strong>
+                        <small id="pet-mood-text">Vibing no fone de ouvido!</small>
+                    </div>
+
+                    <div class="pet-energy-wrap">
+                        <div class="pet-energy-header">
+                            <span>CONSISTÊNCIA SEMANAL</span>
+                            <span id="pet-energy-label">80%</span>
+                        </div>
+                        <div class="pet-energy-track">
+                            <div id="pet-energy-bar" class="pet-energy-bar"></div>
+                        </div>
+                    </div>
+
+                    <button type="button" id="btn-feed-pet" class="btn-feed-pet">
+                       Alimentar com Música (+10%)
+                    </button>
+
+                    <form id="pet-setup-form" class="pet-setup-form" style="display:none;">
+                        <label>Escolha seu pet:</label>
+                        <select id="pet-species-select">
+                            <option value="cat|Gatinho de Fones">Gatinho de Fones (Pixel Art)</option>
+                            <option value="dog|Cachorrinho DJ">Cachorrinho DJ (Pixel Art)</option>
+                            <option value="frog|Sapo do Vinil">Sapo do Vinil (Pixel Art)</option>
+                            <option value="bunny|Coelho Indie">Coelho Indie (Pixel Art)</option>
+                            <option value="fox|Raposa Lo-Fi">Raposa Lo-Fi (Pixel Art)</option>
+                        </select>
+
+                        <label>Nome do pet:</label>
+                        <input type="text" id="pet-name-input" placeholder="Ex: Mochi, Bowie, Björk..." maxlength="18"
+                            required>
+
+                        <button type="submit" class="btn-save-pet">Salvar Pet ✓</button>
+                    </form>
                 </div>
 
-                <!-- Formulário rápido para adicionar novo vinil à pilha -->
-                <form id="add-vinyl-form" class="add-vinyl-form">
-                    <input type="text" id="vinyl-album" placeholder="Nome do Álbum..." required>
-                    <input type="text" id="vinyl-artist" placeholder="Artista..." required>
+                <div class="vinyl-shelf-box">
+                    <div class="shelf-header">
+                        <h3>MINHA ESTANTE DE VINIS (CHECKLIST)</h3>
+                        <small>Clique no disco para marcar como ouvido</small>
+                    </div>
 
-                    <!-- Novo botão para escolher a imagem da lombada -->
-                    <label for="vinyl-cover-input" class="btn-upload-spine" id="vinyl-upload-label"
-                        title="Escolher imagem para preencher a lombada">📷 Imagem</label>
-                    <input type="file" id="vinyl-cover-input" accept="image/*" hidden>
+                    <form id="add-vinyl-form" class="add-vinyl-form">
+                        <input type="text" id="vinyl-album" placeholder="Nome do álbum..." required>
+                        <input type="text" id="vinyl-artist" placeholder="Artista..." required>
+                        <label for="vinyl-cover-input" id="vinyl-upload-label" class="btn-upload-vinyl">
+                            Imagem</label>
+                        <input type="file" id="vinyl-cover-input" accept="image/*" hidden>
+                        <input type="color" id="vinyl-spine-color" value="#f7bbd7" title="Cor da lombada">
+                        <button type="submit" class="btn-add-vinyl">+ Adicionar</button>
+                    </form>
 
-                    <input type="color" id="vinyl-spine-color" value="#f7bbd7"
-                        title="Cor de fundo (caso não escolha imagem)">
-                    <button type="submit" class="btn-add-vinyl">+ Adicionar</button>
-                </form>
-
-
-                <!-- Pilha Visual de Vinis -->
-                <div class="vinyl-stack" id="vinyl-stack">
-                    <!-- Os discos serão carregados aqui via JavaScript -->
+                    <div id="vinyl-stack" class="vinyl-3d-shelf"></div>
                 </div>
             </section>
 
-            <!-- Histórico de Reviews do Próprio Usuário -->
             <section class="user-reviews-section">
-                <h3 class="section-title">MINHAS REVIEWS PUBLICADAS</h3>
-                <div class="user-reviews-list" id="user-reviews-list">
-                    <p class="loading-msg">Carregando suas reviews...</p>
+                <h3>MINHAS REVIEWS PUBLICADAS</h3>
+                <div id="user-reviews-list" class="user-reviews-list">
+                    <p>Carregando suas reviews...</p>
+                </div>
+                            <section class="user-reviews-section">
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:14px;">
+                    <h3 style="margin:0;">MINHAS REVIEWS PUBLICADAS</h3>
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <label for="perfil-sort-reviews" style="font-size:0.8rem; font-weight:800;">Ordenar por:</label>
+                        <select id="perfil-sort-reviews" style="padding:6px 10px; border:2px solid var(--text-dark, #000000); border-radius:6px; background:var(--box-gray, #f4f4f4); color:var(--text-dark, #000000); font-weight:700; font-size:0.82rem; cursor:pointer;">
+                            <option value="recentes">Mais Recentes</option>
+                            <option value="antigas">Mais Antigas</option>
+                            <option value="maior-nota">Maior Nota (Estrelas)</option>
+                            <option value="menor-nota">Menor Nota (Estrelas)</option>
+                            <option value="mais-curtidas">Mais Curtidas</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="user-reviews-list" class="user-reviews-list">
+                    <p>Carregando suas reviews...</p>
                 </div>
             </section>
 
+            </section>
         </main>
-
     </div>
+
+    <div id="vinyl-display-modal" class="vinyl-modal-overlay">
+        <div class="vinyl-display-card">
+            <button type="button" id="btn-close-vinyl-modal" class="btn-close-vinyl-modal">X</button>
+            <span style="font-size:0.75rem; font-weight:900; letter-spacing:1px; opacity:0.75;">EXIBIÇÃO DE VINIL
+                3D</span>
+
+            <div class="vinyl-3d-showcase">
+                <div id="showcase-sleeve" class="showcase-sleeve"></div>
+                <div id="showcase-disc" class="showcase-disc">
+                    <div id="showcase-disc-label" class="showcase-disc-label">
+                        <div class="showcase-disc-hole"></div>
+                    </div>
+                </div>
+            </div>
+
+            <h3 id="showcase-album-title" style="margin:0 0 4px 0; font-size:1.35rem;">Álbum</h3>
+            <p id="showcase-artist-name" style="margin:0; font-weight:700; opacity:0.8;">Artista</p>
+
+            <div class="showcase-actions">
+                <button type="button" id="btn-showcase-toggle-listened" class="btn-showcase-action"
+                    style="background:var(--btn-pink,#f7bbd7); color:#000000;">
+                    Marcar como Ouvido
+                </button>
+                <a id="btn-showcase-forum" href="album.html" class="btn-showcase-action"
+                    style="background:#000000; color:#ffffff;">
+                    Abrir Fórum do Álbum
+                </a>
+            </div>
+        </div>
+    </div>
+
 
     <script src="tema.js"></script>
     <script src="perfil.js"></script>

@@ -556,3 +556,41 @@ body {
     margin-bottom: 10px;
     display: block;
 }
+
+/* --- SUPORTE AO MODO ESCURO E TEMAS NO FEED --- */
+.sidebar-dashboard {
+    background-color: var(--box-gray, #fafafa) !important;
+    color: var(--text-dark, #000000) !important;
+}
+
+.user-bio,
+.review-text,
+.action-btn,
+.platform-tag {
+    color: var(--text-muted, #333333) !important;
+}
+
+.action-btn:hover {
+    color: var(--text-dark, #000000) !important;
+}
+
+/* --- CORES DOS NOMES DE PERFIL E ÁLBUNS NO FEED --- */
+.reviewer-name,
+.reviewer-name a,
+.reviewer-name a strong {
+    color: var(--text-dark, #000000) !important;
+    text-decoration: none;
+}
+
+.reviewer-name a:first-child,
+.reviewer-name a:first-child strong,
+.comment-item-content a,
+.comment-item-content a strong {
+    color: var(--btn-pink, #f7bbd7) !important;
+    text-decoration: none;
+}
+
+.reviewer-name a:hover,
+.comment-item-content a:hover {
+    text-decoration: underline !important;
+}

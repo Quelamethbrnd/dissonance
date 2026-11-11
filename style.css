@@ -23,6 +23,7 @@ body {
     padding: 20px;
 }
 
+
 .app-container {
     width: 100%;
     max-width: 1100px;
@@ -187,4 +188,80 @@ body {
 .btn-discover:hover {
     transform: translate(-2px, -2px);
     box-shadow: 5px 5px 0px #000;
+}
+
+/* --- CABEÇALHO UNIFICADO EM TODAS AS TELAS --- */
+.top-banner,
+.main-header {
+    background-color: var(--bg-header, #000000) !important;
+    background-image: url('imgs/header ipod.png') !important;
+    background-size: contain !important;
+    background-position: right center !important;
+    background-repeat: no-repeat !important;
+    width: 100% !important;
+    padding: 45px 40px !important;
+    text-align: right !important;
+    border-bottom: 2px solid var(--text-dark, #000000) !important;
+}
+
+.logo-title,
+.main-title {
+    color: var(--text-pink, #f1c5d9) !important;
+    font-size: 2.3rem !important;
+    font-weight: 900 !important;
+    letter-spacing: 3px !important;
+    line-height: 1.2 !important;
+    display: inline-block !important;
+    text-shadow: 2px 2px 0px #000000 !important;
+    margin: 0 !important;
+}
+
+body {
+    color: var(--text-dark, #000000);
+}
+
+small {
+    color: var(--text-muted, #333333);
+}
+
+/* --- LINKS E NOMES DE PERFIL SEGUINDO AS CORES DO TEMA --- */
+a,
+a:visited,
+.user-profile-link,
+.user-profile-link:visited {
+    color: var(--text-dark, #000000) !important;
+    text-decoration: none;
+    transition: color 0.15s ease;
+}
+
+.reviewer-name a:first-child,
+.reviewer-name a:first-child strong,
+.comment-item-content a,
+.comment-item-content a strong,
+.forum-thread-card .user-profile-link,
+.forum-thread-card .user-profile-link strong {
+    color: var(--btn-pink, #f7bbd7) !important;
+}
+
+a:hover,
+.user-profile-link:hover,
+.user-profile-link:hover strong {
+    color: var(--text-pink, #f1c5d9) !important;
+    text-decoration: underline;
+}
+
+.btn-edit-profile,
+.btn-genius,
+.credit-pill {
+    color: #000000 !important;
+}
+
+.btn-logout {
+    background-color: var(--bg-header, #000000) !important;
+    color: var(--text-pink, #f1c5d9) !important;
+}
+
+.btn-logout:hover,
+.credit-pill:hover {
+    color: #ffffff !important;
 }

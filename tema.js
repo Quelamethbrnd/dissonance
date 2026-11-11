@@ -17,6 +17,13 @@ document.addEventListener('DOMContentLoaded', () => {
         body, .app-container, .navbar, .main-feed, .profile-layout, .explore-layout, .edit-layout {
             color: var(--text-dark) !important;
         }
+        const banner = document.querySelector('.top-banner');
+        if (banner && temaSelecionado.banner) {
+            banner.style.background = temaSelecionado.banner;
+        } else if (banner && temaSelecionado.primary) {
+            banner.style.background = temaSelecionado.primary;
+        }
+
         .sidebar-dashboard {
             background-color: var(--box-gray) !important;
             color: var(--text-dark) !important;

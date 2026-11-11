@@ -6,15 +6,16 @@
     <title>Dissonance — Fórum & Detalhes do Álbum</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="style-home.css">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon_io/favicon-32x32.png">
     <style>
         .album-page-grid {
             display: grid;
             grid-template-columns: 310px 1fr;
             gap: 24px;
-            margin-top: 24px;
+            padding: 24px 30px 40px 30px;
         }
         .album-box {
-            background: var(--card-bg, #ffffff);
+            background: var(--bg-content, #ffffff);
             border: 2px solid #000000;
             border-radius: 10px;
             padding: 20px;
@@ -106,7 +107,7 @@
             border-radius: 10px;
             padding: 16px;
             margin-bottom: 16px;
-            background: var(--card-bg, #ffffff);
+            background: var(--bg-content, #ffffff);
             box-shadow: 3px 3px 0px #000000;
         }
         .forum-replies {
@@ -128,9 +129,12 @@
 </head>
 <body>
     <div class="app-container">
+        <header class="top-banner">
+            <h1 class="logo-title">DISSONANCE</h1>
+        </header>
+
         <nav class="navbar">
             <div class="nav-brand">
-                <h1>DISSONANCE</h1>
                 <span class="nav-user-greeting">Olá, <strong>@ouvinte</strong></span>
             </div>
             <div class="nav-links">
@@ -141,7 +145,6 @@
                 <a href="index.html" class="nav-item btn-logout">Sair</a>
             </div>
         </nav>
-
         <main class="album-page-grid">
             <aside>
                 <div class="album-box">
@@ -155,27 +158,27 @@
                 </div>
 
                 <div class="album-box">
-                    <h3 style="margin-bottom: 6px; font-size: 1rem;">🎛️ CRÉDITOS & PRODUÇÃO</h3>
+                    <h3 style="margin-bottom: 6px; font-size: 1rem;">CRÉDITOS & PRODUÇÃO</h3>
                     <p style="font-size:0.82rem; opacity:0.8; margin-bottom:10px;">Clique no produtor para ver outras obras:</p>
                     <div id="album-credits-list"></div>
                     <a id="btn-genius-link" href="https://genius.com" target="_blank" rel="noopener noreferrer" class="btn-genius">
-                      Ver Letras & Anotações no Genius ↗
+                        Ver Letras & Anotações no Genius
                     </a>
                 </div>
 
                 <div class="album-box">
-                    <h3 style="margin-bottom: 8px; font-size: 1rem;">🎵 FAIXAS & PRÉVIAS</h3>
+                    <h3 style="margin-bottom: 8px; font-size: 1rem;">FAIXAS & PRÉVIAS</h3>
                     <div id="album-tracklist"><small>Buscando faixas...</small></div>
                 </div>
             </aside>
 
             <section>
                 <div class="album-box">
-                    <h3 style="margin-bottom: 8px; font-size: 1.05rem;">📖 HISTÓRIA & CONTEXTO DA OBRA</h3>
+                    <h3 style="margin-bottom: 8px; font-size: 1.05rem;">HISTÓRIA & CONTEXTO DA OBRA</h3>
                     <p id="album-history-text" style="line-height: 1.55; font-size: 0.94rem;"></p>
 
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-top:18px; margin-bottom:8px; flex-wrap:wrap; gap:8px;">
-                        <h4 style="font-size:0.95rem;">🎬 VEJA ONDE APARECE (FILMES, SÉRIES E JOGOS)</h4>
+                        <h4 style="font-size:0.95rem;">VEJA ONDE APARECE (FILMES, SÉRIES E JOGOS)</h4>
                         <button type="button" id="btn-toggle-media-form" style="padding:5px 10px; border:2px solid #000; border-radius:6px; background:var(--btn-pink,#f7bbd7); font-weight:800; cursor:pointer; font-size:0.8rem;">
                             + Catalogar Aparição
                         </button>
@@ -193,7 +196,7 @@
                 </div>
 
                 <div class="album-box">
-                    <h3 style="margin-bottom: 12px; font-size: 1.05rem;">💬 FÓRUM DE DISCUSSÃO & REVIEWS</h3>
+                    <h3 style="margin-bottom: 12px; font-size: 1.05rem;">FÓRUM DE DISCUSSÃO & REVIEWS</h3>
                     <form id="forum-post-form" style="margin-bottom: 22px;">
                         <div style="display:flex; gap:10px; margin-bottom:10px; flex-wrap:wrap;">
                             <select id="forum-rating" style="padding:9px; border:2px solid #000; border-radius:6px; font-weight:800; background:#fff;">
@@ -206,7 +209,7 @@
                             <input type="text" id="forum-topic" placeholder="Título do tópico (ex: Melhor faixa do disco, Produção...)" required style="flex:1; min-width:220px; padding:9px; border:2px solid #000; border-radius:6px;">
                         </div>
                         <textarea id="forum-comment" rows="3" placeholder="Abra uma discussão sobre esse álbum ou deixe sua review detalhada..." required style="width:100%; box-sizing:border-box; padding:10px; border:2px solid #000; border-radius:6px; margin-bottom:10px; font-family:inherit;"></textarea>
-                        <button type="submit" class="btn-submit-review">Publicar Tópico no Fórum ▸</button>
+                        <button type="submit" style="padding: 10px 18px; background: var(--btn-pink, #f7bbd7); color: #000000; border: 2px solid #000000; border-radius: 6px; font-weight: 800; cursor: pointer; box-shadow: 3px 3px 0px #000000;">Publicar Tópico no Fórum</button>
                     </form>
 
                     <div id="album-forum-list"></div>
