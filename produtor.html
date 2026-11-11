@@ -8,6 +8,54 @@
     <link rel="stylesheet" href="style-home.css">
     <link rel="stylesheet" href="style-explorar.css">
     <link rel="icon" type="image/png" sizes="32x32" href="favicon_io/favicon-32x32.png">
+    <style>
+        .producer-hero-box {
+            background-color: var(--bg-content, #ffffff);
+            color: var(--text-dark, #000000);
+            border: 2px solid var(--text-dark, #000000);
+            border-radius: 10px;
+            padding: 24px;
+            box-shadow: 4px 4px 0px #000000;
+            margin-bottom: 24px;
+        }
+        .producer-badge {
+            display: inline-block;
+            background-color: var(--btn-pink, #f7bbd7);
+            color: #000000 !important;
+            padding: 4px 10px;
+            border: 2px solid #000000;
+            border-radius: 6px;
+            font-weight: 800;
+            font-size: 0.8rem;
+        }
+        .producer-hero-box h2 {
+            margin-top: 12px;
+            font-size: 1.8rem;
+            color: var(--text-dark, #000000);
+        }
+        .producer-hero-box p {
+            margin-top: 6px;
+            color: var(--text-muted, #333333);
+            line-height: 1.5;
+        }
+        .btn-genius-producer {
+            display: inline-block;
+            margin-top: 16px;
+            padding: 9px 16px;
+            background-color: #ffff64;
+            color: #000000 !important;
+            border: 2px solid #000000;
+            border-radius: 6px;
+            font-weight: 800;
+            text-decoration: none;
+            box-shadow: 3px 3px 0px #000000;
+            transition: transform 0.15s ease;
+        }
+        .btn-genius-producer:hover {
+            transform: translate(-1px, -1px);
+            color: #000000 !important;
+        }
+    </style>
 </head>
 <body>
     <div class="app-container">
@@ -29,17 +77,16 @@
         </nav>
 
         <main style="padding: 24px 30px 40px 30px;">
-            <div style="background: var(--card-bg, #fff); border: 2px solid #000; border-radius: 10px; padding: 24px; box-shadow: 4px 4px 0 #000; margin-bottom: 24px;">
-                <span style="background: var(--btn-pink, #f7bbd7); padding: 4px 10px; border: 2px solid #000; border-radius: 6px; font-weight: 800; font-size: 0.8rem;">CRÉDITOS DE PRODUÇÃO</span>
-                <h2 id="producer-name" style="margin-top: 10px; font-size: 1.8rem;">Carregando produtor...</h2>
-                <p id="producer-bio" style="margin-top: 6px; opacity: 0.85;">Buscando discografia e trabalhos produzidos...</p>
-                <a id="producer-genius-btn" href="https://genius.com" target="_blank" rel="noopener noreferrer"
-                   style="display:inline-block; margin-top:14px; padding:8px 14px; background:#ffff64; color:#000; border:2px solid #000; border-radius:6px; font-weight:800; text-decoration:none; box-shadow:3px 3px 0 #000;">
-                   Ver Perfil & Créditos no Genius
+            <div class="producer-hero-box">
+                <span class="producer-badge">CRÉDITOS DE PRODUÇÃO</span>
+                <h2 id="producer-name">Carregando produtor...</h2>
+                <p id="producer-bio">Buscando discografia e trabalhos produzidos...</p>
+                <a id="producer-genius-btn" href="https://genius.com" target="_blank" rel="noopener noreferrer" class="btn-genius-producer">
+                    Ver Perfil & Créditos no Genius ↗
                 </a>
             </div>
 
-            <h3 style="margin-bottom: 14px;">DISCOGRAFIA & TRABALHOS RELACIONADOS</h3>
+            <h3 style="margin-bottom: 14px; color: var(--text-dark, #000000);">DISCOGRAFIA & TRABALHOS RELACIONADOS</h3>
             <div id="producer-works-grid" class="albums-grid"></div>
         </main>
     </div>

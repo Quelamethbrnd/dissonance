@@ -216,7 +216,7 @@ document.addEventListener('DOMContentLoaded', () => {
             reviewForm.reset();
             midiaAnexoBase64 = '';
             if (reviewUploadLabel) {
-                reviewUploadLabel.textContent = '📷 Upload de Imagem/GIF';
+                reviewUploadLabel.textContent = ' Upload de Imagem/GIF';
                 reviewUploadLabel.classList.remove('has-image');
             }
             carregarReviews();

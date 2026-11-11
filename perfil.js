@@ -352,6 +352,127 @@ document.addEventListener('DOMContentLoaded', () => {
                         btnDel +
                     '</div>';
             });
+    const reviewsList = document.getElementById('user-reviews-list');
+    const statReviews = document.getElementById('stat-reviews');
+    const statLikes = document.getElementById('stat-likes');
+    const sortReviewsSelect = document.getElementById('perfil-sort-reviews');
+
+    function contarEstrelas(ratingStr) {
+        if (!ratingStr) return 0;
+        const estrelas = ratingStr.match(/★/g);
+        return estrelas ? estrelas.length : 0;
+    }
+
+    function montarAvatarHTML(username) {
+        const foto = localStorage.getItem('avatar_' + username);
+        if (foto) {
+            return '<img src="' + foto + '" alt="' + escapeHTML(username) + '" class="review-avatar">';
+        }
+        const inicial = username.replace('@', '').charAt(0).toUpperCase() || 'U';
+        return '<div class="review-avatar">' + inicial + '</div>';
+    }
+
+    function carregarMinhasReviews(idAberto = null) {
+        const todas = JSON.parse(localStorage.getItem('dissonance_reviews')) || [];
+        let doPerfil = todas.filter(r => r.username === perfilAlvo);
+
+        if (statReviews) statReviews.textContent = doPerfil.length;
+        const totalCurtidas = doPerfil.reduce((soma, item) => soma + (item.likes || 0), 0);
+        if (statLikes) statLikes.textContent = totalCurtidas;
+
+        const criterio = sortReviewsSelect ? sortReviewsSelect.value : 'recentes';
+        doPerfil = [...doPerfil].sort((a, b) => {
+            if (criterio === 'antigas') {
+                return a.id - b.id;
+            }
+            if (criterio === 'maior-nota') {
+                return contarEstrelas(b.rating) - contarEstrelas(a.rating) || (b.id - a.id);
+            }
+            if (criterio === 'menor-nota') {
+                return contarEstrelas(a.rating) - contarEstrelas(b.rating) || (b.id - a.id);
+            }
+            if (criterio === 'mais-curtidas') {
+                return (b.likes || 0) - (a.likes || 0) || (b.id - a.id);
+            }
+            return b.id - a.id;
+        });
+
+        if (!reviewsList) return;
+        if (doPerfil.length === 0) {
+            reviewsList.innerHTML = '<p>Nenhuma review publicada ainda.</p>';
+            return;
+        }
+
+        reviewsList.innerHTML = '';
+        doPerfil.forEach(review => {
+            const comentarios = review.commentsList || [];
+            const card = document.createElement('article');
+            card.classList.add('review-card');
+            card.dataset.id = review.id;
+
+            let comentariosHTML = '';
+            comentarios.forEach(c => {
+                const btnDel = (c.author === usuarioAtual)
+                    ? '<button type="button" class="btn-del-comment" data-cid="' + c.id + '" style="background:none;border:none;color:#c92a2a;font-weight:bold;cursor:pointer;">X</button>'
+                    : '';
+                comentariosHTML +=
+                    '<div class="perfil-comment-item">' +
+                        '<span><strong>' + escapeHTML(c.author) + ':</strong> ' + escapeHTML(c.text) + '</span>' +
+                        btnDel +
+                    '</div>';
+            });
+
+            if (!comentariosHTML) {
+                comentariosHTML = '<small style="opacity:0.7;">Nenhum comentário ainda.</small>';
+            }
+
+            const openClass = (idAberto === review.id) ? 'open' : '';
+            const jaCurtiu = (review.likedBy || []).includes(usuarioAtual);
+            const estiloLike = jaCurtiu ? 'style="background-color: var(--btn-pink); color: #000000;"' : '';
+            const textoLike = jaCurtiu ? 'Curtido (' + (review.likes || 0) + ')' : 'Curtir (' + (review.likes || 0) + ')';
+
+            const avatarHTML = montarAvatarHTML(review.username);
+            const anexoHTML = review.media_url
+                ? '<img src="' + review.media_url + '" alt="Anexo do post" class="review-media-attachment">'
+                : '';
+            const btnExcluirHTML = ehMeuPerfil
+                ? '<button type="button" class="btn-delete-review" data-id="' + review.id + '">Excluir review</button>'
+                : '';
+
+            card.innerHTML =
+                avatarHTML +
+                '<div class="review-body">' +
+                    '<div class="review-header">' +
+                        '<strong><a href="album.html?album=' + encodeURIComponent(review.album_name) + '" class="user-profile-link">' + escapeHTML(review.album_name) + '</a></strong>' +
+                        '<span>' + escapeHTML(review.rating) + '</span>' +
+                    '</div>' +
+                    '<p class="review-text">' + escapeHTML(review.comment) + '</p>' +
+                    anexoHTML +
+                    '<div class="review-footer-row">' +
+                        '<div class="review-actions-group">' +
+                            '<button type="button" class="action-btn-perfil btn-like-perfil" ' + estiloLike + '>' + textoLike + '</button>' +
+                            '<button type="button" class="action-btn-perfil btn-toggle-perfil-comments">Comentários (' + comentarios.length + ')</button>' +
+                        '</div>' +
+                        btnExcluirHTML +
+                    '</div>' +
+                    '<div class="perfil-comments-box ' + openClass + '">' +
+                        '<div class="perfil-comments-list">' + comentariosHTML + '</div>' +
+                        '<form class="perfil-comment-form">' +
+                            '<input type="text" placeholder="Escreva um comentário..." required>' +
+                            '<button type="submit" class="btn-send-perfil-comment">Enviar</button>' +
+                        '</form>' +
+                    '</div>' +
+                '</div>';
+
+            reviewsList.appendChild(card);
+        });
+    }
+
+    if (sortReviewsSelect) {
+        sortReviewsSelect.addEventListener('change', () => {
+            carregarMinhasReviews();
+        });
+    }
 
             if (!comentariosHTML) {
                 comentariosHTML = '<small style="opacity:0.7;">Nenhum comentário ainda.</small>';

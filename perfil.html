@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,7 +9,6 @@
     <link rel="stylesheet" href="style-perfil.css">
     <link rel="icon" type="image/png" sizes="32x32" href="favicon_io/favicon-32x32.png">
 </head>
-
 <body>
     <div class="app-container">
         <header class="top-banner">
@@ -32,10 +30,10 @@
 
         <main class="profile-page-content">
             <section class="profile-header-centered">
-                <div class="profile-avatar-large"></div>
+                <div class="profile-avatar-large">U</div>
                 <div class="profile-title-row">
                     <h2 id="profile-username">@ouvinte</h2>
-                    <a href="editar-perfil.html" class="btn-edit-profile">Editar Perfil ✎</a>
+                    <a href="editar-perfil.html" class="btn-edit-profile">Editar Perfil</a>
                 </div>
                 <p id="profile-bio-text" class="profile-bio">Em sintonia com indie, R&B e rock alternativo.</p>
 
@@ -58,7 +56,7 @@
             <section class="profile-middle-grid">
                 <div id="music-pet-card" class="music-pet-card">
                     <div class="pet-card-top">
-                        <span> COMPANHEIRO MUSICAL</span>
+                        <span>COMPANHEIRO MUSICAL</span>
                         <button type="button" id="btn-config-pet" class="btn-pet-config">Trocar Pet</button>
                     </div>
 
@@ -79,7 +77,7 @@
                     </div>
 
                     <button type="button" id="btn-feed-pet" class="btn-feed-pet">
-                       Alimentar com Música (+10%)
+                        Alimentar com Música (+10%)
                     </button>
 
                     <form id="pet-setup-form" class="pet-setup-form" style="display:none;">
@@ -93,24 +91,22 @@
                         </select>
 
                         <label>Nome do pet:</label>
-                        <input type="text" id="pet-name-input" placeholder="Ex: Mochi, Bowie, Björk..." maxlength="18"
-                            required>
+                        <input type="text" id="pet-name-input" placeholder="Ex: Mochi, Bowie, Björk..." maxlength="18" required>
 
-                        <button type="submit" class="btn-save-pet">Salvar Pet ✓</button>
+                        <button type="submit" class="btn-save-pet">Salvar Pet</button>
                     </form>
                 </div>
 
                 <div class="vinyl-shelf-box">
                     <div class="shelf-header">
                         <h3>MINHA ESTANTE DE VINIS (CHECKLIST)</h3>
-                        <small>Clique no disco para marcar como ouvido</small>
+                        <small>Clique no disco para abrir o display 3D</small>
                     </div>
 
                     <form id="add-vinyl-form" class="add-vinyl-form">
                         <input type="text" id="vinyl-album" placeholder="Nome do álbum..." required>
                         <input type="text" id="vinyl-artist" placeholder="Artista..." required>
-                        <label for="vinyl-cover-input" id="vinyl-upload-label" class="btn-upload-vinyl">
-                            Imagem</label>
+                        <label for="vinyl-cover-input" id="vinyl-upload-label" class="btn-upload-vinyl">Imagem</label>
                         <input type="file" id="vinyl-cover-input" accept="image/*" hidden>
                         <input type="color" id="vinyl-spine-color" value="#f7bbd7" title="Cor da lombada">
                         <button type="submit" class="btn-add-vinyl">+ Adicionar</button>
@@ -119,13 +115,7 @@
                     <div id="vinyl-stack" class="vinyl-3d-shelf"></div>
                 </div>
             </section>
-
             <section class="user-reviews-section">
-                <h3>MINHAS REVIEWS PUBLICADAS</h3>
-                <div id="user-reviews-list" class="user-reviews-list">
-                    <p>Carregando suas reviews...</p>
-                </div>
-                            <section class="user-reviews-section">
                 <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:14px;">
                     <h3 style="margin:0;">MINHAS REVIEWS PUBLICADAS</h3>
                     <div style="display:flex; align-items:center; gap:8px;">
@@ -143,17 +133,14 @@
                     <p>Carregando suas reviews...</p>
                 </div>
             </section>
-
-            </section>
         </main>
     </div>
 
     <div id="vinyl-display-modal" class="vinyl-modal-overlay">
         <div class="vinyl-display-card">
             <button type="button" id="btn-close-vinyl-modal" class="btn-close-vinyl-modal">X</button>
-            <span style="font-size:0.75rem; font-weight:900; letter-spacing:1px; opacity:0.75;">EXIBIÇÃO DE VINIL
-                3D</span>
-
+            <span style="font-size:0.75rem; font-weight:900; letter-spacing:1px; opacity:0.75;">EXIBIÇÃO DE VINIL 3D</span>
+            
             <div class="vinyl-3d-showcase">
                 <div id="showcase-sleeve" class="showcase-sleeve"></div>
                 <div id="showcase-disc" class="showcase-disc">
@@ -167,21 +154,17 @@
             <p id="showcase-artist-name" style="margin:0; font-weight:700; opacity:0.8;">Artista</p>
 
             <div class="showcase-actions">
-                <button type="button" id="btn-showcase-toggle-listened" class="btn-showcase-action"
-                    style="background:var(--btn-pink,#f7bbd7); color:#000000;">
+                <button type="button" id="btn-showcase-toggle-listened" class="btn-showcase-action" style="background:var(--btn-pink,#f7bbd7); color:#000000;">
                     Marcar como Ouvido
                 </button>
-                <a id="btn-showcase-forum" href="album.html" class="btn-showcase-action"
-                    style="background:#000000; color:#ffffff;">
+                <a id="btn-showcase-forum" href="album.html" class="btn-showcase-action" style="background:#000000; color:#ffffff;">
                     Abrir Fórum do Álbum
                 </a>
             </div>
         </div>
     </div>
 
-
     <script src="tema.js"></script>
     <script src="perfil.js"></script>
 </body>
-
 </html>
