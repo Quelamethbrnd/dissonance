@@ -12,21 +12,20 @@ document.addEventListener('DOMContentLoaded', () => {
     root.style.setProperty('--text-muted', temaSalvo.textMuted || temaSalvo.textDark);
     document.body.style.backgroundColor = temaSalvo.boxGray;
 
+    const banner = document.querySelector('.top-banner, .main-header');
+    if (banner && temaSalvo.bgHeader) {
+        banner.style.background = temaSalvo.bgHeader;
+    }
+
     const styleFix = document.createElement('style');
     styleFix.textContent = `
-        body, .app-container, .navbar, .main-feed, .profile-layout, .explore-layout, .edit-layout {
+        body, .app-container, .navbar, .main-feed, .profile-layout, .profile-page-content, .explore-layout, .edit-layout {
             color: var(--text-dark) !important;
         }
-        const banner = document.querySelector('.top-banner');
-        if (banner && temaSelecionado.banner) {
-            banner.style.background = temaSelecionado.banner;
-        } else if (banner && temaSelecionado.primary) {
-            banner.style.background = temaSelecionado.primary;
-        }
-
-        .sidebar-dashboard {
-            background-color: var(--box-gray) !important;
+        .sidebar-dashboard, .profile-header-centered, .music-pet-card, .vinyl-shelf-box, .user-reviews-section {
+            background-color: var(--bg-content) !important;
             color: var(--text-dark) !important;
+            border-color: var(--text-dark) !important;
         }
         .review-text, .user-bio, .profile-bio, .terms-section p, .section-desc, .stat-box span {
             color: var(--text-muted) !important;
