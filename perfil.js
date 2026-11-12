@@ -125,7 +125,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const luminancia = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
         return luminancia > 0.55 ? '#000000' : '#ffffff';
     }
-
     if (vinylCoverInput && ehMeuPerfil) {
         vinylCoverInput.addEventListener('change', (event) => {
             const file = event.target.files.item(0);
@@ -152,6 +151,96 @@ document.addEventListener('DOMContentLoaded', () => {
                 img.src = e.target.result;
             };
             reader.readAsDataURL(file);
+        });
+    }
+
+    function renderizarVinis() {
+        if (!vinylStack) return;
+        const lista = obterVinis();
+        vinylStack.innerHTML = '';
+        const ouvidosCount = lista.filter(v => v.listened).length;
+        if (statVinyls) statVinyls.textContent = ouvidosCount + '/' + lista.length;
+
+        if (lista.length === 0) {
+            vinylStack.innerHTML = '<p style="font-size: 0.85rem; color: #aaa;">A estante 3D esta vazia.</p>';
+            return;
+        }
+
+        const metade = Math.ceil(lista.length / 2);
+        lista.forEach((vinil, index) => {
+            const item3D = document.createElement('div');
+            item3D.classList.add('vinyl-3d-item');
+            if (vinil.listened) item3D.classList.add('listened');
+            item3D.classList.add(index < metade ? 'tilt-bottom' : 'tilt-top');
+            item3D.dataset.id = vinil.id;
+
+            const corFundo = vinil.color || '#f7bbd7';
+            const corTexto = obterCorTextoContraste(corFundo);
+            const capa = vinil.coverImage || vinil.spineImage || 'imgs/Blonde_-_Frank_Ocean.jpeg';
+            const checkIcon = vinil.listened ? '✓' : '';
+            const btnRemoverHTML = ehMeuPerfil
+                ? '<button type="button" class="btn-remove-vinyl" title="Remover" data-id="' + vinil.id + '">X</button>'
+                : '';
+
+            item3D.innerHTML =
+                '<div class="vinyl-spine-face" style="background-color:' + corFundo + ';color:' + corTexto + ';">' +
+                    '<div class="vinyl-spine-left">' +
+                        '<div class="vinyl-checkbox">' + checkIcon + '</div>' +
+                        '<div class="vinyl-title-group">' +
+                            '<span class="vinyl-album-name">' + escapeHTML(vinil.album) + '</span>' +
+                            '<span class="vinyl-artist-name">' + escapeHTML(vinil.artist) + '</span>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="vinyl-spine-right">' + btnRemoverHTML + '</div>' +
+                '</div>' +
+                '<div class="vinyl-cover-plane" style="background-image:url(\'' + capa + '\');"></div>';
+
+            vinylStack.appendChild(item3D);
+        });
+    }
+    const vinylModal = document.getElementById('vinyl-display-modal');
+    const closeVinylModalBtn = document.getElementById('btn-close-vinyl-modal');
+    const showcaseSleeve = document.getElementById('showcase-sleeve');
+    const showcaseDisc = document.getElementById('showcase-disc');
+    const showcaseLabel = document.getElementById('showcase-disc-label');
+    const showcaseTitle = document.getElementById('showcase-album-title');
+    const showcaseArtist = document.getElementById('showcase-artist-name');
+    const btnToggleListened = document.getElementById('btn-showcase-toggle-listened');
+    const btnShowcaseForum = document.getElementById('btn-showcase-forum');
+    let vinilSelecionadoId = null;
+
+    function abrirDisplayVinil(vinil) {
+        if (!vinylModal || !vinil) return;
+        vinilSelecionadoId = vinil.id;
+        const capa = vinil.coverImage || vinil.spineImage || 'imgs/Blonde_-_Frank_Ocean.jpeg';
+        const corDisco = vinil.color || '#f7bbd7';
+
+        if (showcaseSleeve) showcaseSleeve.style.backgroundImage = 'url("' + capa + '")';
+        if (showcaseLabel) showcaseLabel.style.backgroundImage = 'url("' + capa + '")';
+        if (showcaseDisc) showcaseDisc.style.backgroundColor = corDisco;
+        if (showcaseTitle) showcaseTitle.textContent = vinil.album;
+        if (showcaseArtist) showcaseArtist.textContent = vinil.artist;
+
+        if (btnShowcaseForum) {
+            btnShowcaseForum.href = 'album.html?album=' + encodeURIComponent(vinil.album) + '&artist=' + encodeURIComponent(vinil.artist);
+        }
+
+        if (btnToggleListened) {
+            if (!ehMeuPerfil) {
+                btnToggleListened.style.display = 'none';
+            } else {
+                btnToggleListened.style.display = 'inline-block';
+                btnToggleListened.textContent = vinil.listened ? 'Ouvido (Desmarcar)' : 'Marcar como Ouvido';
+            }
+        }
+
+        vinylModal.classList.add('open');
+    }
+
+    if (closeVinylModalBtn && vinylModal) {
+        closeVinylModalBtn.addEventListener('click', () => vinylModal.classList.remove('open'));
+        vinylModal.addEventListener('click', (e) => {
+            if (e.target === vinylModal) vinylModal.classList.remove('open');
         });
     }
     if (btnToggleListened) {
@@ -274,7 +363,6 @@ document.addEventListener('DOMContentLoaded', () => {
             reviewsList.innerHTML = '<p>Nenhuma review publicada ainda.</p>';
             return;
         }
-
         reviewsList.innerHTML = '';
         doPerfil.forEach(review => {
             const comentarios = review.commentsList || [];
@@ -419,7 +507,22 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
-    const petCanvas = document.getElementById('pet-canvas');
+    const petStage = document.getElementById('pet-visual-stage');
+    let petCanvas = document.getElementById('pet-canvas');
+    if (!petCanvas && petStage) {
+        const oldActor = document.getElementById('pet-svg-actor') || document.getElementById('pet-gif-actor');
+        if (oldActor) oldActor.remove();
+        const oldFloor = document.getElementById('pet-stage-floor');
+        if (oldFloor) oldFloor.remove();
+
+        petCanvas = document.createElement('canvas');
+        petCanvas.id = 'pet-canvas';
+        petCanvas.width = 240;
+        petCanvas.height = 115;
+        petCanvas.className = 'pet-canvas';
+        petStage.prepend(petCanvas);
+    }
+
     const petCtx = petCanvas ? petCanvas.getContext('2d') : null;
     const chavePet = 'dissonance_pet_' + perfilAlvo;
     const petNameEl = document.getElementById('pet-name-display');
@@ -447,7 +550,6 @@ document.addEventListener('DOMContentLoaded', () => {
         bunny: { body: '#fdf2f8', shade: '#fbcfe8', ear: '#f472b6', eye: '#db2777', collar: '#8ce99a' },
         fox: { body: '#ea580c', shade: '#c2410c', ear: '#111111', eye: '#111111', collar: '#ffffff' }
     };
-
     const mapaSprite16 = [
         '..E........E....',
         '.EBE......EBE...',
@@ -490,7 +592,6 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
     }
-
     function desenharCenarioEspecie(ctx, especieKey, frame) {
         ctx.save();
         if (especieKey === 'dog') {
@@ -540,6 +641,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         ctx.restore();
     }
+
     function desenharAcessorioPet(ctx, especieKey, px, bobY) {
         if (especieKey === 'cat' || especieKey === 'fox') {
             ctx.fillStyle = '#111111';
@@ -569,7 +671,6 @@ document.addEventListener('DOMContentLoaded', () => {
             ctx.fillRect(12 * px, 5 * px + bobY, 2 * px, 3 * px);
         }
     }
-
     function desenharPixelPet(ctx, x, y, paleta, especieKey, dir, passo, acao) {
         const px = 3;
         ctx.save();
@@ -725,7 +826,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (petEnergyBar) petEnergyBar.style.background = '#ffd43b';
         }
     }
-
     if (ehMeuPerfil && btnPetLove) {
         btnPetLove.addEventListener('click', () => {
             estadoPet.dormindo = false;
@@ -791,7 +891,6 @@ document.addEventListener('DOMContentLoaded', () => {
             atualizarPetMusical();
         });
     }
-
     const logoutBtn = document.querySelector('.btn-logout');
     if (logoutBtn) {
         logoutBtn.addEventListener('click', (event) => {
