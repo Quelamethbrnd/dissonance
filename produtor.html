@@ -95,3 +95,75 @@
     <script src="produtor.js"></script>
 </body>
 </html>
+                <div class="vinyl-shelf-box">
+                    <div class="shelf-header">
+                        <h3>MINHA ESTANTE DE VINIS (CHECKLIST)</h3>
+                        <small>Clique no disco para abrir o display 3D</small>
+                    </div>
+
+                    <form id="add-vinyl-form" class="add-vinyl-form">
+                        <input type="text" id="vinyl-album" placeholder="Nome do álbum..." required>
+                        <input type="text" id="vinyl-artist" placeholder="Artista..." required>
+                        <label for="vinyl-cover-input" id="vinyl-upload-label" class="btn-upload-vinyl">Imagem</label>
+                        <input type="file" id="vinyl-cover-input" accept="image/*" hidden>
+                        <input type="color" id="vinyl-spine-color" value="#f7bbd7" title="Cor da lombada">
+                        <button type="submit" class="btn-add-vinyl">+ Adicionar</button>
+                    </form>
+
+                    <div id="vinyl-stack" class="vinyl-3d-shelf"></div>
+                </div>
+            </section>
+
+            <section class="user-reviews-section">
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:14px;">
+                    <h3 style="margin:0;">MINHAS REVIEWS PUBLICADAS</h3>
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <label for="perfil-sort-reviews" style="font-size:0.8rem; font-weight:800;">Ordenar por:</label>
+                        <select id="perfil-sort-reviews" style="padding:6px 10px; border:2px solid var(--text-dark, #000000); border-radius:6px; background:var(--box-gray, #f4f4f4); color:var(--text-dark, #000000); font-weight:700; font-size:0.82rem; cursor:pointer;">
+                            <option value="recentes">Mais Recentes</option>
+                            <option value="antigas">Mais Antigas</option>
+                            <option value="maior-nota">Maior Nota (Estrelas)</option>
+                            <option value="menor-nota">Menor Nota (Estrelas)</option>
+                            <option value="mais-curtidas">Mais Curtidas</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="user-reviews-list" class="user-reviews-list">
+                    <p>Carregando suas reviews...</p>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <div id="vinyl-display-modal" class="vinyl-modal-overlay">
+        <div class="vinyl-display-card">
+            <button type="button" id="btn-close-vinyl-modal" class="btn-close-vinyl-modal">X</button>
+            <span style="font-size:0.75rem; font-weight:900; letter-spacing:1px; opacity:0.75;">EXIBIÇÃO DE VINIL 3D</span>
+
+            <div class="vinyl-3d-showcase">
+                <div id="showcase-sleeve" class="showcase-sleeve"></div>
+                <div id="showcase-disc" class="showcase-disc">
+                    <div id="showcase-disc-label" class="showcase-disc-label">
+                        <div class="showcase-disc-hole"></div>
+                    </div>
+                </div>
+            </div>
+
+            <h3 id="showcase-album-title" style="margin:0 0 4px 0; font-size:1.35rem;">Álbum</h3>
+            <p id="showcase-artist-name" style="margin:0; font-weight:700; opacity:0.8;">Artista</p>
+
+            <div class="showcase-actions">
+                <button type="button" id="btn-showcase-toggle-listened" class="btn-showcase-action" style="background:var(--btn-pink,#f7bbd7); color:#000000;">
+                    Marcar como Ouvido
+                </button>
+                <a id="btn-showcase-forum" href="album.html" class="btn-showcase-action" style="background:#000000; color:#ffffff;">
+                    Abrir Fórum do Álbum
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script src="tema.js"></script>
+    <script src="perfil.js"></script>
+</body>
+</html>

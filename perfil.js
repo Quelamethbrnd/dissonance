@@ -154,96 +154,6 @@ document.addEventListener('DOMContentLoaded', () => {
             reader.readAsDataURL(file);
         });
     }
-    function renderizarVinis() {
-        if (!vinylStack) return;
-        const lista = obterVinis();
-        vinylStack.innerHTML = '';
-        const ouvidosCount = lista.filter(v => v.listened).length;
-        if (statVinyls) statVinyls.textContent = ouvidosCount + '/' + lista.length;
-
-        if (lista.length === 0) {
-            vinylStack.innerHTML = '<p style="font-size: 0.85rem; color: #aaa;">A estante 3D esta vazia.</p>';
-            return;
-        }
-
-        const metade = Math.ceil(lista.length / 2);
-        lista.forEach((vinil, index) => {
-            const item3D = document.createElement('div');
-            item3D.classList.add('vinyl-3d-item');
-            if (vinil.listened) item3D.classList.add('listened');
-            item3D.classList.add(index < metade ? 'tilt-bottom' : 'tilt-top');
-            item3D.dataset.id = vinil.id;
-
-            const corFundo = vinil.color || '#f7bbd7';
-            const corTexto = obterCorTextoContraste(corFundo);
-            const capa = vinil.coverImage || vinil.spineImage || 'imgs/Blonde_-_Frank_Ocean.jpeg';
-            const checkIcon = vinil.listened ? '✓' : '';
-            const btnRemoverHTML = ehMeuPerfil
-                ? '<button type="button" class="btn-remove-vinyl" title="Remover" data-id="' + vinil.id + '">X</button>'
-                : '';
-
-            item3D.innerHTML =
-                '<div class="vinyl-spine-face" style="background-color:' + corFundo + ';color:' + corTexto + ';">' +
-                    '<div class="vinyl-spine-left">' +
-                        '<div class="vinyl-checkbox">' + checkIcon + '</div>' +
-                        '<div class="vinyl-title-group">' +
-                            '<span class="vinyl-album-name">' + escapeHTML(vinil.album) + '</span>' +
-                            '<span class="vinyl-artist-name">' + escapeHTML(vinil.artist) + '</span>' +
-                        '</div>' +
-                    '</div>' +
-                    '<div class="vinyl-spine-right">' + btnRemoverHTML + '</div>' +
-                '</div>' +
-                '<div class="vinyl-cover-plane" style="background-image:url(\'' + capa + '\');"></div>';
-
-            vinylStack.appendChild(item3D);
-        });
-    }
-
-    const vinylModal = document.getElementById('vinyl-display-modal');
-    const closeVinylModalBtn = document.getElementById('btn-close-vinyl-modal');
-    const showcaseSleeve = document.getElementById('showcase-sleeve');
-    const showcaseDisc = document.getElementById('showcase-disc');
-    const showcaseLabel = document.getElementById('showcase-disc-label');
-    const showcaseTitle = document.getElementById('showcase-album-title');
-    const showcaseArtist = document.getElementById('showcase-artist-name');
-    const btnToggleListened = document.getElementById('btn-showcase-toggle-listened');
-    const btnShowcaseForum = document.getElementById('btn-showcase-forum');
-    let vinilSelecionadoId = null;
-
-    function abrirDisplayVinil(vinil) {
-        if (!vinylModal || !vinil) return;
-        vinilSelecionadoId = vinil.id;
-        const capa = vinil.coverImage || vinil.spineImage || 'imgs/Blonde_-_Frank_Ocean.jpeg';
-        const corDisco = vinil.color || '#f7bbd7';
-
-        showcaseSleeve.style.backgroundImage = 'url("' + capa + '")';
-        showcaseLabel.style.backgroundImage = 'url("' + capa + '")';
-        showcaseDisc.style.backgroundColor = corDisco;
-        showcaseTitle.textContent = vinil.album;
-        showcaseArtist.textContent = vinil.artist;
-
-        if (btnShowcaseForum) {
-            btnShowcaseForum.href = 'album.html?album=' + encodeURIComponent(vinil.album) + '&artist=' + encodeURIComponent(vinil.artist);
-        }
-
-        if (btnToggleListened) {
-            if (!ehMeuPerfil) {
-                btnToggleListened.style.display = 'none';
-            } else {
-                btnToggleListened.style.display = 'inline-block';
-                btnToggleListened.textContent = vinil.listened ? 'Ouvido (Desmarcar)' : 'Marcar como Ouvido';
-            }
-        }
-
-        vinylModal.classList.add('open');
-    }
-
-    if (closeVinylModalBtn && vinylModal) {
-        closeVinylModalBtn.addEventListener('click', () => vinylModal.classList.remove('open'));
-        vinylModal.addEventListener('click', (e) => {
-            if (e.target === vinylModal) vinylModal.classList.remove('open');
-        });
-    }
     if (btnToggleListened) {
         btnToggleListened.addEventListener('click', () => {
             if (!ehMeuPerfil || vinilSelecionadoId === null) return;
@@ -509,218 +419,445 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
-    // --- MATRIZES PIXEL ART CHIBI 24x24 (ALTA DEFINICAO FOFA) ---
-    const spritesDetalhados = {
-        cat: {
-            cores: { O: '#27272a', W: '#ffffff', S: '#cbd5e1', E: '#f7bbd7', Y: '#111111', H: '#ffffff' },
-            mapa: [
-                '....OO..........OO......',
-                '...OWWO........OWWO.....',
-                '...OWEWOO....OOWEWO.....',
-                '..OWWEEWWOOOOOWWEEWWO...',
-                '..OWWWWWWWWWWWWWWWWWO...',
-                '.OWWWWWWWWWWWWWWWWWWWO..',
-                '.OWWWWWWWWWWWWWWWWWWWO..',
-                'OWWWYYWWWWWWWWWWYYWWWWO.',
-                'OWWWYHWWWWWWWWWWYHWWWWO.',
-                'OWEEWWWWWWOOWWWWWWWWEEO.',
-                'OWEEWWWWWWEEWWWWWWWWEEO.',
-                '.OOWWWWWWWWWWWWWWWWWOO..',
-                '..OOWWWWWWWWWWWWWWWOO...',
-                '...OWWWWWWWWWWWWWWWWO...',
-                '..OWWWWWWWWWWWWWWWWWWO..',
-                '..OWOWWWWWWWWWWWWWOWWO..',
-                '..OWOWWWWWWWWWWWWWOWWO..',
-                '..OWOWWWWWWWWWWWWWOWSO..',
-                '...OWWWWWWWWWWWWWWWOO...',
-                '....OOWWWOOOOOOWWWOO....',
-                '.....OOOO......OOOO.....',
-                '........................',
-                '........................',
-                '........................'
-            ]
-        },
-        dog: {
-            cores: { O: '#18181b', C: '#eab308', D: '#ca8a04', W: '#ffffff', P: '#f472b6', Y: '#111111' },
-            mapa: [
-                '...OOO....OOO...........',
-                '..OCCCO..OCCCO..........',
-                '..OCDCCOOCCDCO..........',
-                '.OCCCCCCCCCCCCO.........',
-                '.OCCCCCCCCCCCCCO........',
-                'OCCYYCCCCCCCCCCCO.......',
-                'OCCYWCCCCCCCCCCCO...OOO.',
-                'OCPPWWWWCCCCCCCCCO.OWWCO',
-                'OOWWWOOCCCCCCCCCCCOOCCO.',
-                '.OOWWWWCCCCCCCCCCCCCCO..',
-                '..OOWWWCCCCCCCCCCCCCO...',
-                '..OWWWWCCCCCCCCCCCCWO...',
-                '.OWWWWWCCCCCCCCCCCWWWO..',
-                '.OWOOWWCCCCCCCCCCWWOOWO.',
-                '.OOO.OOOOOOOOOOOOOO.OOO.',
-                '........................',
-                '........................',
-                '........................',
-                '........................',
-                '........................',
-                '........................',
-                '........................',
-                '........................',
-                '........................'
-            ]
-        },
-        frog: {
-            cores: { O: '#3d251e', G: '#8cc152', D: '#6da338', C: '#f68b67', B: '#f7ecc5', W: '#ffffff', Y: '#1e1b18' },
-            mapa: [
-                '....OOOOOO....OOOOOO....',
-                '...OGGGGGGO..OGGGGGGO...',
-                '..OGGYYYYGGOOGGYYYYGGO..',
-                '..OGGYWWYGGGGGGYWWYGGO..',
-                '..OGGYYYYGGGGGGYYYYGGO..',
-                '.OGGGGGGGGGGGGGGGGGGGGO.',
-                '.OGGGGGGGGGOOOGGGGGGGGO.',
-                'OCCCCGGGGGGGGGGGGGGCCCCO',
-                'OCCCCGGGGGGGGGGGGGGCCCCO',
-                '.OGGGGGGBBBBBBBBGGGGGO..',
-                'OGGGGGGBBBBBBBBBBGGGGGO.',
-                'OGGGGGGBBBBBBBBBBBGGGGO.',
-                'OGGOGGGBBBBBBBBBBBGOGGO.',
-                'OGGOGGGBBBBBBBBBBBGOGGO.',
-                'OGGOGGGGGGGGGGGGGGGOGGO.',
-                '.OO.OOOOOO....OOOOOO.OO.',
-                '........................',
-                '........................',
-                '........................',
-                '........................',
-                '........................',
-                '........................',
-                '........................',
-                '........................'
-            ]
-        },        bunny: {
-            cores: { O: '#27272a', W: '#ffffff', S: '#e9d5ff', E: '#f472b6', Y: '#111111', H: '#ffffff' },
-            mapa: [
-                '......OOOOOOOOOO........',
-                '.....OWWWWWWWWWWO.......',
-                '....OWWWEEEEEEWWWO......',
-                '...OWWWEEEEEEEEWWWO.....',
-                '..OWWWWWWWWWWWWWWWOO....',
-                '.OWWWWWWWWWWWWWWWOO.....',
-                '.OWWYYWWWWWWWWWWOO......',
-                '.OWWYHWWWWWWWWWWWO......',
-                '.OWEEWWWWWWWWWWWWWO.....',
-                '..OOWWWWWWWWWWWWWWWO....',
-                '...OWWWWWWWWWWWWWWWWO...',
-                '..OWWWWWWWWWWWWWWWWWWO..',
-                '..OWWWWWWWWWWWWWWWWWWSO.',
-                '..OWWWWWWWWWWWWWWWWWWSO.',
-                '...OOWWWWWWWWWWWWWWWOO..',
-                '....OOOOOOOOOOOOOOOO....',
-                '........................',
-                '........................',
-                '........................',
-                '........................',
-                '........................',
-                '........................',
-                '........................',
-                '........................'
-            ]
-        },
-        fox: {
-            cores: { O: '#18181b', F: '#f59e0b', Y: '#fef08a', W: '#ffffff', P: '#fbcfe8', E: '#111111' },
-            mapa: [
-                '...OOO..........OOO.....',
-                '..OYYYO........OYYYO....',
-                '..OYFYYO......OYYFYO....',
-                '.OFFFFFFOOOOOOFFFFFFO...',
-                '.OFFFFFFFFFFFFFFFFFFO...',
-                'OFFFFFFFFFFFFFFFFFFFFO..',
-                'OFFFFEEFFFFFFFFEEFFFFO..',
-                'OFFFFEEFFFFFFFFEEFFFFO..',
-                'OFFPPWWWWWWOOWWWWWWPPFO.',
-                '.OOWWWWWWWWWWWWWWWWWOO..',
-                '..OOWWWWWWWWWWWWWWWOO...',
-                '...OFFFFFFFFFFFFFFFFO...',
-                '..OFFFFFFFFFFFFFFFFFFOOO',
-                '..OFOFFYYYYYYYYFFOFFWWWO',
-                '..OFOFFYYYYYYYYFFOFFWWWO',
-                '...OFFFFFFFFFFFFFOOOWWWO',
-                '....OOOOOOOOOOOOOOOOOOO.',
-                '........................',
-                '........................',
-                '........................',
-                '........................',
-                '........................',
-                '........................',
-                '........................'
-            ]
-        },
-        bird: {
-            cores: { O: '#18181b', W: '#fef08a', S: '#facc15', E: '#f472b6', Y: '#111111', B: '#fb923c' },
-            mapa: [
-                '.......OO..OO...........',
-                '......OWWOOWWO..........',
-                '.....OWWWWWWWWOO........',
-                '....OWWWWWWWWWWWO.......',
-                '...OWWWWWWWWWWWWWO......',
-                '...OWWYYWWWWWWYYWWO.....',
-                '...OWWYYWWBBWWYYWWO.....',
-                '...OWEEWWWBBWWWEEWO.....',
-                '..OWWWWWWWWWWWWWWWWO....',
-                '.OWWWWWSSSSSSSSWWWWWO...',
-                '.OWWWWSSSSSSSSSSWWWWO...',
-                '.OWWWWSSSSSSSSSSWWWWO...',
-                '..OWWWWSSSSSSSSWWWWO....',
-                '...OOWWWWWWWWWWWWOO.....',
-                '.....OBBO....OBBO.......',
-                '......OO......OO........',
-                '........................',
-                '........................',
-                '........................',
-                '........................',
-                '........................',
-                '........................',
-                '........................',
-                '........................'
-            ]
-        }
-    };
-    const variacoesCoresPets = {
-        cat: [
-            { id: 'branco', nome: 'Branco Neve', cores: { O: '#27272a', W: '#ffffff', S: '#cbd5e1', E: '#f7bbd7', Y: '#111111', H: '#ffffff' } },
-            { id: 'preto', nome: 'Gato Preto', cores: { O: '#09090b', W: '#27272a', S: '#18181b', E: '#f472b6', Y: '#facc15', H: '#ffffff' } },
-            { id: 'laranja', nome: 'Laranja Malhado', cores: { O: '#431407', W: '#fb923c', S: '#ea580c', E: '#fed7aa', Y: '#111111', H: '#ffffff' } },
-            { id: 'cinza', nome: 'Cinza Nublado', cores: { O: '#1f2937', W: '#9ca3af', S: '#6b7280', E: '#f9a8d4', Y: '#111111', H: '#ffffff' } },
-            { id: 'siames', nome: 'Siames Creme', cores: { O: '#292524', W: '#fef3c7', S: '#78350f', E: '#fda4af', Y: '#38bdf8', H: '#ffffff' } }
-        ],
-        dog: [
-            { id: 'corgi', nome: 'Corgi Caramelo', cores: { O: '#18181b', C: '#eab308', D: '#ca8a04', W: '#ffffff', P: '#f472b6', Y: '#111111' } },
-            { id: 'husky', nome: 'Husky Cinza', cores: { O: '#18181b', C: '#94a3b8', D: '#64748b', W: '#ffffff', P: '#f472b6', Y: '#111111' } },
-            { id: 'doberman', nome: 'Preto e Canela', cores: { O: '#09090b', C: '#27272a', D: '#18181b', W: '#d97706', P: '#f472b6', Y: '#111111' } },
-            { id: 'golden', nome: 'Golden Creme', cores: { O: '#451a03', C: '#fde047', D: '#eab308', W: '#fef9c3', P: '#fb7185', Y: '#111111' } }
-        ],
-        frog: [
-            { id: 'verde', nome: 'Verde Classico', cores: { O: '#3d251e', G: '#8cc152', D: '#6da338', C: '#f68b67', B: '#f7ecc5', W: '#ffffff', Y: '#1e1b18' } },
-            { id: 'morango', nome: 'Sapo Morango', cores: { O: '#4c0519', G: '#fb7185', D: '#e11d48', C: '#fda4af', B: '#ffe4e6', W: '#ffffff', Y: '#1e1b18' } },
-            { id: 'azul', nome: 'Sapo Tropical Azul', cores: { O: '#172554', G: '#38bdf8', D: '#0284c7', C: '#f472b6', B: '#e0f2fe', W: '#ffffff', Y: '#1e1b18' } }
-        ],
-        bunny: [
-            { id: 'branco', nome: 'Branco Pastel', cores: { O: '#27272a', W: '#ffffff', S: '#e9d5ff', E: '#f472b6', Y: '#111111', H: '#ffffff' } },
-            { id: 'marrom', nome: 'Canela', cores: { O: '#292524', W: '#b45309', S: '#92400e', E: '#fbcfe8', Y: '#111111', H: '#ffffff' } },
-            { id: 'preto', nome: 'Coelho Grafite', cores: { O: '#09090b', W: '#3f3f46', S: '#27272a', E: '#f472b6', Y: '#ffffff', H: '#ffffff' } },
-            { id: 'lilas', nome: 'Lilas Suave', cores: { O: '#2e1065', W: '#ddd6fe', S: '#c4b5fd', E: '#f472b6', Y: '#111111', H: '#ffffff' } }
-        ],
-        fox: [
-            { id: 'laranja', nome: 'Raposa Vermelha', cores: { O: '#18181b', F: '#f59e0b', Y: '#fef08a', W: '#ffffff', P: '#fbcfe8', E: '#111111' } },
-            { id: 'artico', nome: 'Raposa do Artico', cores: { O: '#1e293b', F: '#f8fafc', Y: '#bae6fd', W: '#ffffff', P: '#f9a8d4', E: '#111111' } },
-            { id: 'sakura', nome: 'Raposa Sakura', cores: { O: '#4c0519', F: '#f472b6', Y: '#fbcfe8', W: '#ffffff', P: '#ffe4e6', E: '#111111' } }
-        ],
-        bird: [
-            { id: 'calopsita', nome: 'Calopsita Amarela', cores: { O: '#18181b', W: '#fef08a', S: '#facc15', E: '#f472b6', Y: '#111111', B: '#fb923c' } },
-            { id: 'azul', nome: 'Periquito Azul', cores: { O: '#1e3a8a', W: '#bae6fd', S: '#38bdf8', E: '#f472b6', Y: '#111111', B: '#fb923c' } },
-            { id: 'verde', nome: 'Periquito Limao', cores: { O: '#14532d', W: '#fef08a', S: '#84cc16', E: '#fb7185', Y: '#111111', B: '#fb923c' } },
-            { id: 'lilas', nome: 'Periquito Lilas', cores: { O: '#4c1d95', W: '#fef9c3', S: '#d8b4fe', E: '#f472b6', Y: '#111111', B: '#fb923c' } },
-            { id: 'rosa', nome: 'Calopsita Rosa', cores: { O: '#831843', W: '#ffffff', S: '#fbcfe8', E: '#f43f5e', Y: '#111111', B: '#fb923c' } }
-        ]
+    const petCanvas = document.getElementById('pet-canvas');
+    const petCtx = petCanvas ? petCanvas.getContext('2d') : null;
+    const chavePet = 'dissonance_pet_' + perfilAlvo;
+    const petNameEl = document.getElementById('pet-name-display');
+    const petMoodEl = document.getElementById('pet-mood-text');
+    const petMoodLabel = document.getElementById('pet-mood-label');
+    const petMoodBar = document.getElementById('pet-mood-bar');
+    const petEnergyLabel = document.getElementById('pet-energy-label');
+    const petEnergyBar = document.getElementById('pet-energy-bar');
+    const btnConfigPet = document.getElementById('btn-config-pet');
+    const btnPetLove = document.getElementById('btn-pet-love');
+    const btnFeedPet = document.getElementById('btn-feed-pet');
+    const btnSleepPet = document.getElementById('btn-sleep-pet');
+    const petSetupForm = document.getElementById('pet-setup-form');
+
+    if (!ehMeuPerfil) {
+        if (btnConfigPet) btnConfigPet.style.display = 'none';
+        const actionsRow = document.getElementById('pet-actions-row');
+        if (actionsRow) actionsRow.style.display = 'none';
+    }
+
+    const paletasPets = {
+        cat: { body: '#ffffff', shade: '#e2e8f0', ear: '#f7bbd7', eye: '#111111', collar: '#ff1b9c' },
+        dog: { body: '#d97706', shade: '#b45309', ear: '#78350f', eye: '#111111', collar: '#38bdf8' },
+        frog: { body: '#51cf66', shade: '#2b8a3e', ear: '#8ce99a', eye: '#111111', collar: '#f7bbd7' },
+        bunny: { body: '#fdf2f8', shade: '#fbcfe8', ear: '#f472b6', eye: '#db2777', collar: '#8ce99a' },
+        fox: { body: '#ea580c', shade: '#c2410c', ear: '#111111', eye: '#111111', collar: '#ffffff' }
     };
 
+    const mapaSprite16 = [
+        '..E........E....',
+        '.EBE......EBE...',
+        '.EBBE....EBBE...',
+        '.BBBBBBBBBBBB...',
+        'BBBBBBBBBBBBBB..',
+        'BBWBBBBBBBBWBB..',
+        'BBWBBBBBBBBWBB..',
+        'BBBBBBPPBBBBBB..',
+        '.BBBBBBBBBBBB...',
+        '..CCCCCCCCCC....',
+        '..BBBBBBBBBB..T.',
+        '.BBBBBBBBBBBBTT.',
+        '.BBBBBBBBBBBBT..',
+        '..BBBBBBBBBB....',
+        '..BB..BB..BB....',
+        '..SS..SS..SS....'
+    ];
+
+    const particulasPet = [];
+    const estadoPet = {
+        x: 70,
+        dir: 1,
+        frame: 0,
+        timer: 0,
+        acao: 'walk',
+        acaoTimer: 0,
+        dormindo: false
+    };
+
+    function spawnParticulas(tipo, qtd) {
+        for (let i = 0; i < qtd; i++) {
+            particulasPet.push({
+                tipo: tipo,
+                x: estadoPet.x + 14 + (Math.random() * 24 - 12),
+                y: 42 + (Math.random() * 10 - 5),
+                vx: (Math.random() - 0.5) * 0.8,
+                vy: -0.7 - Math.random() * 0.6,
+                vida: 65
+            });
+        }
+    }
+
+    function desenharCenarioEspecie(ctx, especieKey, frame) {
+        ctx.save();
+        if (especieKey === 'dog') {
+            const bx = 178, by = 76;
+            ctx.fillStyle = '#1e293b';
+            ctx.fillRect(bx, by, 48, 26);
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(bx, by, 48, 26);
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(bx + 4, by - 4, 16, 4);
+            ctx.fillRect(bx + 28, by - 4, 16, 4);
+            ctx.fillStyle = (frame % 2 === 0) ? '#38bdf8' : '#ff1b9c';
+            ctx.fillRect(bx + 9, by - 4, 4, 2);
+            ctx.fillRect(bx + 33, by - 4, 4, 2);
+        } else if (especieKey === 'frog') {
+            const vx = 182, vy = 84;
+            ctx.fillStyle = '#f7bbd7';
+            ctx.fillRect(vx, vy, 40, 18);
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(vx, vy, 40, 18);
+            ctx.fillStyle = '#2b2d42';
+            ctx.fillRect(vx + 2, vy - 12, 36, 12);
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(vx + 6, vy - 3, 22, 3);
+        } else if (especieKey === 'bunny') {
+            const gx = 194, gy = 64;
+            ctx.fillStyle = '#d9387a';
+            ctx.fillRect(gx, gy + 20, 18, 18);
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(gx, gy + 20, 18, 18);
+            ctx.fillStyle = '#78350f';
+            ctx.fillRect(gx + 7, gy, 4, 22);
+        } else if (especieKey === 'fox') {
+            const cx = 192, cy = 86;
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(cx, cy, 16, 16);
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(cx, cy, 16, 16);
+            ctx.fillStyle = 'rgba(120, 120, 120, 0.75)';
+            const shift = (frame % 2 === 0) ? 0 : 3;
+            ctx.fillRect(cx + 4, cy - 8 - shift, 3, 5);
+            ctx.fillRect(cx + 10, cy - 11 + shift, 3, 5);
+        }
+        ctx.restore();
+    }
+    function desenharAcessorioPet(ctx, especieKey, px, bobY) {
+        if (especieKey === 'cat' || especieKey === 'fox') {
+            ctx.fillStyle = '#111111';
+            ctx.fillRect(2 * px, 1 * px + bobY, 10 * px, px);
+            ctx.fillStyle = (especieKey === 'cat') ? '#ff1b9c' : '#38bdf8';
+            ctx.fillRect(0 * px, 4 * px + bobY, 2 * px, 4 * px);
+            ctx.fillRect(12 * px, 4 * px + bobY, 2 * px, 4 * px);
+            ctx.fillStyle = '#111111';
+            ctx.fillRect(0 * px, 5 * px + bobY, px, 2 * px);
+            ctx.fillRect(13 * px, 5 * px + bobY, px, 2 * px);
+        } else if (especieKey === 'dog') {
+            ctx.fillStyle = '#111111';
+            ctx.fillRect(1 * px, 5 * px + bobY, 12 * px, 2 * px);
+            ctx.fillStyle = '#38bdf8';
+            ctx.fillRect(2 * px, 5 * px + bobY, 2 * px, px);
+            ctx.fillRect(8 * px, 5 * px + bobY, 2 * px, px);
+        } else if (especieKey === 'bunny') {
+            ctx.fillStyle = '#d9387a';
+            ctx.fillRect(2 * px, 2 * px + bobY, 10 * px, 2 * px);
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(2 * px, 3 * px + bobY, 10 * px, px);
+        } else if (especieKey === 'frog') {
+            ctx.fillStyle = '#111111';
+            ctx.fillRect(2 * px, 2 * px + bobY, 10 * px, px);
+            ctx.fillStyle = '#ffd43b';
+            ctx.fillRect(0 * px, 5 * px + bobY, 2 * px, 3 * px);
+            ctx.fillRect(12 * px, 5 * px + bobY, 2 * px, 3 * px);
+        }
+    }
+
+    function desenharPixelPet(ctx, x, y, paleta, especieKey, dir, passo, acao) {
+        const px = 3;
+        ctx.save();
+        if (dir === -1) {
+            ctx.translate(x + 16 * px, y);
+            ctx.scale(-1, 1);
+        } else {
+            ctx.translate(x, y);
+        }
+
+        const bobY = (acao === 'sleep') ? 4 : (passo % 2 === 0 ? 0 : -2);
+
+        for (let r = 0; r < 16; r++) {
+            for (let c = 0; c < 16; c++) {
+                const ch = mapaSprite16[r][c];
+                if (ch === '.') continue;
+
+                let cor = paleta.body;
+                if (ch === 'E') cor = paleta.ear;
+                else if (ch === 'S' || ch === 'T') cor = paleta.shade;
+                else if (ch === 'C') cor = paleta.collar;
+                else if (ch === 'P') cor = (acao === 'eat') ? '#ff1b9c' : paleta.ear;
+                else if (ch === 'W') cor = (acao === 'sleep') ? paleta.shade : paleta.eye;
+
+                ctx.fillStyle = cor;
+                const offsetPata = (r >= 14 && passo % 2 === 1 && acao !== 'sleep') ? -2 : 0;
+                ctx.fillRect(c * px, r * px + bobY + offsetPata, px, px);
+            }
+        }
+
+        desenharAcessorioPet(ctx, especieKey, px, bobY);
+        ctx.restore();
+    }
+
+    function desenharParticula(ctx, p) {
+        ctx.save();
+        ctx.globalAlpha = Math.max(0, p.vida / 65);
+        if (p.tipo === 'heart') {
+            ctx.fillStyle = '#ff1b9c';
+            ctx.fillRect(p.x, p.y, 4, 4);
+            ctx.fillRect(p.x + 6, p.y, 4, 4);
+            ctx.fillRect(p.x - 1, p.y + 3, 12, 4);
+            ctx.fillRect(p.x + 2, p.y + 7, 6, 3);
+            ctx.fillRect(p.x + 4, p.y + 10, 2, 2);
+        } else if (p.tipo === 'food') {
+            ctx.fillStyle = '#111111';
+            ctx.fillRect(p.x, p.y, 10, 10);
+            ctx.fillStyle = '#f7bbd7';
+            ctx.fillRect(p.x + 3, p.y + 3, 4, 4);
+        } else {
+            ctx.fillStyle = '#38bdf8';
+            ctx.font = 'bold 11px monospace';
+            ctx.fillText('Z', p.x, p.y);
+        }
+        ctx.restore();
+    }
+
+    function loopCanvasPet() {
+        if (!petCtx || !petCanvas) return;
+        petCtx.clearRect(0, 0, petCanvas.width, petCanvas.height);
+
+        const petAtual = obterPet();
+        const especieKey = petAtual.spriteKey || 'cat';
+        const paleta = paletasPets[especieKey] || paletasPets.cat;
+
+        petCtx.fillStyle = 'rgba(0, 0, 0, 0.15)';
+        petCtx.fillRect(12, 102, petCanvas.width - 24, 4);
+
+        desenharCenarioEspecie(petCtx, especieKey, estadoPet.frame);
+
+        estadoPet.timer++;
+        if (estadoPet.acaoTimer > 0) {
+            estadoPet.acaoTimer--;
+            if (estadoPet.acaoTimer === 0) {
+                estadoPet.acao = estadoPet.dormindo ? 'sleep' : 'walk';
+                atualizarPetMusical();
+            }
+        }
+
+        const limiteDireito = (especieKey === 'cat') ? petCanvas.width - 62 : 126;
+        if (!estadoPet.dormindo && estadoPet.acao !== 'eat') {
+            estadoPet.x += estadoPet.dir * 0.65;
+            if (estadoPet.x > limiteDireito) estadoPet.dir = -1;
+            if (estadoPet.x < 14) estadoPet.dir = 1;
+        }
+
+        if (estadoPet.timer % 16 === 0) {
+            estadoPet.frame++;
+            if (estadoPet.dormindo && estadoPet.timer % 48 === 0) {
+                spawnParticulas('zzz', 1);
+            }
+        }
+
+        const acaoRender = estadoPet.dormindo ? 'sleep' : estadoPet.acao;
+        desenharPixelPet(petCtx, estadoPet.x, 54, paleta, especieKey, estadoPet.dir, estadoPet.frame, acaoRender);
+
+        for (let i = particulasPet.length - 1; i >= 0; i--) {
+            const p = particulasPet[i];
+            p.x += p.vx;
+            p.y += p.vy;
+            p.vida--;
+            desenharParticula(petCtx, p);
+            if (p.vida <= 0) particulasPet.splice(i, 1);
+        }
+
+        requestAnimationFrame(loopCanvasPet);
+    }
+    function obterPet() {
+        const salvo = localStorage.getItem(chavePet);
+        if (!salvo) {
+            const padrao = { spriteKey: 'cat', especie: 'Gatinho de Fones', nome: 'Mochi', bonusManual: 0, humorBonus: 0 };
+            if (ehMeuPerfil) localStorage.setItem(chavePet, JSON.stringify(padrao));
+            return padrao;
+        }
+        const parsed = JSON.parse(salvo);
+        if (!paletasPets[parsed.spriteKey]) parsed.spriteKey = 'cat';
+        return parsed;
+    }
+
+    function atualizarPetMusical() {
+        const pet = obterPet();
+        const todasReviews = JSON.parse(localStorage.getItem('dissonance_reviews')) || [];
+        const reviewsDoPerfil = todasReviews.filter(r => r.username === perfilAlvo).length;
+        const vinisOuvidos = obterVinis().filter(v => v.listened).length;
+        const appsConectados = JSON.parse(localStorage.getItem('dissonance_apps_' + perfilAlvo)) || ['Spotify'];
+
+        const pontos = (reviewsDoPerfil * 15) + (vinisOuvidos * 12) + (appsConectados.length * 10) + (pet.bonusManual || 0);
+        const energia = Math.min(100, Math.max(15, pontos));
+        const humor = Math.min(100, Math.max(25, 50 + (reviewsDoPerfil * 10) + (pet.humorBonus || 0)));
+
+        if (petNameEl) petNameEl.textContent = pet.nome + ' (' + pet.especie + ')';
+        if (petEnergyLabel) petEnergyLabel.textContent = energia + '%';
+        if (petEnergyBar) petEnergyBar.style.width = energia + '%';
+        if (petMoodLabel) petMoodLabel.textContent = humor + '%';
+        if (petMoodBar) {
+            petMoodBar.style.width = humor + '%';
+            petMoodBar.style.background = '#ff1b9c';
+        }
+
+        if (!petMoodEl || estadoPet.acaoTimer > 0) return;
+
+        if (estadoPet.dormindo) {
+            petMoodEl.textContent = 'Tirando um cochilo e recarregando...';
+            if (petEnergyBar) petEnergyBar.style.background = '#38bdf8';
+        } else if (energia >= 80) {
+            petMoodEl.textContent = 'Super animado! Curtindo sua semana musical.';
+            if (petEnergyBar) petEnergyBar.style.background = '#51cf66';
+        } else if (energia >= 45) {
+            petMoodEl.textContent = 'Passeando pela estante de discos.';
+            if (petEnergyBar) petEnergyBar.style.background = 'var(--btn-pink, #f7bbd7)';
+        } else {
+            petMoodEl.textContent = 'Com fome de musica! Ouca um disco ou alimente ele.';
+            if (petEnergyBar) petEnergyBar.style.background = '#ffd43b';
+        }
+    }
+
+    if (ehMeuPerfil && btnPetLove) {
+        btnPetLove.addEventListener('click', () => {
+            estadoPet.dormindo = false;
+            if (btnSleepPet) btnSleepPet.textContent = 'Dormir';
+            estadoPet.acao = 'happy';
+            estadoPet.acaoTimer = 75;
+            const pet = obterPet();
+            pet.humorBonus = Math.min(50, (pet.humorBonus || 0) + 10);
+            localStorage.setItem(chavePet, JSON.stringify(pet));
+            if (petMoodEl) petMoodEl.textContent = 'Recebendo carinho! Muito feliz.';
+            spawnParticulas('heart', 5);
+            atualizarPetMusical();
+        });
+    }
+
+    if (ehMeuPerfil && btnFeedPet) {
+        btnFeedPet.addEventListener('click', () => {
+            estadoPet.dormindo = false;
+            if (btnSleepPet) btnSleepPet.textContent = 'Dormir';
+            estadoPet.acao = 'eat';
+            estadoPet.acaoTimer = 85;
+            const pet = obterPet();
+            pet.bonusManual = Math.min(40, (pet.bonusManual || 0) + 10);
+            localStorage.setItem(chavePet, JSON.stringify(pet));
+            if (petMoodEl) petMoodEl.textContent = 'Mastigando um vinil novo! (+10%)';
+            spawnParticulas('food', 4);
+            atualizarPetMusical();
+        });
+    }
+
+    if (ehMeuPerfil && btnSleepPet) {
+        btnSleepPet.addEventListener('click', () => {
+            estadoPet.dormindo = !estadoPet.dormindo;
+            estadoPet.acao = estadoPet.dormindo ? 'sleep' : 'walk';
+            btnSleepPet.textContent = estadoPet.dormindo ? 'Acordar' : 'Dormir';
+            if (estadoPet.dormindo) spawnParticulas('zzz', 2);
+            atualizarPetMusical();
+        });
+    }
+
+    if (ehMeuPerfil && btnConfigPet && petSetupForm) {
+        btnConfigPet.addEventListener('click', () => {
+            const pet = obterPet();
+            document.getElementById('pet-name-input').value = pet.nome;
+            petSetupForm.style.display = petSetupForm.style.display === 'none' ? 'block' : 'none';
+        });
+
+        petSetupForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const [spriteKey, especie] = document.getElementById('pet-species-select').value.split('|');
+            const nome = document.getElementById('pet-name-input').value.trim() || 'Mochi';
+            const petAtual = obterPet();
+
+            localStorage.setItem(chavePet, JSON.stringify({
+                spriteKey: spriteKey,
+                especie: especie,
+                nome: nome,
+                bonusManual: petAtual.bonusManual || 0,
+                humorBonus: petAtual.humorBonus || 0
+            }));
+
+            petSetupForm.style.display = 'none';
+            atualizarPetMusical();
+        });
+    }
+
+    const logoutBtn = document.querySelector('.btn-logout');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', (event) => {
+            event.preventDefault();
+            localStorage.removeItem('usuarioLogado');
+            window.location.href = 'index.html';
+        });
+    }
+
+    function escapeHTML(str) {
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+    }
+
+    renderizarVinis();
+    carregarMinhasReviews();
+    atualizarPetMusical();
+    if (petCtx) loopCanvasPet();
+});
+
+async function buscarCapaOnline(termoBusca) {
+    try {
+        const dominio = ['itunes', 'apple', 'com'].join('.');
+        const caminho = '/search?term=' + encodeURIComponent(termoBusca) + '&media=music&entity=album&limit=1';
+        const respItunes = await fetch('https://' + dominio + caminho);
+        if (respItunes.ok) {
+            const dadosItunes = await respItunes.json();
+            if (dadosItunes.results && dadosItunes.results.length > 0) {
+                return dadosItunes.results.at(0).artworkUrl100.replace('100x100bb', '600x600bb');
+            }
+        }
+    } catch (e) {}
+
+    return 'imgs/Blonde_-_Frank_Ocean.jpeg';
+}
+
+function extrairCorDominante(urlImagem) {
+    return new Promise((resolve) => {
+        const img = new Image();
+        img.crossOrigin = 'Anonymous';
+
+        img.onload = () => {
+            try {
+                const canvas = document.createElement('canvas');
+                canvas.width = 20;
+                canvas.height = 20;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, 20, 20);
+
+                const pixels = ctx.getImageData(0, 0, 20, 20).data;
+                let r = 0, g = 0, b = 0, total = 0;
+
+                for (let i = 0; i < pixels.length; i += 4) {
+                    r += pixels[i];
+                    g += pixels[i + 1];
+                    b += pixels[i + 2];
+                    total++;
+                }
+                const toHex = (n) => Math.round(n / total).toString(16).padStart(2, '0');
+                resolve('#' + toHex(r) + toHex(g) + toHex(b));
+            } catch (e) {
+                resolve('#f7bbd7');
+            }
+        };
+        img.onerror = () => resolve('#f7bbd7');
+        img.src = urlImagem;
+    });
+}
