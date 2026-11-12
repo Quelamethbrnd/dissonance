@@ -61,7 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const atualizarEstadoBotao = () => {
             const jaSegue = obterSeguidos().includes(perfilAlvo);
-            followBtn.textContent = jaSegue ? '✓ Seguindo' : '+ Seguir';
+            followBtn.textContent = jaSegue ? 'Seguindo' : '+ Seguir';
             followBtn.classList.toggle('following', jaSegue);
             const statFollowers = document.getElementById('stat-followers');
             if (statFollowers) statFollowers.textContent = contarSeguidoresDe(perfilAlvo);
@@ -146,7 +146,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     ctx.drawImage(img, sx, sy, minSide, minSide, 0, 0, size, size);
                     capaQuadradaBase64 = canvas.toDataURL('image/jpeg', 0.8);
                     if (vinylUploadLabel) {
-                        vinylUploadLabel.textContent = '✓ Capa Pronta';
+                        vinylUploadLabel.textContent = 'Capa Pronta';
                         vinylUploadLabel.classList.add('has-image');
                     }
                 };
@@ -181,7 +181,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const capa = vinil.coverImage || vinil.spineImage || 'imgs/Blonde_-_Frank_Ocean.jpeg';
             const checkIcon = vinil.listened ? '✓' : '';
             const btnRemoverHTML = ehMeuPerfil
-                ? '<button type="button" class="btn-remove-vinyl" title="Remover" data-id="' + vinil.id + '">✕</button>'
+                ? '<button type="button" class="btn-remove-vinyl" title="Remover" data-id="' + vinil.id + '">X</button>'
                 : '';
 
             item3D.innerHTML =
@@ -200,32 +200,6 @@ document.addEventListener('DOMContentLoaded', () => {
             vinylStack.appendChild(item3D);
         });
     }
-    if (vinylStack && ehMeuPerfil) {
-        vinylStack.addEventListener('click', (event) => {
-            const removeBtn = event.target.closest('.btn-remove-vinyl');
-            if (removeBtn) {
-                event.stopPropagation();
-                const idRemover = Number(removeBtn.dataset.id);
-                salvarVinis(obterVinis().filter(v => v.id !== idRemover));
-                renderizarVinis();
-                atualizarPetMusical();
-                return;
-            }
-            const item3D = event.target.closest('.vinyl-3d-item');
-            if (item3D) {
-                const idToggle = Number(item3D.dataset.id);
-                const lista = obterVinis();
-                const item = lista.find(v => v.id === idToggle);
-                if (item) {
-                    item.listened = !item.listened;
-                    salvarVinis(lista);
-                    renderizarVinis();
-                    atualizarPetMusical();
-                }
-            }
-        });
-    }
-
     const vinylModal = document.getElementById('vinyl-display-modal');
     const closeVinylModalBtn = document.getElementById('btn-close-vinyl-modal');
     const showcaseSleeve = document.getElementById('showcase-sleeve');
@@ -258,7 +232,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 btnToggleListened.style.display = 'none';
             } else {
                 btnToggleListened.style.display = 'inline-block';
-                btnToggleListened.textContent = vinil.listened ? '✓ Ouvido (Desmarcar)' : 'Marcar como Ouvido';
+                btnToggleListened.textContent = vinil.listened ? 'Ouvido (Desmarcar)' : 'Marcar como Ouvido';
             }
         }
 
@@ -282,7 +256,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 salvarVinis(lista);
                 renderizarVinis();
                 atualizarPetMusical();
-                btnToggleListened.textContent = item.listened ? '✓ Ouvido (Desmarcar)' : 'Marcar como Ouvido';
+                btnToggleListened.textContent = item.listened ? 'Ouvido (Desmarcar)' : 'Marcar como Ouvido';
             }
         });
     }
@@ -307,51 +281,49 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    const reviewsList = document.getElementById('user-reviews-list');
-    const statReviews = document.getElementById('stat-reviews');
-    const statLikes = document.getElementById('stat-likes');
+    if (addVinylForm && ehMeuPerfil) {
+        addVinylForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const album = document.getElementById('vinyl-album').value.trim();
+            const artist = document.getElementById('vinyl-artist').value.trim();
+            const colorInput = document.getElementById('vinyl-spine-color');
+            let color = colorInput.value;
+            if (!album || !artist) return;
 
-    function montarAvatarHTML(username) {
-        const foto = localStorage.getItem('avatar_' + username);
-        if (foto) {
-            return '<img src="' + foto + '" alt="' + escapeHTML(username) + '" class="review-avatar">';
-        }
-        const inicial = username.replace('@', '').charAt(0).toUpperCase() || 'U';
-        return '<div class="review-avatar">' + inicial + '</div>';
+            let capaFinal = capaQuadradaBase64;
+            if (!capaFinal) {
+                capaFinal = await buscarCapaOnline(album + ' ' + artist);
+            }
+
+            if (color.toLowerCase() === '#f7bbd7') {
+                color = await extrairCorDominante(capaFinal);
+            }
+
+            try {
+                const lista = obterVinis();
+                lista.unshift({
+                    id: Date.now(),
+                    album: album,
+                    artist: artist,
+                    color: color,
+                    coverImage: capaFinal,
+                    listened: false
+                });
+                salvarVinis(lista);
+                addVinylForm.reset();
+                document.getElementById('vinyl-spine-color').value = '#f7bbd7';
+                capaQuadradaBase64 = '';
+                if (vinylUploadLabel) {
+                    vinylUploadLabel.textContent = 'Imagem';
+                    vinylUploadLabel.classList.remove('has-image');
+                }
+                renderizarVinis();
+                atualizarPetMusical();
+            } catch (err) {
+                alert('Limite de armazenamento atingido.');
+            }
+        });
     }
-
-    function carregarMinhasReviews(idAberto = null) {
-        const todas = JSON.parse(localStorage.getItem('dissonance_reviews')) || [];
-        const doPerfil = todas.filter(r => r.username === perfilAlvo);
-
-        if (statReviews) statReviews.textContent = doPerfil.length;
-        const totalCurtidas = doPerfil.reduce((soma, item) => soma + (item.likes || 0), 0);
-        if (statLikes) statLikes.textContent = totalCurtidas;
-
-        if (!reviewsList) return;
-        if (doPerfil.length === 0) {
-            reviewsList.innerHTML = '<p>Nenhuma review publicada ainda.</p>';
-            return;
-        }
-
-        reviewsList.innerHTML = '';
-        doPerfil.forEach(review => {
-            const comentarios = review.commentsList || [];
-            const card = document.createElement('article');
-            card.classList.add('review-card');
-            card.dataset.id = review.id;
-
-            let comentariosHTML = '';
-            comentarios.forEach(c => {
-                const btnDel = (c.author === usuarioAtual)
-                    ? '<button type="button" class="btn-del-comment" data-cid="' + c.id + '" style="background:none;border:none;color:#c92a2a;font-weight:bold;cursor:pointer;">✕</button>'
-                    : '';
-                comentariosHTML +=
-                    '<div class="perfil-comment-item">' +
-                        '<span><strong>' + escapeHTML(c.author) + ':</strong> ' + escapeHTML(c.text) + '</span>' +
-                        btnDel +
-                    '</div>';
-            });
     const reviewsList = document.getElementById('user-reviews-list');
     const statReviews = document.getElementById('stat-reviews');
     const statLikes = document.getElementById('stat-likes');
@@ -382,18 +354,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const criterio = sortReviewsSelect ? sortReviewsSelect.value : 'recentes';
         doPerfil = [...doPerfil].sort((a, b) => {
-            if (criterio === 'antigas') {
-                return a.id - b.id;
-            }
-            if (criterio === 'maior-nota') {
-                return contarEstrelas(b.rating) - contarEstrelas(a.rating) || (b.id - a.id);
-            }
-            if (criterio === 'menor-nota') {
-                return contarEstrelas(a.rating) - contarEstrelas(b.rating) || (b.id - a.id);
-            }
-            if (criterio === 'mais-curtidas') {
-                return (b.likes || 0) - (a.likes || 0) || (b.id - a.id);
-            }
+            if (criterio === 'antigas') return a.id - b.id;
+            if (criterio === 'maior-nota') return contarEstrelas(b.rating) - contarEstrelas(a.rating) || (b.id - a.id);
+            if (criterio === 'menor-nota') return contarEstrelas(a.rating) - contarEstrelas(b.rating) || (b.id - a.id);
+            if (criterio === 'mais-curtidas') return (b.likes || 0) - (a.likes || 0) || (b.id - a.id);
             return b.id - a.id;
         });
 
@@ -471,52 +435,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (sortReviewsSelect) {
         sortReviewsSelect.addEventListener('change', () => {
             carregarMinhasReviews();
-        });
-    }
-
-            if (!comentariosHTML) {
-                comentariosHTML = '<small style="opacity:0.7;">Nenhum comentário ainda.</small>';
-            }
-
-            const openClass = (idAberto === review.id) ? 'open' : '';
-            const jaCurtiu = (review.likedBy || []).includes(usuarioAtual);
-            const estiloLike = jaCurtiu ? 'style="background-color: var(--btn-pink); color: #000000;"' : '';
-            const textoLike = jaCurtiu ? '♥ Curtido (' + (review.likes || 0) + ')' : '♡ Curtir (' + (review.likes || 0) + ')';
-
-            const avatarHTML = montarAvatarHTML(review.username);
-            const anexoHTML = review.media_url
-                ? '<img src="' + review.media_url + '" alt="Anexo do post" class="review-media-attachment">'
-                : '';
-            const btnExcluirHTML = ehMeuPerfil
-                ? '<button type="button" class="btn-delete-review" data-id="' + review.id + '">Excluir review</button>'
-                : '';
-
-            card.innerHTML =
-                avatarHTML +
-                '<div class="review-body">' +
-                    '<div class="review-header">' +
-                        '<strong>' + escapeHTML(review.album_name) + '</strong>' +
-                        '<span>' + escapeHTML(review.rating) + '</span>' +
-                    '</div>' +
-                    '<p class="review-text">' + escapeHTML(review.comment) + '</p>' +
-                    anexoHTML +
-                    '<div class="review-footer-row">' +
-                        '<div class="review-actions-group">' +
-                            '<button type="button" class="action-btn-perfil btn-like-perfil" ' + estiloLike + '>' + textoLike + '</button>' +
-                            '<button type="button" class="action-btn-perfil btn-toggle-perfil-comments">💬 Comentários (' + comentarios.length + ')</button>' +
-                        '</div>' +
-                        btnExcluirHTML +
-                    '</div>' +
-                    '<div class="perfil-comments-box ' + openClass + '">' +
-                        '<div class="perfil-comments-list">' + comentariosHTML + '</div>' +
-                        '<form class="perfil-comment-form">' +
-                            '<input type="text" placeholder="Escreva um comentário..." required>' +
-                            '<button type="submit" class="btn-send-perfil-comment">Enviar</button>' +
-                        '</form>' +
-                    '</div>' +
-                '</div>';
-
-            reviewsList.appendChild(card);
         });
     }
     if (reviewsList) {
@@ -602,152 +520,189 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
-
-    // --- WEB TAMAGOTCHI MUSICAL (SPRITES 2D PIXEL ART) ---
+    // --- PETS PIXEL ART 2D DE CORPO INTEIRO (GRADE 24x24) ---
     const spritesPixel2D = {
         cat: {
-            idle: '<svg viewBox="0 0 16 16" shape-rendering="crispEdges" width="100%" height="100%">' +
-                '<rect x="2" y="4" width="2" height="5" fill="#f7bbd7" stroke="#000" stroke-width="0.6"/>' +
-                '<rect x="12" y="4" width="2" height="5" fill="#f7bbd7" stroke="#000" stroke-width="0.6"/>' +
-                '<rect x="3" y="2" width="10" height="1" fill="#000"/>' +
-                '<rect x="4" y="3" width="2" height="2" fill="#2b2d42"/>' +
-                '<rect x="10" y="3" width="2" height="2" fill="#2b2d42"/>' +
-                '<rect x="4" y="5" width="8" height="7" fill="#ffffff" stroke="#000" stroke-width="0.6"/>' +
-                '<rect x="5" y="7" width="2" height="2" fill="#000"/>' +
-                '<rect x="9" y="7" width="2" height="2" fill="#000"/>' +
-                '<rect x="7" y="9" width="2" height="1" fill="#ff6b6b"/>' +
-                '<rect x="5" y="12" width="6" height="3" fill="#f7bbd7" stroke="#000" stroke-width="0.6"/>' +
+            idle: '<svg viewBox="0 0 24 24" shape-rendering="crispEdges" width="100%" height="100%">' +
+                '<rect x="7" y="3" width="2" height="2" fill="#ffffff" stroke="#000" stroke-width="0.5"/>' +
+                '<rect x="15" y="3" width="2" height="2" fill="#ffffff" stroke="#000" stroke-width="0.5"/>' +
+                '<rect x="6" y="4" width="12" height="1" fill="#2b2d42"/>' +
+                '<rect x="5" y="6" width="2" height="4" fill="#f7bbd7" stroke="#000" stroke-width="0.5"/>' +
+                '<rect x="17" y="6" width="2" height="4" fill="#f7bbd7" stroke="#000" stroke-width="0.5"/>' +
+                '<rect x="7" y="5" width="10" height="7" fill="#ffffff" stroke="#000" stroke-width="0.5"/>' +
+                '<rect x="9" y="7" width="1.5" height="2" fill="#000"/>' +
+                '<rect x="13.5" y="7" width="1.5" height="2" fill="#000"/>' +
+                '<rect x="11" y="9" width="2" height="1" fill="#ff6b6b"/>' +
+                '<rect x="8" y="12" width="8" height="6" fill="#ffffff" stroke="#000" stroke-width="0.5"/>' +
+                '<rect x="9" y="13" width="6" height="3" fill="#f7bbd7"/>' +
+                '<rect x="16" y="14" width="3" height="2" fill="#ffffff" stroke="#000" stroke-width="0.5"/>' +
+                '<rect x="18" y="12" width="2" height="3" fill="#ffffff" stroke="#000" stroke-width="0.5"/>' +
+                '<rect x="8" y="18" width="3" height="2" fill="#ffffff" stroke="#000" stroke-width="0.5"/>' +
+                '<rect x="13" y="18" width="3" height="2" fill="#ffffff" stroke="#000" stroke-width="0.5"/>' +
             '</svg>',
-            eating: '<svg viewBox="0 0 16 16" shape-rendering="crispEdges" width="100%" height="100%">' +
-                '<rect x="2" y="4" width="2" height="5" fill="#f7bbd7" stroke="#000" stroke-width="0.6"/>' +
-                '<rect x="12" y="4" width="2" height="5" fill="#f7bbd7" stroke="#000" stroke-width="0.6"/>' +
-                '<rect x="3" y="2" width="10" height="1" fill="#000"/>' +
-                '<rect x="4" y="5" width="8" height="7" fill="#ffffff" stroke="#000" stroke-width="0.6"/>' +
-                '<rect x="5" y="7" width="2" height="1" fill="#000"/>' +
+            eating: '<svg viewBox="0 0 24 24" shape-rendering="crispEdges" width="100%" height="100%">' +
+                '<rect x="7" y="3" width="2" height="2" fill="#ffffff" stroke="#000" stroke-width="0.5"/>' +
+                '<rect x="15" y="3" width="2" height="2" fill="#ffffff" stroke="#000" stroke-width="0.5"/>' +
+                '<rect x="5" y="6" width="2" height="4" fill="#f7bbd7" stroke="#000" stroke-width="0.5"/>' +
+                '<rect x="17" y="6" width="2" height="4" fill="#f7bbd7" stroke="#000" stroke-width="0.5"/>' +
+                '<rect x="7" y="5" width="10" height="7" fill="#ffffff" stroke="#000" stroke-width="0.5"/>' +
                 '<rect x="9" y="7" width="2" height="1" fill="#000"/>' +
-                '<rect x="6" y="9" width="4" height="2" fill="#ff4d6d" stroke="#000" stroke-width="0.4"/>' +
-                '<rect x="5" y="12" width="6" height="3" fill="#f7bbd7" stroke="#000" stroke-width="0.6"/>' +
+                '<rect x="13" y="7" width="2" height="1" fill="#000"/>' +
+                '<rect x="10.5" y="9" width="3" height="2.5" fill="#ff4d6d" stroke="#000" stroke-width="0.4"/>' +
+                '<rect x="8" y="12" width="8" height="6" fill="#ffffff" stroke="#000" stroke-width="0.5"/>' +
+                '<rect x="9" y="13" width="6" height="3" fill="#f7bbd7"/>' +
+                '<rect x="16" y="13" width="3" height="2" fill="#ffffff" stroke="#000" stroke-width="0.5"/>' +
+                '<rect x="8" y="18" width="3" height="2" fill="#ffffff" stroke="#000" stroke-width="0.5"/>' +
+                '<rect x="13" y="18" width="3" height="2" fill="#ffffff" stroke="#000" stroke-width="0.5"/>' +
             '</svg>',
-            sleepy: '<svg viewBox="0 0 16 16" shape-rendering="crispEdges" width="100%" height="100%">' +
-                '<rect x="4" y="6" width="8" height="6" fill="#ffffff" stroke="#000" stroke-width="0.6"/>' +
-                '<rect x="5" y="8" width="2" height="1" fill="#000"/>' +
-                '<rect x="9" y="8" width="2" height="1" fill="#000"/>' +
-                '<rect x="12" y="2" width="2" height="1" fill="#555"/>' +
-                '<rect x="13" y="3" width="1" height="1" fill="#555"/>' +
-                '<rect x="12" y="4" width="2" height="1" fill="#555"/>' +
-                '<rect x="5" y="12" width="6" height="3" fill="#f7bbd7" stroke="#000" stroke-width="0.6"/>' +
+            sleepy: '<svg viewBox="0 0 24 24" shape-rendering="crispEdges" width="100%" height="100%">' +
+                '<rect x="6" y="11" width="12" height="7" fill="#ffffff" stroke="#000" stroke-width="0.5"/>' +
+                '<rect x="8" y="13" width="2" height="1" fill="#000"/>' +
+                '<rect x="12" y="13" width="2" height="1" fill="#000"/>' +
+                '<rect x="15" y="6" width="3" height="1" fill="#555"/>' +
+                '<rect x="16" y="7" width="1" height="1" fill="#555"/>' +
+                '<rect x="15" y="8" width="3" height="1" fill="#555"/>' +
+                '<rect x="7" y="18" width="10" height="2" fill="#f7bbd7" stroke="#000" stroke-width="0.5"/>' +
             '</svg>'
         },
         dog: {
-            idle: '<svg viewBox="0 0 16 16" shape-rendering="crispEdges" width="100%" height="100%">' +
-                '<rect x="2" y="5" width="2" height="5" fill="#38bdf8" stroke="#000" stroke-width="0.6"/>' +
-                '<rect x="12" y="5" width="2" height="5" fill="#38bdf8" stroke="#000" stroke-width="0.6"/>' +
-                '<rect x="3" y="3" width="10" height="1" fill="#000"/>' +
-                '<rect x="4" y="4" width="8" height="8" fill="#d97706" stroke="#000" stroke-width="0.6"/>' +
-                '<rect x="5" y="7" width="2" height="2" fill="#000"/>' +
-                '<rect x="9" y="7" width="2" height="2" fill="#000"/>' +
-                '<rect x="7" y="9" width="2" height="2" fill="#000"/>' +
-                '<rect x="5" y="12" width="6" height="3" fill="#38bdf8" stroke="#000" stroke-width="0.6"/>' +
+            idle: '<svg viewBox="0 0 24 24" shape-rendering="crispEdges" width="100%" height="100%">' +
+                '<rect x="6" y="5" width="2" height="4" fill="#92400e" stroke="#000" stroke-width="0.5"/>' +
+                '<rect x="16" y="5" width="2" height="4" fill="#92400e" stroke="#000" stroke-width="0.5"/>' +
+                '<rect x="5" y="6" width="2" height="4" fill="#38bdf8" stroke="#000" stroke-width="0.5"/>' +
+                '<rect x="17" y="6" width="2" height="4" fill="#38bdf8" stroke="#000" stroke-width="0.5"/>' +
+                '<rect x="7" y="4" width="10" height="8" fill="#d97706" stroke="#000" stroke-width="0.5"/>' +
+                '<rect x="9" y="7" width="1.5" height="2" fill="#000"/>' +
+                '<rect x="13.5" y="7" width="1.5" height="2" fill="#000"/>' +
+                '<rect x="11" y="9" width="2" height="1.5" fill="#000"/>' +
+                '<rect x="8" y="12" width="8" height="6" fill="#d97706" stroke="#000" stroke-width="0.5"/>' +
+                '<rect x="9" y="12" width="6" height="2" fill="#38bdf8" stroke="#000" stroke-width="0.4"/>' +
+                '<rect x="16" y="13" width="3" height="2" fill="#92400e" stroke="#000" stroke-width="0.5"/>' +
+                '<rect x="8" y="18" width="3" height="2" fill="#d97706" stroke="#000" stroke-width="0.5"/>' +
+                '<rect x="13" y="18" width="3" height="2" fill="#d97706" stroke="#000" stroke-width="0.5"/>' +
             '</svg>',
-            eating: '<svg viewBox="0 0 16 16" shape-rendering="crispEdges" width="100%" height="100%">' +
-                '<rect x="2" y="5" width="2" height="5" fill="#38bdf8" stroke="#000" stroke-width="0.6"/>' +
-                '<rect x="12" y="5" width="2" height="5" fill="#38bdf8" stroke="#000" stroke-width="0.6"/>' +
-                '<rect x="4" y="4" width="8" height="8" fill="#d97706" stroke="#000" stroke-width="0.6"/>' +
-                '<rect x="5" y="7" width="2" height="1" fill="#000"/>' +
+            eating: '<svg viewBox="0 0 24 24" shape-rendering="crispEdges" width="100%" height="100%">' +
+                '<rect x="5" y="6" width="2" height="4" fill="#38bdf8" stroke="#000" stroke-width="0.5"/>' +
+                '<rect x="17" y="6" width="2" height="4" fill="#38bdf8" stroke="#000" stroke-width="0.5"/>' +
+                '<rect x="7" y="4" width="10" height="8" fill="#d97706" stroke="#000" stroke-width="0.5"/>' +
                 '<rect x="9" y="7" width="2" height="1" fill="#000"/>' +
-                '<rect x="6" y="9" width="4" height="2" fill="#ff4d6d" stroke="#000" stroke-width="0.4"/>' +
-                '<rect x="5" y="12" width="6" height="3" fill="#38bdf8" stroke="#000" stroke-width="0.6"/>' +
+                '<rect x="13" y="7" width="2" height="1" fill="#000"/>' +
+                '<rect x="10.5" y="9" width="3" height="2.5" fill="#ff4d6d" stroke="#000" stroke-width="0.4"/>' +
+                '<rect x="8" y="12" width="8" height="6" fill="#d97706" stroke="#000" stroke-width="0.5"/>' +
+                '<rect x="16" y="12" width="3" height="2" fill="#92400e" stroke="#000" stroke-width="0.5"/>' +
+                '<rect x="8" y="18" width="3" height="2" fill="#d97706" stroke="#000" stroke-width="0.5"/>' +
+                '<rect x="13" y="18" width="3" height="2" fill="#d97706" stroke="#000" stroke-width="0.5"/>' +
             '</svg>',
-            sleepy: '<svg viewBox="0 0 16 16" shape-rendering="crispEdges" width="100%" height="100%">' +
-                '<rect x="4" y="5" width="8" height="7" fill="#d97706" stroke="#000" stroke-width="0.6"/>' +
-                '<rect x="5" y="8" width="2" height="1" fill="#000"/>' +
-                '<rect x="9" y="8" width="2" height="1" fill="#000"/>' +
-                '<rect x="12" y="2" width="2" height="1" fill="#555"/>' +
-                '<rect x="12" y="4" width="2" height="1" fill="#555"/>' +
-                '<rect x="5" y="12" width="6" height="3" fill="#38bdf8" stroke="#000" stroke-width="0.6"/>' +
+            sleepy: '<svg viewBox="0 0 24 24" shape-rendering="crispEdges" width="100%" height="100%">' +
+                '<rect x="6" y="11" width="12" height="7" fill="#d97706" stroke="#000" stroke-width="0.5"/>' +
+                '<rect x="8" y="13" width="2" height="1" fill="#000"/>' +
+                '<rect x="12" y="13" width="2" height="1" fill="#000"/>' +
+                '<rect x="15" y="6" width="3" height="1" fill="#555"/>' +
+                '<rect x="15" y="8" width="3" height="1" fill="#555"/>' +
+                '<rect x="7" y="18" width="10" height="2" fill="#38bdf8" stroke="#000" stroke-width="0.5"/>' +
             '</svg>'
         },
         frog: {
-            idle: '<svg viewBox="0 0 16 16" shape-rendering="crispEdges" width="100%" height="100%">' +
-                '<rect x="4" y="3" width="3" height="3" fill="#51cf66" stroke="#000" stroke-width="0.6"/>' +
-                '<rect x="9" y="3" width="3" height="3" fill="#51cf66" stroke="#000" stroke-width="0.6"/>' +
-                '<rect x="5" y="4" width="1" height="1" fill="#000"/>' +
-                '<rect x="10" y="4" width="1" height="1" fill="#000"/>' +
-                '<rect x="3" y="6" width="10" height="6" fill="#51cf66" stroke="#000" stroke-width="0.6"/>' +
-                '<rect x="5" y="9" width="6" height="1" fill="#000"/>' +
-                '<rect x="5" y="12" width="6" height="3" fill="#2b2d42" stroke="#000" stroke-width="0.6"/>' +
-                '<rect x="7" y="13" width="2" height="1" fill="#f7bbd7"/>' +
+            idle: '<svg viewBox="0 0 24 24" shape-rendering="crispEdges" width="100%" height="100%">' +
+                '<rect x="7" y="3" width="3" height="3" fill="#51cf66" stroke="#000" stroke-width="0.5"/>' +
+                '<rect x="14" y="3" width="3" height="3" fill="#51cf66" stroke="#000" stroke-width="0.5"/>' +
+                '<rect x="8" y="4" width="1" height="1" fill="#000"/>' +
+                '<rect x="15" y="4" width="1" height="1" fill="#000"/>' +
+                '<rect x="6" y="5" width="12" height="7" fill="#51cf66" stroke="#000" stroke-width="0.5"/>' +
+                '<rect x="9" y="9" width="6" height="1" fill="#000"/>' +
+                '<rect x="7" y="12" width="10" height="6" fill="#51cf66" stroke="#000" stroke-width="0.5"/>' +
+                '<rect x="9" y="13" width="6" height="4" fill="#b2f2bb"/>' +
+                '<rect x="6" y="18" width="4" height="2" fill="#40c057" stroke="#000" stroke-width="0.5"/>' +
+                '<rect x="14" y="18" width="4" height="2" fill="#40c057" stroke="#000" stroke-width="0.5"/>' +
             '</svg>',
-            eating: '<svg viewBox="0 0 16 16" shape-rendering="crispEdges" width="100%" height="100%">' +
-                '<rect x="4" y="3" width="3" height="3" fill="#51cf66" stroke="#000" stroke-width="0.6"/>' +
-                '<rect x="9" y="3" width="3" height="3" fill="#51cf66" stroke="#000" stroke-width="0.6"/>' +
-                '<rect x="3" y="6" width="10" height="6" fill="#51cf66" stroke="#000" stroke-width="0.6"/>' +
-                '<rect x="5" y="8" width="6" height="3" fill="#ff4d6d" stroke="#000" stroke-width="0.4"/>' +
-                '<rect x="5" y="12" width="6" height="3" fill="#2b2d42" stroke="#000" stroke-width="0.6"/>' +
+            eating: '<svg viewBox="0 0 24 24" shape-rendering="crispEdges" width="100%" height="100%">' +
+                '<rect x="7" y="3" width="3" height="3" fill="#51cf66" stroke="#000" stroke-width="0.5"/>' +
+                '<rect x="14" y="3" width="3" height="3" fill="#51cf66" stroke="#000" stroke-width="0.5"/>' +
+                '<rect x="6" y="5" width="12" height="7" fill="#51cf66" stroke="#000" stroke-width="0.5"/>' +
+                '<rect x="9" y="8" width="6" height="3" fill="#ff4d6d" stroke="#000" stroke-width="0.4"/>' +
+                '<rect x="7" y="12" width="10" height="6" fill="#51cf66" stroke="#000" stroke-width="0.5"/>' +
+                '<rect x="6" y="18" width="4" height="2" fill="#40c057" stroke="#000" stroke-width="0.5"/>' +
+                '<rect x="14" y="18" width="4" height="2" fill="#40c057" stroke="#000" stroke-width="0.5"/>' +
             '</svg>',
-            sleepy: '<svg viewBox="0 0 16 16" shape-rendering="crispEdges" width="100%" height="100%">' +
-                '<rect x="3" y="6" width="10" height="6" fill="#51cf66" stroke="#000" stroke-width="0.6"/>' +
-                '<rect x="5" y="9" width="6" height="1" fill="#000"/>' +
-                '<rect x="12" y="2" width="2" height="1" fill="#555"/>' +
-                '<rect x="12" y="4" width="2" height="1" fill="#555"/>' +
-                '<rect x="5" y="12" width="6" height="3" fill="#2b2d42" stroke="#000" stroke-width="0.6"/>' +
+            sleepy: '<svg viewBox="0 0 24 24" shape-rendering="crispEdges" width="100%" height="100%">' +
+                '<rect x="6" y="11" width="12" height="7" fill="#51cf66" stroke="#000" stroke-width="0.5"/>' +
+                '<rect x="8" y="14" width="8" height="1" fill="#000"/>' +
+                '<rect x="15" y="6" width="3" height="1" fill="#555"/>' +
+                '<rect x="15" y="8" width="3" height="1" fill="#555"/>' +
+                '<rect x="7" y="18" width="10" height="2" fill="#40c057" stroke="#000" stroke-width="0.5"/>' +
             '</svg>'
         },
         bunny: {
-            idle: '<svg viewBox="0 0 16 16" shape-rendering="crispEdges" width="100%" height="100%">' +
-                '<rect x="5" y="1" width="2" height="4" fill="#ffffff" stroke="#000" stroke-width="0.6"/>' +
-                '<rect x="9" y="1" width="2" height="4" fill="#ffffff" stroke="#000" stroke-width="0.6"/>' +
-                '<rect x="4" y="5" width="8" height="7" fill="#ffffff" stroke="#000" stroke-width="0.6"/>' +
-                '<rect x="5" y="7" width="2" height="2" fill="#d9387a"/>' +
-                '<rect x="9" y="7" width="2" height="2" fill="#d9387a"/>' +
-                '<rect x="7" y="9" width="2" height="1" fill="#ff8787"/>' +
-                '<rect x="5" y="12" width="6" height="3" fill="#b2f2bb" stroke="#000" stroke-width="0.6"/>' +
+            idle: '<svg viewBox="0 0 24 24" shape-rendering="crispEdges" width="100%" height="100%">' +
+                '<rect x="8" y="1" width="2.5" height="5" fill="#ffffff" stroke="#000" stroke-width="0.5"/>' +
+                '<rect x="13.5" y="1" width="2.5" height="5" fill="#ffffff" stroke="#000" stroke-width="0.5"/>' +
+                '<rect x="9" y="2" width="1" height="3" fill="#f7bbd7"/>' +
+                '<rect x="14" y="2" width="1" height="3" fill="#f7bbd7"/>' +
+                '<rect x="7" y="6" width="10" height="6" fill="#ffffff" stroke="#000" stroke-width="0.5"/>' +
+                '<rect x="9" y="8" width="1.5" height="2" fill="#d9387a"/>' +
+                '<rect x="13.5" y="8" width="1.5" height="2" fill="#d9387a"/>' +
+                '<rect x="11" y="10" width="2" height="1" fill="#ff8787"/>' +
+                '<rect x="8" y="12" width="8" height="6" fill="#ffffff" stroke="#000" stroke-width="0.5"/>' +
+                '<rect x="9" y="13" width="6" height="4" fill="#f7bbd7"/>' +
+                '<rect x="16" y="15" width="2.5" height="2.5" fill="#ffffff" stroke="#000" stroke-width="0.5"/>' +
+                '<rect x="8" y="18" width="3" height="2" fill="#ffffff" stroke="#000" stroke-width="0.5"/>' +
+                '<rect x="13" y="18" width="3" height="2" fill="#ffffff" stroke="#000" stroke-width="0.5"/>' +
             '</svg>',
-            eating: '<svg viewBox="0 0 16 16" shape-rendering="crispEdges" width="100%" height="100%">' +
-                '<rect x="5" y="1" width="2" height="4" fill="#ffffff" stroke="#000" stroke-width="0.6"/>' +
-                '<rect x="9" y="1" width="2" height="4" fill="#ffffff" stroke="#000" stroke-width="0.6"/>' +
-                '<rect x="4" y="5" width="8" height="7" fill="#ffffff" stroke="#000" stroke-width="0.6"/>' +
-                '<rect x="5" y="7" width="2" height="1" fill="#d9387a"/>' +
-                '<rect x="9" y="7" width="2" height="1" fill="#d9387a"/>' +
-                '<rect x="6" y="9" width="4" height="2" fill="#ff4d6d" stroke="#000" stroke-width="0.4"/>' +
-                '<rect x="5" y="12" width="6" height="3" fill="#b2f2bb" stroke="#000" stroke-width="0.6"/>' +
+            eating: '<svg viewBox="0 0 24 24" shape-rendering="crispEdges" width="100%" height="100%">' +
+                '<rect x="8" y="1" width="2.5" height="5" fill="#ffffff" stroke="#000" stroke-width="0.5"/>' +
+                '<rect x="13.5" y="1" width="2.5" height="5" fill="#ffffff" stroke="#000" stroke-width="0.5"/>' +
+                '<rect x="7" y="6" width="10" height="6" fill="#ffffff" stroke="#000" stroke-width="0.5"/>' +
+                '<rect x="9" y="8" width="2" height="1" fill="#d9387a"/>' +
+                '<rect x="13" y="8" width="2" height="1" fill="#d9387a"/>' +
+                '<rect x="10.5" y="9.5" width="3" height="2" fill="#ff4d6d" stroke="#000" stroke-width="0.4"/>' +
+                '<rect x="8" y="12" width="8" height="6" fill="#ffffff" stroke="#000" stroke-width="0.5"/>' +
+                '<rect x="8" y="18" width="3" height="2" fill="#ffffff" stroke="#000" stroke-width="0.5"/>' +
+                '<rect x="13" y="18" width="3" height="2" fill="#ffffff" stroke="#000" stroke-width="0.5"/>' +
             '</svg>',
-            sleepy: '<svg viewBox="0 0 16 16" shape-rendering="crispEdges" width="100%" height="100%">' +
-                '<rect x="4" y="5" width="8" height="7" fill="#ffffff" stroke="#000" stroke-width="0.6"/>' +
-                '<rect x="5" y="8" width="2" height="1" fill="#000"/>' +
-                '<rect x="9" y="8" width="2" height="1" fill="#000"/>' +
-                '<rect x="12" y="2" width="2" height="1" fill="#555"/>' +
-                '<rect x="12" y="4" width="2" height="1" fill="#555"/>' +
-                '<rect x="5" y="12" width="6" height="3" fill="#b2f2bb" stroke="#000" stroke-width="0.6"/>' +
+            sleepy: '<svg viewBox="0 0 24 24" shape-rendering="crispEdges" width="100%" height="100%">' +
+                '<rect x="6" y="11" width="12" height="7" fill="#ffffff" stroke="#000" stroke-width="0.5"/>' +
+                '<rect x="8" y="13" width="2" height="1" fill="#000"/>' +
+                '<rect x="12" y="13" width="2" height="1" fill="#000"/>' +
+                '<rect x="15" y="6" width="3" height="1" fill="#555"/>' +
+                '<rect x="15" y="8" width="3" height="1" fill="#555"/>' +
+                '<rect x="7" y="18" width="10" height="2" fill="#f7bbd7" stroke="#000" stroke-width="0.5"/>' +
             '</svg>'
         },
         fox: {
-            idle: '<svg viewBox="0 0 16 16" shape-rendering="crispEdges" width="100%" height="100%">' +
-                '<rect x="3" y="2" width="3" height="3" fill="#ff6b35" stroke="#000" stroke-width="0.6"/>' +
-                '<rect x="10" y="2" width="3" height="3" fill="#ff6b35" stroke="#000" stroke-width="0.6"/>' +
-                '<rect x="3" y="5" width="10" height="7" fill="#ff6b35" stroke="#000" stroke-width="0.6"/>' +
-                '<rect x="4" y="9" width="8" height="3" fill="#ffffff"/>' +
-                '<rect x="5" y="7" width="2" height="2" fill="#000"/>' +
-                '<rect x="9" y="7" width="2" height="2" fill="#000"/>' +
-                '<rect x="7" y="9" width="2" height="1" fill="#000"/>' +
-                '<rect x="5" y="12" width="6" height="3" fill="#2b2d42" stroke="#000" stroke-width="0.6"/>' +
+            idle: '<svg viewBox="0 0 24 24" shape-rendering="crispEdges" width="100%" height="100%">' +
+                '<rect x="6" y="2" width="3" height="3" fill="#ff6b35" stroke="#000" stroke-width="0.5"/>' +
+                '<rect x="15" y="2" width="3" height="3" fill="#ff6b35" stroke="#000" stroke-width="0.5"/>' +
+                '<rect x="6" y="5" width="12" height="7" fill="#ff6b35" stroke="#000" stroke-width="0.5"/>' +
+                '<rect x="7" y="9" width="10" height="3" fill="#ffffff"/>' +
+                '<rect x="9" y="7" width="1.5" height="2" fill="#000"/>' +
+                '<rect x="13.5" y="7" width="1.5" height="2" fill="#000"/>' +
+                '<rect x="11" y="9" width="2" height="1.5" fill="#000"/>' +
+                '<rect x="8" y="12" width="8" height="6" fill="#ff6b35" stroke="#000" stroke-width="0.5"/>' +
+                '<rect x="9" y="13" width="6" height="4" fill="#ffffff"/>' +
+                '<rect x="16" y="13" width="4" height="4" fill="#ff6b35" stroke="#000" stroke-width="0.5"/>' +
+                '<rect x="18" y="13" width="2" height="2" fill="#ffffff"/>' +
+                '<rect x="8" y="18" width="3" height="2" fill="#2b2d42" stroke="#000" stroke-width="0.5"/>' +
+                '<rect x="13" y="18" width="3" height="2" fill="#2b2d42" stroke="#000" stroke-width="0.5"/>' +
             '</svg>',
-            eating: '<svg viewBox="0 0 16 16" shape-rendering="crispEdges" width="100%" height="100%">' +
-                '<rect x="3" y="2" width="3" height="3" fill="#ff6b35" stroke="#000" stroke-width="0.6"/>' +
-                '<rect x="10" y="2" width="3" height="3" fill="#ff6b35" stroke="#000" stroke-width="0.6"/>' +
-                '<rect x="3" y="5" width="10" height="7" fill="#ff6b35" stroke="#000" stroke-width="0.6"/>' +
-                '<rect x="5" y="7" width="2" height="1" fill="#000"/>' +
+            eating: '<svg viewBox="0 0 24 24" shape-rendering="crispEdges" width="100%" height="100%">' +
+                '<rect x="6" y="2" width="3" height="3" fill="#ff6b35" stroke="#000" stroke-width="0.5"/>' +
+                '<rect x="15" y="2" width="3" height="3" fill="#ff6b35" stroke="#000" stroke-width="0.5"/>' +
+                '<rect x="6" y="5" width="12" height="7" fill="#ff6b35" stroke="#000" stroke-width="0.5"/>' +
                 '<rect x="9" y="7" width="2" height="1" fill="#000"/>' +
-                '<rect x="6" y="9" width="4" height="2" fill="#ff4d6d" stroke="#000" stroke-width="0.4"/>' +
-                '<rect x="5" y="12" width="6" height="3" fill="#2b2d42" stroke="#000" stroke-width="0.6"/>' +
+                '<rect x="13" y="7" width="2" height="1" fill="#000"/>' +
+                '<rect x="10.5" y="9" width="3" height="2.5" fill="#ff4d6d" stroke="#000" stroke-width="0.4"/>' +
+                '<rect x="8" y="12" width="8" height="6" fill="#ff6b35" stroke="#000" stroke-width="0.5"/>' +
+                '<rect x="16" y="12" width="4" height="4" fill="#ff6b35" stroke="#000" stroke-width="0.5"/>' +
+                '<rect x="8" y="18" width="3" height="2" fill="#2b2d42" stroke="#000" stroke-width="0.5"/>' +
+                '<rect x="13" y="18" width="3" height="2" fill="#2b2d42" stroke="#000" stroke-width="0.5"/>' +
             '</svg>',
-            sleepy: '<svg viewBox="0 0 16 16" shape-rendering="crispEdges" width="100%" height="100%">' +
-                '<rect x="3" y="5" width="10" height="7" fill="#ff6b35" stroke="#000" stroke-width="0.6"/>' +
-                '<rect x="5" y="8" width="2" height="1" fill="#000"/>' +
-                '<rect x="9" y="8" width="2" height="1" fill="#000"/>' +
-                '<rect x="12" y="2" width="2" height="1" fill="#555"/>' +
-                '<rect x="12" y="4" width="2" height="1" fill="#555"/>' +
-                '<rect x="5" y="12" width="6" height="3" fill="#2b2d42" stroke="#000" stroke-width="0.6"/>' +
+            sleepy: '<svg viewBox="0 0 24 24" shape-rendering="crispEdges" width="100%" height="100%">' +
+                '<rect x="6" y="11" width="12" height="7" fill="#ff6b35" stroke="#000" stroke-width="0.5"/>' +
+                '<rect x="8" y="13" width="2" height="1" fill="#000"/>' +
+                '<rect x="12" y="13" width="2" height="1" fill="#000"/>' +
+                '<rect x="15" y="6" width="3" height="1" fill="#555"/>' +
+                '<rect x="15" y="8" width="3" height="1" fill="#555"/>' +
+                '<rect x="7" y="18" width="10" height="2" fill="#ffffff" stroke="#000" stroke-width="0.5"/>' +
             '</svg>'
         }
     };
@@ -879,7 +834,6 @@ document.addEventListener('DOMContentLoaded', () => {
             dispararAnimacaoAlimentar();
         });
     }
-
     const logoutBtn = document.querySelector('.btn-logout');
     if (logoutBtn) {
         logoutBtn.addEventListener('click', (event) => {
