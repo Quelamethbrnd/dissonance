@@ -594,3 +594,200 @@ body {
 .comment-item-content a:hover {
     text-decoration: underline !important;
 }
+
+
+/* --- MODAL CONEXÃO LAST.FM --- */
+.lfm-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.65);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    padding: 16px;
+    animation: lfmFadeIn 0.15s ease-out;
+}
+
+.lfm-modal-box {
+    background: var(--bg-content, #ffffff);
+    color: var(--text-main, #000000);
+    border: 3px solid #000000;
+    border-radius: 12px;
+    padding: 24px;
+    width: 100%;
+    max-width: 390px;
+    box-shadow: 6px 6px 0px #000000;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.lfm-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+}
+
+.lfm-badge {
+    background: #d51007;
+    color: #ffffff;
+    padding: 4px 10px;
+    border: 2px solid #000000;
+    border-radius: 6px;
+    font-weight: 900;
+    font-size: 0.78rem;
+    letter-spacing: 0.5px;
+}
+
+.lfm-close-btn {
+    background: none;
+    border: 2px solid transparent;
+    border-radius: 6px;
+    font-size: 1.1rem;
+    font-weight: 900;
+    cursor: pointer;
+    color: inherit;
+    padding: 2px 7px;
+    transition: 0.15s;
+}
+
+.lfm-close-btn:hover {
+    border-color: #000000;
+    background: var(--btn-pink, #f7bbd7);
+}
+
+.lfm-modal-title {
+    margin: 0 0 6px 0;
+    font-size: 1.25rem;
+    font-weight: 900;
+}
+
+.lfm-modal-desc {
+    margin: 0 0 18px 0;
+    font-size: 0.85rem;
+    opacity: 0.8;
+    line-height: 1.4;
+}
+
+.lfm-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 14px;
+}
+
+.lfm-form-group label {
+    font-size: 0.8rem;
+    font-weight: 800;
+}
+
+.lfm-input-wrapper {
+    display: flex;
+    align-items: center;
+    border: 2px solid #000000;
+    border-radius: 8px;
+    background: #ffffff;
+    overflow: hidden;
+    transition: box-shadow 0.15s;
+}
+
+.lfm-input-wrapper:focus-within {
+    box-shadow: 3px 3px 0px #000000;
+}
+
+.lfm-input-prefix {
+    padding: 10px 12px;
+    background: #f4f4f4;
+    color: #000000;
+    font-weight: 800;
+    font-size: 0.82rem;
+    border-right: 2px solid #000000;
+    user-select: none;
+}
+
+.lfm-input {
+    flex: 1;
+    border: none;
+    padding: 10px 12px;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: #000000;
+    outline: none;
+    width: 100%;
+}
+
+.lfm-error-msg {
+    display: none;
+    background: #ffe3e3;
+    color: #b00020;
+    border: 2px solid #000000;
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    margin-bottom: 12px;
+}
+
+.lfm-error-msg.visible {
+    display: block;
+}
+
+.lfm-modal-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 6px;
+}
+
+.lfm-btn-cancel {
+    flex: 1;
+    padding: 11px;
+    background: #ffffff;
+    color: #000000;
+    border: 2px solid #000000;
+    border-radius: 8px;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 800;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: transform 0.1s;
+}
+
+.lfm-btn-cancel:hover {
+    background: #f2f2f2;
+}
+
+.lfm-btn-submit {
+    flex: 2;
+    padding: 11px;
+    background: #d51007;
+    color: #ffffff;
+    border: 2px solid #000000;
+    border-radius: 8px;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 900;
+    font-size: 0.85rem;
+    cursor: pointer;
+    box-shadow: 3px 3px 0px #000000;
+    transition: transform 0.1s, box-shadow 0.1s;
+}
+
+.lfm-btn-submit:hover:not(:disabled) {
+    transform: translate(-1px, -1px);
+    box-shadow: 4px 4px 0px #000000;
+}
+
+.lfm-btn-submit:active:not(:disabled) {
+    transform: translate(2px, 2px);
+    box-shadow: 1px 1px 0px #000000;
+}
+
+.lfm-btn-submit:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+
+@keyframes lfmFadeIn {
+    from { opacity: 0; transform: scale(0.97); }
+    to { opacity: 1; transform: scale(1); }
+}
