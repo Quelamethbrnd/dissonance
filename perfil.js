@@ -603,60 +603,163 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // --- WEB TAMAGOTCHI MUSICAL (SPRITES 2D PIXEL ART) ---
     const spritesPixel2D = {
-        cat: '<svg viewBox="0 0 16 16" shape-rendering="crispEdges" width="100%" height="100%">' +
-            '<rect x="2" y="4" width="2" height="5" fill="#f7bbd7" stroke="#000" stroke-width="0.6"/>' +
-            '<rect x="12" y="4" width="2" height="5" fill="#f7bbd7" stroke="#000" stroke-width="0.6"/>' +
-            '<rect x="3" y="2" width="10" height="1" fill="#000"/>' +
-            '<rect x="4" y="3" width="2" height="2" fill="#2b2d42"/>' +
-            '<rect x="10" y="3" width="2" height="2" fill="#2b2d42"/>' +
-            '<rect x="4" y="5" width="8" height="7" fill="#ffffff" stroke="#000" stroke-width="0.6"/>' +
-            '<rect x="5" y="7" width="2" height="2" fill="#000"/>' +
-            '<rect x="9" y="7" width="2" height="2" fill="#000"/>' +
-            '<rect x="7" y="9" width="2" height="1" fill="#ff6b6b"/>' +
-            '<rect x="5" y="12" width="6" height="3" fill="#f7bbd7" stroke="#000" stroke-width="0.6"/>' +
-        '</svg>',
-        dog: '<svg viewBox="0 0 16 16" shape-rendering="crispEdges" width="100%" height="100%">' +
-            '<rect x="2" y="5" width="2" height="5" fill="#38bdf8" stroke="#000" stroke-width="0.6"/>' +
-            '<rect x="12" y="5" width="2" height="5" fill="#38bdf8" stroke="#000" stroke-width="0.6"/>' +
-            '<rect x="3" y="3" width="10" height="1" fill="#000"/>' +
-            '<rect x="4" y="4" width="8" height="8" fill="#d97706" stroke="#000" stroke-width="0.6"/>' +
-            '<rect x="5" y="7" width="2" height="2" fill="#000"/>' +
-            '<rect x="9" y="7" width="2" height="2" fill="#000"/>' +
-            '<rect x="7" y="9" width="2" height="2" fill="#000"/>' +
-            '<rect x="5" y="12" width="6" height="3" fill="#38bdf8" stroke="#000" stroke-width="0.6"/>' +
-        '</svg>',
-        frog: '<svg viewBox="0 0 16 16" shape-rendering="crispEdges" width="100%" height="100%">' +
-            '<rect x="4" y="3" width="3" height="3" fill="#51cf66" stroke="#000" stroke-width="0.6"/>' +
-            '<rect x="9" y="3" width="3" height="3" fill="#51cf66" stroke="#000" stroke-width="0.6"/>' +
-            '<rect x="5" y="4" width="1" height="1" fill="#000"/>' +
-            '<rect x="10" y="4" width="1" height="1" fill="#000"/>' +
-            '<rect x="3" y="6" width="10" height="6" fill="#51cf66" stroke="#000" stroke-width="0.6"/>' +
-            '<rect x="5" y="9" width="6" height="1" fill="#000"/>' +
-            '<rect x="5" y="12" width="6" height="3" fill="#2b2d42" stroke="#000" stroke-width="0.6"/>' +
-            '<rect x="7" y="13" width="2" height="1" fill="#f7bbd7"/>' +
-        '</svg>',
-        bunny: '<svg viewBox="0 0 16 16" shape-rendering="crispEdges" width="100%" height="100%">' +
-            '<rect x="5" y="1" width="2" height="4" fill="#ffffff" stroke="#000" stroke-width="0.6"/>' +
-            '<rect x="9" y="1" width="2" height="4" fill="#ffffff" stroke="#000" stroke-width="0.6"/>' +
-            '<rect x="4" y="5" width="8" height="7" fill="#ffffff" stroke="#000" stroke-width="0.6"/>' +
-            '<rect x="5" y="7" width="2" height="2" fill="#d9387a"/>' +
-            '<rect x="9" y="7" width="2" height="2" fill="#d9387a"/>' +
-            '<rect x="7" y="9" width="2" height="1" fill="#ff8787"/>' +
-            '<rect x="5" y="12" width="6" height="3" fill="#b2f2bb" stroke="#000" stroke-width="0.6"/>' +
-        '</svg>',
-        fox: '<svg viewBox="0 0 16 16" shape-rendering="crispEdges" width="100%" height="100%">' +
-            '<rect x="3" y="2" width="3" height="3" fill="#ff6b35" stroke="#000" stroke-width="0.6"/>' +
-            '<rect x="10" y="2" width="3" height="3" fill="#ff6b35" stroke="#000" stroke-width="0.6"/>' +
-            '<rect x="3" y="5" width="10" height="7" fill="#ff6b35" stroke="#000" stroke-width="0.6"/>' +
-            '<rect x="4" y="9" width="8" height="3" fill="#ffffff"/>' +
-            '<rect x="5" y="7" width="2" height="2" fill="#000"/>' +
-            '<rect x="9" y="7" width="2" height="2" fill="#000"/>' +
-            '<rect x="7" y="9" width="2" height="1" fill="#000"/>' +
-            '<rect x="5" y="12" width="6" height="3" fill="#2b2d42" stroke="#000" stroke-width="0.6"/>' +
-        '</svg>'
+        cat: {
+            idle: '<svg viewBox="0 0 16 16" shape-rendering="crispEdges" width="100%" height="100%">' +
+                '<rect x="2" y="4" width="2" height="5" fill="#f7bbd7" stroke="#000" stroke-width="0.6"/>' +
+                '<rect x="12" y="4" width="2" height="5" fill="#f7bbd7" stroke="#000" stroke-width="0.6"/>' +
+                '<rect x="3" y="2" width="10" height="1" fill="#000"/>' +
+                '<rect x="4" y="3" width="2" height="2" fill="#2b2d42"/>' +
+                '<rect x="10" y="3" width="2" height="2" fill="#2b2d42"/>' +
+                '<rect x="4" y="5" width="8" height="7" fill="#ffffff" stroke="#000" stroke-width="0.6"/>' +
+                '<rect x="5" y="7" width="2" height="2" fill="#000"/>' +
+                '<rect x="9" y="7" width="2" height="2" fill="#000"/>' +
+                '<rect x="7" y="9" width="2" height="1" fill="#ff6b6b"/>' +
+                '<rect x="5" y="12" width="6" height="3" fill="#f7bbd7" stroke="#000" stroke-width="0.6"/>' +
+            '</svg>',
+            eating: '<svg viewBox="0 0 16 16" shape-rendering="crispEdges" width="100%" height="100%">' +
+                '<rect x="2" y="4" width="2" height="5" fill="#f7bbd7" stroke="#000" stroke-width="0.6"/>' +
+                '<rect x="12" y="4" width="2" height="5" fill="#f7bbd7" stroke="#000" stroke-width="0.6"/>' +
+                '<rect x="3" y="2" width="10" height="1" fill="#000"/>' +
+                '<rect x="4" y="5" width="8" height="7" fill="#ffffff" stroke="#000" stroke-width="0.6"/>' +
+                '<rect x="5" y="7" width="2" height="1" fill="#000"/>' +
+                '<rect x="9" y="7" width="2" height="1" fill="#000"/>' +
+                '<rect x="6" y="9" width="4" height="2" fill="#ff4d6d" stroke="#000" stroke-width="0.4"/>' +
+                '<rect x="5" y="12" width="6" height="3" fill="#f7bbd7" stroke="#000" stroke-width="0.6"/>' +
+            '</svg>',
+            sleepy: '<svg viewBox="0 0 16 16" shape-rendering="crispEdges" width="100%" height="100%">' +
+                '<rect x="4" y="6" width="8" height="6" fill="#ffffff" stroke="#000" stroke-width="0.6"/>' +
+                '<rect x="5" y="8" width="2" height="1" fill="#000"/>' +
+                '<rect x="9" y="8" width="2" height="1" fill="#000"/>' +
+                '<rect x="12" y="2" width="2" height="1" fill="#555"/>' +
+                '<rect x="13" y="3" width="1" height="1" fill="#555"/>' +
+                '<rect x="12" y="4" width="2" height="1" fill="#555"/>' +
+                '<rect x="5" y="12" width="6" height="3" fill="#f7bbd7" stroke="#000" stroke-width="0.6"/>' +
+            '</svg>'
+        },
+        dog: {
+            idle: '<svg viewBox="0 0 16 16" shape-rendering="crispEdges" width="100%" height="100%">' +
+                '<rect x="2" y="5" width="2" height="5" fill="#38bdf8" stroke="#000" stroke-width="0.6"/>' +
+                '<rect x="12" y="5" width="2" height="5" fill="#38bdf8" stroke="#000" stroke-width="0.6"/>' +
+                '<rect x="3" y="3" width="10" height="1" fill="#000"/>' +
+                '<rect x="4" y="4" width="8" height="8" fill="#d97706" stroke="#000" stroke-width="0.6"/>' +
+                '<rect x="5" y="7" width="2" height="2" fill="#000"/>' +
+                '<rect x="9" y="7" width="2" height="2" fill="#000"/>' +
+                '<rect x="7" y="9" width="2" height="2" fill="#000"/>' +
+                '<rect x="5" y="12" width="6" height="3" fill="#38bdf8" stroke="#000" stroke-width="0.6"/>' +
+            '</svg>',
+            eating: '<svg viewBox="0 0 16 16" shape-rendering="crispEdges" width="100%" height="100%">' +
+                '<rect x="2" y="5" width="2" height="5" fill="#38bdf8" stroke="#000" stroke-width="0.6"/>' +
+                '<rect x="12" y="5" width="2" height="5" fill="#38bdf8" stroke="#000" stroke-width="0.6"/>' +
+                '<rect x="4" y="4" width="8" height="8" fill="#d97706" stroke="#000" stroke-width="0.6"/>' +
+                '<rect x="5" y="7" width="2" height="1" fill="#000"/>' +
+                '<rect x="9" y="7" width="2" height="1" fill="#000"/>' +
+                '<rect x="6" y="9" width="4" height="2" fill="#ff4d6d" stroke="#000" stroke-width="0.4"/>' +
+                '<rect x="5" y="12" width="6" height="3" fill="#38bdf8" stroke="#000" stroke-width="0.6"/>' +
+            '</svg>',
+            sleepy: '<svg viewBox="0 0 16 16" shape-rendering="crispEdges" width="100%" height="100%">' +
+                '<rect x="4" y="5" width="8" height="7" fill="#d97706" stroke="#000" stroke-width="0.6"/>' +
+                '<rect x="5" y="8" width="2" height="1" fill="#000"/>' +
+                '<rect x="9" y="8" width="2" height="1" fill="#000"/>' +
+                '<rect x="12" y="2" width="2" height="1" fill="#555"/>' +
+                '<rect x="12" y="4" width="2" height="1" fill="#555"/>' +
+                '<rect x="5" y="12" width="6" height="3" fill="#38bdf8" stroke="#000" stroke-width="0.6"/>' +
+            '</svg>'
+        },
+        frog: {
+            idle: '<svg viewBox="0 0 16 16" shape-rendering="crispEdges" width="100%" height="100%">' +
+                '<rect x="4" y="3" width="3" height="3" fill="#51cf66" stroke="#000" stroke-width="0.6"/>' +
+                '<rect x="9" y="3" width="3" height="3" fill="#51cf66" stroke="#000" stroke-width="0.6"/>' +
+                '<rect x="5" y="4" width="1" height="1" fill="#000"/>' +
+                '<rect x="10" y="4" width="1" height="1" fill="#000"/>' +
+                '<rect x="3" y="6" width="10" height="6" fill="#51cf66" stroke="#000" stroke-width="0.6"/>' +
+                '<rect x="5" y="9" width="6" height="1" fill="#000"/>' +
+                '<rect x="5" y="12" width="6" height="3" fill="#2b2d42" stroke="#000" stroke-width="0.6"/>' +
+                '<rect x="7" y="13" width="2" height="1" fill="#f7bbd7"/>' +
+            '</svg>',
+            eating: '<svg viewBox="0 0 16 16" shape-rendering="crispEdges" width="100%" height="100%">' +
+                '<rect x="4" y="3" width="3" height="3" fill="#51cf66" stroke="#000" stroke-width="0.6"/>' +
+                '<rect x="9" y="3" width="3" height="3" fill="#51cf66" stroke="#000" stroke-width="0.6"/>' +
+                '<rect x="3" y="6" width="10" height="6" fill="#51cf66" stroke="#000" stroke-width="0.6"/>' +
+                '<rect x="5" y="8" width="6" height="3" fill="#ff4d6d" stroke="#000" stroke-width="0.4"/>' +
+                '<rect x="5" y="12" width="6" height="3" fill="#2b2d42" stroke="#000" stroke-width="0.6"/>' +
+            '</svg>',
+            sleepy: '<svg viewBox="0 0 16 16" shape-rendering="crispEdges" width="100%" height="100%">' +
+                '<rect x="3" y="6" width="10" height="6" fill="#51cf66" stroke="#000" stroke-width="0.6"/>' +
+                '<rect x="5" y="9" width="6" height="1" fill="#000"/>' +
+                '<rect x="12" y="2" width="2" height="1" fill="#555"/>' +
+                '<rect x="12" y="4" width="2" height="1" fill="#555"/>' +
+                '<rect x="5" y="12" width="6" height="3" fill="#2b2d42" stroke="#000" stroke-width="0.6"/>' +
+            '</svg>'
+        },
+        bunny: {
+            idle: '<svg viewBox="0 0 16 16" shape-rendering="crispEdges" width="100%" height="100%">' +
+                '<rect x="5" y="1" width="2" height="4" fill="#ffffff" stroke="#000" stroke-width="0.6"/>' +
+                '<rect x="9" y="1" width="2" height="4" fill="#ffffff" stroke="#000" stroke-width="0.6"/>' +
+                '<rect x="4" y="5" width="8" height="7" fill="#ffffff" stroke="#000" stroke-width="0.6"/>' +
+                '<rect x="5" y="7" width="2" height="2" fill="#d9387a"/>' +
+                '<rect x="9" y="7" width="2" height="2" fill="#d9387a"/>' +
+                '<rect x="7" y="9" width="2" height="1" fill="#ff8787"/>' +
+                '<rect x="5" y="12" width="6" height="3" fill="#b2f2bb" stroke="#000" stroke-width="0.6"/>' +
+            '</svg>',
+            eating: '<svg viewBox="0 0 16 16" shape-rendering="crispEdges" width="100%" height="100%">' +
+                '<rect x="5" y="1" width="2" height="4" fill="#ffffff" stroke="#000" stroke-width="0.6"/>' +
+                '<rect x="9" y="1" width="2" height="4" fill="#ffffff" stroke="#000" stroke-width="0.6"/>' +
+                '<rect x="4" y="5" width="8" height="7" fill="#ffffff" stroke="#000" stroke-width="0.6"/>' +
+                '<rect x="5" y="7" width="2" height="1" fill="#d9387a"/>' +
+                '<rect x="9" y="7" width="2" height="1" fill="#d9387a"/>' +
+                '<rect x="6" y="9" width="4" height="2" fill="#ff4d6d" stroke="#000" stroke-width="0.4"/>' +
+                '<rect x="5" y="12" width="6" height="3" fill="#b2f2bb" stroke="#000" stroke-width="0.6"/>' +
+            '</svg>',
+            sleepy: '<svg viewBox="0 0 16 16" shape-rendering="crispEdges" width="100%" height="100%">' +
+                '<rect x="4" y="5" width="8" height="7" fill="#ffffff" stroke="#000" stroke-width="0.6"/>' +
+                '<rect x="5" y="8" width="2" height="1" fill="#000"/>' +
+                '<rect x="9" y="8" width="2" height="1" fill="#000"/>' +
+                '<rect x="12" y="2" width="2" height="1" fill="#555"/>' +
+                '<rect x="12" y="4" width="2" height="1" fill="#555"/>' +
+                '<rect x="5" y="12" width="6" height="3" fill="#b2f2bb" stroke="#000" stroke-width="0.6"/>' +
+            '</svg>'
+        },
+        fox: {
+            idle: '<svg viewBox="0 0 16 16" shape-rendering="crispEdges" width="100%" height="100%">' +
+                '<rect x="3" y="2" width="3" height="3" fill="#ff6b35" stroke="#000" stroke-width="0.6"/>' +
+                '<rect x="10" y="2" width="3" height="3" fill="#ff6b35" stroke="#000" stroke-width="0.6"/>' +
+                '<rect x="3" y="5" width="10" height="7" fill="#ff6b35" stroke="#000" stroke-width="0.6"/>' +
+                '<rect x="4" y="9" width="8" height="3" fill="#ffffff"/>' +
+                '<rect x="5" y="7" width="2" height="2" fill="#000"/>' +
+                '<rect x="9" y="7" width="2" height="2" fill="#000"/>' +
+                '<rect x="7" y="9" width="2" height="1" fill="#000"/>' +
+                '<rect x="5" y="12" width="6" height="3" fill="#2b2d42" stroke="#000" stroke-width="0.6"/>' +
+            '</svg>',
+            eating: '<svg viewBox="0 0 16 16" shape-rendering="crispEdges" width="100%" height="100%">' +
+                '<rect x="3" y="2" width="3" height="3" fill="#ff6b35" stroke="#000" stroke-width="0.6"/>' +
+                '<rect x="10" y="2" width="3" height="3" fill="#ff6b35" stroke="#000" stroke-width="0.6"/>' +
+                '<rect x="3" y="5" width="10" height="7" fill="#ff6b35" stroke="#000" stroke-width="0.6"/>' +
+                '<rect x="5" y="7" width="2" height="1" fill="#000"/>' +
+                '<rect x="9" y="7" width="2" height="1" fill="#000"/>' +
+                '<rect x="6" y="9" width="4" height="2" fill="#ff4d6d" stroke="#000" stroke-width="0.4"/>' +
+                '<rect x="5" y="12" width="6" height="3" fill="#2b2d42" stroke="#000" stroke-width="0.6"/>' +
+            '</svg>',
+            sleepy: '<svg viewBox="0 0 16 16" shape-rendering="crispEdges" width="100%" height="100%">' +
+                '<rect x="3" y="5" width="10" height="7" fill="#ff6b35" stroke="#000" stroke-width="0.6"/>' +
+                '<rect x="5" y="8" width="2" height="1" fill="#000"/>' +
+                '<rect x="9" y="8" width="2" height="1" fill="#000"/>' +
+                '<rect x="12" y="2" width="2" height="1" fill="#555"/>' +
+                '<rect x="12" y="4" width="2" height="1" fill="#555"/>' +
+                '<rect x="5" y="12" width="6" height="3" fill="#2b2d42" stroke="#000" stroke-width="0.6"/>' +
+            '</svg>'
+        }
     };
+
+    const discoComidaSVG = '<svg viewBox="0 0 12 12" shape-rendering="crispEdges" width="100%" height="100%">' +
+        '<rect x="3" y="1" width="6" height="10" fill="#111" stroke="#000" stroke-width="0.5"/>' +
+        '<rect x="1" y="3" width="10" height="6" fill="#111" stroke="#000" stroke-width="0.5"/>' +
+        '<rect x="4" y="4" width="4" height="4" fill="#f7bbd7"/>' +
+        '<rect x="5" y="5" width="2" height="2" fill="#fff"/>' +
+    '</svg>';
     const chavePet = 'dissonance_pet_' + perfilAlvo;
+    const petStageEl = document.getElementById('pet-visual-stage');
     const petSpriteEl = document.getElementById('pet-sprite-container');
     const petNameEl = document.getElementById('pet-name-display');
     const petMoodEl = document.getElementById('pet-mood-text');
@@ -665,6 +768,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnConfigPet = document.getElementById('btn-config-pet');
     const btnFeedPet = document.getElementById('btn-feed-pet');
     const petSetupForm = document.getElementById('pet-setup-form');
+    let estaComendo = false;
 
     if (!ehMeuPerfil) {
         if (btnConfigPet) btnConfigPet.style.display = 'none';
@@ -683,9 +787,34 @@ document.addEventListener('DOMContentLoaded', () => {
         return parsed;
     }
 
-    function atualizarPetMusical() {
-        if (!petSpriteEl) return;
+    function dispararAnimacaoAlimentar() {
+        if (!petStageEl || !petSpriteEl) return;
         const pet = obterPet();
+        const conjunto = spritesPixel2D[pet.spriteKey] || spritesPixel2D.cat;
+
+        const comida = document.createElement('div');
+        comida.className = 'pet-food-drop';
+        comida.innerHTML = discoComidaSVG;
+        petStageEl.appendChild(comida);
+
+        estaComendo = true;
+        petSpriteEl.classList.remove('sleepy');
+        petSpriteEl.classList.add('eating');
+        petSpriteEl.innerHTML = conjunto.eating;
+        petMoodEl.textContent = 'Nham! Mastigando um disco novo...';
+
+        setTimeout(() => {
+            comida.remove();
+            estaComendo = false;
+            petSpriteEl.classList.remove('eating');
+            atualizarPetMusical();
+        }, 1200);
+    }
+
+    function atualizarPetMusical() {
+        if (!petSpriteEl || estaComendo) return;
+        const pet = obterPet();
+        const conjunto = spritesPixel2D[pet.spriteKey] || spritesPixel2D.cat;
 
         const todasReviews = JSON.parse(localStorage.getItem('dissonance_reviews')) || [];
         const reviewsDoPerfil = todasReviews.filter(r => r.username === perfilAlvo).length;
@@ -695,22 +824,24 @@ document.addEventListener('DOMContentLoaded', () => {
         const pontosConsistencia = (reviewsDoPerfil * 15) + (vinisOuvidos * 12) + (appsConectados.length * 10) + (pet.bonusManual || 0);
         const energia = Math.min(100, Math.max(15, pontosConsistencia));
 
-        petSpriteEl.innerHTML = spritesPixel2D[pet.spriteKey] || spritesPixel2D.cat;
         petNameEl.textContent = pet.nome + ' (' + pet.especie + ')';
         petEnergyLabel.textContent = energia + '%';
         petEnergyBar.style.width = energia + '%';
 
         if (energia >= 80) {
             petSpriteEl.classList.remove('sleepy');
-            petMoodEl.textContent = 'Em chamas! Dançando no ritmo da semana.';
+            petSpriteEl.innerHTML = conjunto.idle;
+            petMoodEl.textContent = 'Em sintonia total! Dançando no ritmo da semana.';
             petEnergyBar.style.background = '#51cf66';
         } else if (energia >= 45) {
             petSpriteEl.classList.remove('sleepy');
-            petMoodEl.textContent = 'De boa curtindo os álbuns salvos.';
+            petSpriteEl.innerHTML = conjunto.idle;
+            petMoodEl.textContent = 'Curtindo seus álbuns salvos.';
             petEnergyBar.style.background = 'var(--btn-pink, #f7bbd7)';
         } else {
             petSpriteEl.classList.add('sleepy');
-            petMoodEl.textContent = 'Com fome de música! Precisa ouvir discos ou postar reviews.';
+            petSpriteEl.innerHTML = conjunto.sleepy;
+            petMoodEl.textContent = 'Com fome de música! Ouça um disco ou poste uma review.';
             petEnergyBar.style.background = '#ffd43b';
         }
     }
@@ -745,7 +876,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const pet = obterPet();
             pet.bonusManual = Math.min(40, (pet.bonusManual || 0) + 10);
             localStorage.setItem(chavePet, JSON.stringify(pet));
-            atualizarPetMusical();
+            dispararAnimacaoAlimentar();
         });
     }
 

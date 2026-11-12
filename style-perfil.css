@@ -822,6 +822,40 @@
     border-color: var(--text-dark, #000000) !important;
 }
 
+.pet-visual-stage {
+    position: relative;
+    overflow: hidden;
+}
+
+@keyframes foodDropAndEat {
+    0% { transform: translate(-50%, -28px) scale(1); opacity: 1; }
+    65% { transform: translate(-50%, 26px) scale(1); opacity: 1; }
+    100% { transform: translate(-50%, 34px) scale(0.2); opacity: 0; }
+}
+
+.pet-food-drop {
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    width: 24px;
+    height: 24px;
+    pointer-events: none;
+    z-index: 5;
+    animation: foodDropAndEat 0.9s ease-in forwards;
+}
+
+@keyframes petChew {
+    0%, 100% { transform: scale(1, 1); }
+    25% { transform: scale(1.08, 0.92); }
+    50% { transform: scale(0.95, 1.06); }
+    75% { transform: scale(1.06, 0.94); }
+}
+
+.pixel-pet-sprite.eating {
+    animation: petChew 0.35s infinite ease-in-out;
+}
+
+
 .add-vinyl-form input[type="text"],
 .pet-setup-form select,
 .pet-setup-form input,
