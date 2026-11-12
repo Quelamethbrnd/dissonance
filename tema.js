@@ -57,6 +57,15 @@ document.addEventListener('DOMContentLoaded', () => {
         .tracking-card, .review-card, .profile-header-card, .stat-box, .edit-section, .theme-card {
             border-color: var(--text-dark) !important;
         }
+                    .user-profile-link, .album-card a, .album-info a, .review-header a, .reviewer-name a, .comment-item a {
+            color: var(--text-dark) !important;
+            text-decoration: none;
+        }
+        .user-profile-link:hover, .album-card a:hover, .album-info a:hover, .review-header a:hover, .reviewer-name a:hover {
+            color: var(--btn-pink) !important;
+            text-decoration: underline;
+        }
+
     `;
     document.head.appendChild(styleFix);
 });
