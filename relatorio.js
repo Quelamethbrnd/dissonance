@@ -1,25 +1,34 @@
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     const usuarioAtual = localStorage.getItem('usuarioLogado') || '@ouvinte';
     const greetingSpan = document.querySelector('.nav-user-greeting strong');
     if (greetingSpan) greetingSpan.textContent = usuarioAtual;
 
     const chaveConexoes = 'dissonance_apps_' + usuarioAtual;
-    const appsConectados = JSON.parse(localStorage.getItem(chaveConexoes)) || ['Spotify'];
+    const chaveUserLastFm = 'dissonance_lastfm_user_' + usuarioAtual;
+    const tokenSpotify = localStorage.getItem('dissonance_spotify_token_' + usuarioAtual);
+
+    const todasPlataformas = ['Spotify', 'Apple Music', 'Last.fm'];
+
+    const salvas = JSON.parse(localStorage.getItem(chaveConexoes)) || [];
+    const appsConectados = salvas.filter(app => todasPlataformas.includes(app));
+    localStorage.setItem(chaveConexoes, JSON.stringify(appsConectados));
+
+    const lastfmUser = localStorage.getItem(chaveUserLastFm);
+
+    const individualGrid = document.getElementById('individual-apps-grid');
+    const combinedSection = document.getElementById('combined-report-section');
+
+    if (appsConectados.length > 0) {
+        individualGrid.innerHTML = '<p style="font-weight:700;">Sincronizando estatísticas das suas contas conectadas...</p>';
+    }
 
     const dadosPorPlataforma = {
         'Spotify': {
             corBadge: '#1ed760',
-            minutos: 1420,
-            artistas: [
-                { nome: 'Frank Ocean', plays: 84 },
-                { nome: 'Mitski', plays: 67 },
-                { nome: 'Radiohead', plays: 52 }
-            ],
-            musicas: [
-                { titulo: 'Nights — Frank Ocean', plays: 31 },
-                { titulo: 'Your Best American Girl — Mitski', plays: 24 },
-                { titulo: 'Weird Fishes — Radiohead', plays: 19 }
-            ]
+            corTextoBadge: '#000000',
+            minutos: 0,
+            artistas: [],
+            musicas: []
         },
         'Apple Music': {
             corBadge: '#fa243c',
@@ -36,78 +45,44 @@ document.addEventListener('DOMContentLoaded', () => {
                 { titulo: 'Snooze — SZA', plays: 16 }
             ]
         },
-        'SoundCloud': {
-            corBadge: '#ff5500',
-            corTextoBadge: '#ffffff',
-            minutos: 540,
-            artistas: [
-                { nome: 'Mitski', plays: 39 },
-                { nome: 'Clairo', plays: 34 },
-                { nome: 'Kendrick Lamar', plays: 22 }
-            ],
-            musicas: [
-                { titulo: 'Francis Forever (Demo) — Mitski', plays: 22 },
-                { titulo: 'Bags (Live Session) — Clairo', plays: 18 },
-                { titulo: 'DNA. (Remix) — Kendrick Lamar', plays: 14 }
-            ]
-        },
-        'Deezer': {
-            corBadge: '#a238ff',
-            corTextoBadge: '#ffffff',
-            minutos: 610,
-            artistas: [
-                { nome: 'Radiohead', plays: 45 },
-                { nome: 'Sabrina Carpenter', plays: 38 },
-                { nome: 'Frank Ocean', plays: 29 }
-            ],
-            musicas: [
-                { titulo: 'Espresso — Sabrina Carpenter', plays: 26 },
-                { titulo: 'Jigsaw Falling Into Place — Radiohead', plays: 19 },
-                { titulo: 'Ivy — Frank Ocean', plays: 15 }
-            ]
-        },
-        'YouTube Music': {
-            corBadge: '#ff0000',
-            corTextoBadge: '#ffffff',
-            minutos: 730,
-            artistas: [
-                { nome: 'Sabrina Carpenter', plays: 54 },
-                { nome: 'Kendrick Lamar', plays: 41 },
-                { nome: 'Mitski', plays: 30 }
-            ],
-            musicas: [
-                { titulo: 'Taste — Sabrina Carpenter', plays: 32 },
-                { titulo: 'Not Like Us — Kendrick Lamar', plays: 25 },
-                { titulo: 'My Love Mine All Mine — Mitski', plays: 18 }
-            ]
-        },
         'Last.fm': {
             corBadge: '#d51007',
             corTextoBadge: '#ffffff',
-            minutos: 1150,
-            artistas: [
-                { nome: 'Mitski', plays: 92 },
-                { nome: 'Radiohead', plays: 78 },
-                { nome: 'Frank Ocean', plays: 64 }
-            ],
-            musicas: [
-                { titulo: 'Nobody — Mitski', plays: 35 },
-                { titulo: 'Nude — Radiohead', plays: 28 },
-                { titulo: 'Self Control — Frank Ocean', plays: 24 }
-            ]
+            minutos: 0,
+            artistas: [],
+            musicas: []
         }
     };
 
-    const individualGrid = document.getElementById('individual-apps-grid');
-    const combinedSection = document.getElementById('combined-report-section');
+    // 1. Puxa os dados reais do Spotify se conectado
+    if (appsConectados.includes('Spotify') && tokenSpotify && typeof obterDadosCompletosSpotify === 'function') {
+        try {
+            const dadosReaisSpotify = await obterDadosCompletosSpotify(usuarioAtual);
+            dadosPorPlataforma['Spotify'].minutos = dadosReaisSpotify.minutos;
+            dadosPorPlataforma['Spotify'].artistas = dadosReaisSpotify.artistas;
+            dadosPorPlataforma['Spotify'].musicas = dadosReaisSpotify.musicas;
+        } catch (erro) {
+            console.error('Erro ao carregar dados do Spotify no relatório:', erro);
+        }
+    }
+
+    // 2. Puxa os dados reais do Last.fm se conectado
+    if (appsConectados.includes('Last.fm') && lastfmUser && typeof obterDadosCompletosLastFm === 'function') {
+        try {
+            const dadosReaisLastFm = await obterDadosCompletosLastFm(lastfmUser);
+            dadosPorPlataforma['Last.fm'].minutos = dadosReaisLastFm.minutos;
+            dadosPorPlataforma['Last.fm'].artistas = dadosReaisLastFm.artistas;
+            dadosPorPlataforma['Last.fm'].musicas = dadosReaisLastFm.musicas;
+        } catch (erro) {
+            console.error('Erro ao carregar dados do Last.fm no relatório:', erro);
+        }
+    }
 
     function escaparHTML(str) {
         const div = document.createElement('div');
         div.textContent = str;
         return div.innerHTML;
     }
-
-    const todasPlataformas = ['Spotify', 'Apple Music', 'SoundCloud', 'Deezer', 'YouTube Music', 'Last.fm'];
 
     individualGrid.innerHTML = todasPlataformas.map(nomeApp => {
         const conectado = appsConectados.includes(nomeApp);
@@ -117,29 +92,37 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!conectado) {
             return (
                 '<article class="app-stat-card disconnected">' +
-                    '<span class="app-badge" style="background:#ccc;">' + nomeApp + ' • Desconectado</span>' +
-                    '<p style="font-size:0.9rem; margin-top:6px;">Conecte sua conta do <strong>' + nomeApp + '</strong> na barra lateral do Feed para somar estes dados ao relatório.</p>' +
+                    '<span class="app-badge" style="background:#ccc; color:#000;">' + nomeApp + ' • Desconectado</span>' +
+                    '<p style="font-size:0.9rem; margin-top:10px;">Conecte sua conta do <strong>' + nomeApp + '</strong> na barra lateral do Feed para somar estes dados ao relatório.</p>' +
                 '</article>'
             );
         }
 
-        const listaArtistasHTML = info.artistas.map((art, idx) =>
-            '<li><span><strong>' + (idx + 1) + '.</strong> ' + escaparHTML(art.nome) + '</span><span>' + art.plays + ' plays</span></li>'
-        ).join('');
+        const tituloBadge = (nomeApp === 'Last.fm' && lastfmUser)
+            ? `✓ Last.fm (@${escaparHTML(lastfmUser)})`
+            : `✓ ${nomeApp}`;
 
-        const listaMusicasHTML = info.musicas.map((mus, idx) =>
-            '<li><span><strong>' + (idx + 1) + '.</strong> ' + escaparHTML(mus.titulo) + '</span><span>' + mus.plays + ' plays</span></li>'
-        ).join('');
+        const listaArtistasHTML = info.artistas.length > 0
+            ? info.artistas.map((art, idx) =>
+                '<li><span><strong>' + (idx + 1) + '.</strong> ' + escaparHTML(art.nome) + '</span><span>' + art.plays + ' plays</span></li>'
+            ).join('')
+            : '<li><span>Nenhum artista encontrado</span></li>';
+
+        const listaMusicasHTML = info.musicas.length > 0
+            ? info.musicas.map((mus, idx) =>
+                '<li><span><strong>' + (idx + 1) + '.</strong> ' + escaparHTML(mus.titulo) + '</span><span>' + mus.plays + ' plays</span></li>'
+            ).join('')
+            : '<li><span>Nenhuma música encontrada</span></li>';
 
         return (
             '<article class="app-stat-card">' +
                 '<div style="display:flex; justify-content:space-between; align-items:center;">' +
-                    '<span class="app-badge" style="background:' + info.corBadge + '; color:' + txtCor + ';">✓ ' + nomeApp + '</span>' +
+                    '<span class="app-badge" style="background:' + info.corBadge + '; color:' + txtCor + ';">' + tituloBadge + '</span>' +
                     '<strong>' + info.minutos + ' min</strong>' +
                 '</div>' +
-                '<h4 style="margin-top:8px; font-size:0.85rem; opacity:0.75;">TOP ARTISTAS NESTE APP</h4>' +
+                '<h4 style="margin-top:12px; font-size:0.85rem; opacity:0.75;">TOP ARTISTAS NESTE APP</h4>' +
                 '<ul class="mini-rank-list">' + listaArtistasHTML + '</ul>' +
-                '<h4 style="margin-top:12px; font-size:0.85rem; opacity:0.75;">TOP MÚSICAS NESTE APP</h4>' +
+                '<h4 style="margin-top:14px; font-size:0.85rem; opacity:0.75;">TOP MÚSICAS NESTE APP</h4>' +
                 '<ul class="mini-rank-list">' + listaMusicasHTML + '</ul>' +
             '</article>'
         );

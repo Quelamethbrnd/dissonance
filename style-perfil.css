@@ -241,6 +241,46 @@
     cursor: pointer;
     font-size: 0.84rem;
 }
+/* --- MOTOR CANVAS 2D NEO-BRUTALISM DO PET --- */
+.pet-canvas {
+    display: block;
+    width: 100%;
+    max-width: 240px;
+    height: 115px;
+    margin: 0 auto 6px auto;
+    image-rendering: pixelated;
+    border-bottom: 2px solid var(--text-dark, #000000);
+    cursor: pointer;
+}
+
+.pet-actions-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+    margin-top: 10px;
+}
+
+.btn-pet-action {
+    padding: 7px 4px;
+    background-color: var(--box-gray, #f4f4f4);
+    color: var(--text-dark, #000000);
+    border: 2px solid var(--text-dark, #000000);
+    border-radius: 6px;
+    font-weight: 800;
+    font-size: 0.76rem;
+    cursor: pointer;
+    box-shadow: 2px 2px 0px #000000;
+    transition: transform 0.1s ease;
+}
+
+.btn-pet-action:hover {
+    transform: translate(-1px, -1px);
+}
+
+.btn-pet-action.btn-pet-primary {
+    background-color: var(--btn-pink, #f7bbd7);
+    color: #000000 !important;
+}
 
 .pet-setup-form {
     margin-top: 12px;

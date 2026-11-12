@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     const usuarioAtual = localStorage.getItem('usuarioLogado') || '@ouvinte';
 
     const savedAvatar = localStorage.getItem('avatar_' + usuarioAtual);
@@ -113,6 +113,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const inicial = username.replace('@', '').charAt(0).toUpperCase() || 'U';
         return '<a href="' + link + '" style="text-decoration:none;"><div class="review-avatar">' + inicial + '</div></a>';
     }
+
     function carregarReviews(idAberto = null) {
         if (!feedList) return;
         const lista = obterReviews();
@@ -222,6 +223,7 @@ document.addEventListener('DOMContentLoaded', () => {
             carregarReviews();
         });
     }
+
     if (feedList) {
         feedList.addEventListener('click', event => {
             const card = event.target.closest('.review-card');
@@ -300,8 +302,181 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // --- MODAL ESTILIZADO PARA CONECTAR USUÁRIO DO LAST.FM ---
+    function abrirModalUsuarioLastFm() {
+        return new Promise((resolve) => {
+            const overlay = document.createElement('div');
+            overlay.className = 'lfm-modal-overlay';
+
+            overlay.innerHTML = `
+                <div class="lfm-modal-box">
+                    <div class="lfm-modal-header">
+                        <span class="lfm-badge">LAST.FM TRACKING</span>
+                        <button type="button" class="lfm-close-btn" id="lfm-close-btn" title="Fechar">✕</button>
+                    </div>
+                    <h3 class="lfm-modal-title">Conectar Last.fm</h3>
+                    <p class="lfm-modal-desc">Informe seu nome de usuário público do Last.fm para importar seus scrobbles e estatísticas.</p>
+                    
+                    <form id="lfm-connect-form">
+                        <div class="lfm-form-group">
+                            <label for="lfm-username-input">Usuário do Last.fm</label>
+                            <div class="lfm-input-wrapper">
+                                <span class="lfm-input-prefix">last.fm/user/</span>
+                                <input type="text" id="lfm-username-input" class="lfm-input" placeholder="ex: markvvl" autocomplete="off" required>
+                            </div>
+                        </div>
+
+                        <div id="lfm-error-box" class="lfm-error-msg"></div>
+
+                        <div class="lfm-modal-actions">
+                            <button type="button" class="lfm-btn-cancel" id="lfm-cancel-btn">Cancelar</button>
+                            <button type="submit" class="lfm-btn-submit" id="lfm-submit-btn">Sincronizar Conta ▸</button>
+                        </div>
+                    </form>
+                </div>
+            `;
+
+            document.body.appendChild(overlay);
+
+            const form = overlay.querySelector('#lfm-connect-form');
+            const input = overlay.querySelector('#lfm-username-input');
+            const errorBox = overlay.querySelector('#lfm-error-box');
+            const submitBtn = overlay.querySelector('#lfm-submit-btn');
+
+            input.focus();
+
+            const fecharModal = (resultado = null) => {
+                overlay.remove();
+                resolve(resultado);
+            };
+
+            overlay.querySelector('#lfm-close-btn').addEventListener('click', () => fecharModal(null));
+            overlay.querySelector('#lfm-cancel-btn').addEventListener('click', () => fecharModal(null));
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) fecharModal(null);
+            });
+
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const username = input.value.trim();
+                if (!username) return;
+
+                if (typeof obterDadosCompletosLastFm !== 'function') {
+                    errorBox.textContent = 'Erro: Arquivo lastfm.js não encontrado.';
+                    errorBox.classList.add('visible');
+                    return;
+                }
+
+                errorBox.classList.remove('visible');
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Buscando perfil...';
+
+                try {
+                    const dados = await obterDadosCompletosLastFm(username);
+                    fecharModal(dados);
+                } catch (erro) {
+                    errorBox.textContent = 'Usuário "' + username + '" não encontrado no Last.fm.';
+                    errorBox.classList.add('visible');
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Sincronizar Conta ▸';
+                    input.focus();
+                }
+            });
+        });
+    }
+
+    // --- CONEXÕES (SPOTIFY + APPLE MUSIC + LAST.FM) E MONITORAMENTO AO VIVO ---
     const chaveConexoes = 'dissonance_apps_' + usuarioAtual;
-    let appsConectados = JSON.parse(localStorage.getItem(chaveConexoes)) || ['Spotify'];
+    const chaveUserLastFm = 'dissonance_lastfm_user_' + usuarioAtual;
+
+    // Captura retorno OAuth do Spotify se acabou de fazer login
+    if (typeof processarRetornoSpotify === 'function') {
+        await processarRetornoSpotify(usuarioAtual);
+    }
+
+    const appsPermitidos = ['Spotify', 'Apple Music', 'Last.fm'];
+    const salvas = JSON.parse(localStorage.getItem(chaveConexoes)) || [];
+    let appsConectados = salvas.filter(app => appsPermitidos.includes(app));
+    let lastfmUser = localStorage.getItem(chaveUserLastFm);
+
+    // Garante que o Spotify só apareça conectado se realmente houver um token válido
+    if (appsConectados.includes('Spotify') && !localStorage.getItem('dissonance_spotify_token_' + usuarioAtual)) {
+        appsConectados = appsConectados.filter(app => app !== 'Spotify');
+    }
+    localStorage.setItem(chaveConexoes, JSON.stringify(appsConectados));
+
+    let ultimaFaixaExibida = '';
+    let intervaloNowPlaying = null;
+
+    async function sincronizarNowPlayingGeral() {
+        if (document.hidden) return;
+        let faixa = null;
+        let origem = '';
+
+        // 1. Prioriza o Spotify se estiver conectado e tocando ao vivo
+        const tokenSpotify = localStorage.getItem('dissonance_spotify_token_' + usuarioAtual);
+        if (appsConectados.includes('Spotify') && tokenSpotify && typeof obterOuvindoAgoraSpotify === 'function') {
+            try {
+                const faixaSpotify = await obterOuvindoAgoraSpotify(usuarioAtual);
+                if (faixaSpotify && (faixaSpotify.aoVivo || !lastfmUser)) {
+                    faixa = faixaSpotify;
+                    origem = 'Spotify';
+                }
+            } catch (e) { /* segue para o Last.fm */ }
+        }
+
+        // 2. Busca no Last.fm se conectado
+        if (!faixa && appsConectados.includes('Last.fm') && lastfmUser) {
+            try {
+                faixa = typeof obterOuvindoAgoraLastFm === 'function'
+                    ? await obterOuvindoAgoraLastFm(lastfmUser)
+                    : (await obterDadosCompletosLastFm(lastfmUser)).ouvindoAgora;
+                origem = 'Last.fm';
+            } catch (e) { /* ignora falha temporária */ }
+        }
+
+        if (!faixa) return;
+
+        const identificadorAtual = `${origem}|${faixa.nome}|${faixa.artista}|${faixa.aoVivo}`;
+        if (identificadorAtual === ultimaFaixaExibida) return;
+        ultimaFaixaExibida = identificadorAtual;
+
+        const nowPlayingCard = document.querySelector('.now-playing');
+        const liveDot = document.querySelector('.live-dot');
+
+        if (liveDot) {
+            liveDot.style.backgroundColor = faixa.aoVivo ? '#1ed760' : '#999999';
+            liveDot.style.opacity = faixa.aoVivo ? '1' : '0.5';
+        }
+
+        if (nowPlayingCard) {
+            nowPlayingCard.innerHTML =
+                '<img src="' + escapeHTML(faixa.capa) + '" alt="Capa do Álbum">' +
+                '<div class="track-info">' +
+                    '<strong>' + escapeHTML(faixa.nome) + '</strong>' +
+                    '<span>' + escapeHTML(faixa.artista) + '</span>' +
+                    '<small class="platform-tag">via ' + origem + ' (' + (faixa.aoVivo ? 'Ao vivo' : 'Recente') + ')</small>' +
+                '</div>';
+        }
+    }
+
+    function iniciarMonitoramentoNowPlaying() {
+        sincronizarNowPlayingGeral();
+        if (intervaloNowPlaying) clearInterval(intervaloNowPlaying);
+        intervaloNowPlaying = setInterval(sincronizarNowPlayingGeral, 8000); // Checa a cada 8 segundos
+    }
+
+    function pararMonitoramentoNowPlaying() {
+        if (intervaloNowPlaying) {
+            clearInterval(intervaloNowPlaying);
+            intervaloNowPlaying = null;
+        }
+        ultimaFaixaExibida = '';
+    }
+
+    document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) sincronizarNowPlayingGeral();
+    });
 
     platformButtons.forEach(button => {
         const nomeLimpo = button.textContent
@@ -312,29 +487,90 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (appsConectados.includes(nomeLimpo)) {
             button.classList.add('connected');
-            button.textContent = '✓ ' + nomeLimpo + ' Conectado';
+            if (nomeLimpo === 'Last.fm' && lastfmUser) {
+                button.textContent = '✓ Last.fm (@' + lastfmUser + ')';
+            } else {
+                button.textContent = '✓ ' + nomeLimpo + ' Conectado';
+            }
         } else {
             button.classList.remove('connected');
             button.textContent = '+ Conectar ' + nomeLimpo;
         }
 
-        button.addEventListener('click', () => {
-            if (button.classList.contains('connected')) {
-                button.classList.remove('connected');
-                button.textContent = '+ Conectar ' + nomeLimpo;
-                appsConectados = appsConectados.filter(a => a !== nomeLimpo);
-            } else {
-                button.classList.add('connected');
-                button.textContent = '✓ ' + nomeLimpo + ' Conectado';
-                if (!appsConectados.includes(nomeLimpo)) appsConectados.push(nomeLimpo);
+        button.addEventListener('click', async () => {
+            if (nomeLimpo === 'Spotify') {
+                if (button.classList.contains('connected')) {
+                    if (confirm('Deseja desconectar sua conta do Spotify?')) {
+                        localStorage.removeItem('dissonance_spotify_token_' + usuarioAtual);
+                        localStorage.removeItem('dissonance_spotify_refresh_' + usuarioAtual);
+                        button.classList.remove('connected');
+                        button.textContent = '+ Conectar Spotify';
+                        appsConectados = appsConectados.filter(a => a !== 'Spotify');
+                        localStorage.setItem(chaveConexoes, JSON.stringify(appsConectados));
+                        ultimaFaixaExibida = '';
+                        sincronizarNowPlayingGeral();
+                    }
+                    return;
+                }
+
+                if (typeof iniciarLoginSpotify === 'function') {
+                    iniciarLoginSpotify();
+                } else {
+                    alert('Erro: O arquivo spotify.js não foi carregado no home.html.');
+                }
+                return;
             }
-            localStorage.setItem(chaveConexoes, JSON.stringify(appsConectados));
+
+            if (nomeLimpo === 'Last.fm') {
+                if (button.classList.contains('connected')) {
+                    const confirmarDesconexao = confirm('Deseja desconectar a conta "' + (lastfmUser || 'Last.fm') + '"?');
+                    if (confirmarDesconexao) {
+                        button.classList.remove('connected');
+                        button.textContent = '+ Conectar Last.fm';
+                        appsConectados = appsConectados.filter(a => a !== 'Last.fm');
+                        localStorage.removeItem(chaveUserLastFm);
+                        lastfmUser = null;
+                        localStorage.setItem(chaveConexoes, JSON.stringify(appsConectados));
+                        ultimaFaixaExibida = '';
+                        sincronizarNowPlayingGeral();
+                    }
+                    return;
+                }
+
+                const dadosConectados = await abrirModalUsuarioLastFm();
+                if (!dadosConectados) return;
+
+                lastfmUser = dadosConectados.usuario;
+                localStorage.setItem(chaveUserLastFm, lastfmUser);
+
+                button.classList.add('connected');
+                button.textContent = '✓ Last.fm (@' + lastfmUser + ')';
+                if (!appsConectados.includes('Last.fm')) appsConectados.push('Last.fm');
+                localStorage.setItem(chaveConexoes, JSON.stringify(appsConectados));
+
+                iniciarMonitoramentoNowPlaying();
+                return;
+            }
+
+            if (nomeLimpo === 'Apple Music') {
+                if (button.classList.contains('connected')) {
+                    button.classList.remove('connected');
+                    button.textContent = '+ Conectar Apple Music';
+                    appsConectados = appsConectados.filter(a => a !== 'Apple Music');
+                } else {
+                    button.classList.add('connected');
+                    button.textContent = '✓ Apple Music Conectado';
+                    if (!appsConectados.includes('Apple Music')) appsConectados.push('Apple Music');
+                }
+                localStorage.setItem(chaveConexoes, JSON.stringify(appsConectados));
+            }
         });
     });
 
     if (logoutBtn) {
         logoutBtn.addEventListener('click', event => {
             event.preventDefault();
+            pararMonitoramentoNowPlaying();
             localStorage.removeItem('usuarioLogado');
             window.location.href = 'index.html';
         });
@@ -347,4 +583,5 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     carregarReviews();
+    iniciarMonitoramentoNowPlaying();
 });

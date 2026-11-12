@@ -52,7 +52,6 @@
                     </div>
                 </div>
             </section>
-
             <section class="profile-middle-grid">
                 <div id="music-pet-card" class="music-pet-card">
                     <div class="pet-card-top">
@@ -61,33 +60,45 @@
                     </div>
 
                     <div id="pet-visual-stage" class="pet-visual-stage">
-                        <div id="pet-sprite-container" class="pixel-pet-sprite"></div>
+                        <canvas id="pet-canvas" width="240" height="115" class="pet-canvas"></canvas>
                         <strong id="pet-name-display">Mochi</strong>
-                        <small id="pet-mood-text">Vibing no fone de ouvido!</small>
+                        <small id="pet-mood-text">Explorando a estante...</small>
                     </div>
 
                     <div class="pet-energy-wrap">
                         <div class="pet-energy-header">
-                            <span>CONSISTÊNCIA SEMANAL</span>
-                            <span id="pet-energy-label">80%</span>
+                            <span>HUMOR</span>
+                            <span id="pet-mood-label">85%</span>
                         </div>
                         <div class="pet-energy-track">
-                            <div id="pet-energy-bar" class="pet-energy-bar"></div>
+                            <div id="pet-mood-bar" class="pet-energy-bar" style="width: 85%;"></div>
                         </div>
                     </div>
 
-                    <button type="button" id="btn-feed-pet" class="btn-feed-pet">
-                        Alimentar com Música (+10%)
-                    </button>
+                    <div class="pet-energy-wrap">
+                        <div class="pet-energy-header">
+                            <span>CONSISTÊNCIA & ENERGIA</span>
+                            <span id="pet-energy-label">80%</span>
+                        </div>
+                        <div class="pet-energy-track">
+                            <div id="pet-energy-bar" class="pet-energy-bar" style="width: 80%;"></div>
+                        </div>
+                    </div>
+
+                    <div id="pet-actions-row" class="pet-actions-row">
+                        <button type="button" id="btn-pet-love" class="btn-pet-action">Carinho</button>
+                        <button type="button" id="btn-feed-pet" class="btn-pet-action btn-pet-primary">Alimentar</button>
+                        <button type="button" id="btn-sleep-pet" class="btn-pet-action">Dormir</button>
+                    </div>
 
                     <form id="pet-setup-form" class="pet-setup-form" style="display:none;">
                         <label>Escolha seu pet:</label>
                         <select id="pet-species-select">
-                            <option value="cat|Gatinho de Fones">Gatinho de Fones (Pixel Art)</option>
-                            <option value="dog|Cachorrinho DJ">Cachorrinho DJ (Pixel Art)</option>
-                            <option value="frog|Sapo do Vinil">Sapo do Vinil (Pixel Art)</option>
-                            <option value="bunny|Coelho Indie">Coelho Indie (Pixel Art)</option>
-                            <option value="fox|Raposa Lo-Fi">Raposa Lo-Fi (Pixel Art)</option>
+                            <option value="cat|Gatinho de Fones">Gatinho de Fones</option>
+                            <option value="dog|Cachorrinho DJ">Cachorrinho DJ</option>
+                            <option value="frog|Sapo do Vinil">Sapo do Vinil</option>
+                            <option value="bunny|Coelho Indie">Coelho Indie</option>
+                            <option value="fox|Raposa Lo-Fi">Raposa Lo-Fi</option>
                         </select>
 
                         <label>Nome do pet:</label>
@@ -140,7 +151,7 @@
         <div class="vinyl-display-card">
             <button type="button" id="btn-close-vinyl-modal" class="btn-close-vinyl-modal">X</button>
             <span style="font-size:0.75rem; font-weight:900; letter-spacing:1px; opacity:0.75;">EXIBIÇÃO DE VINIL 3D</span>
-            
+
             <div class="vinyl-3d-showcase">
                 <div id="showcase-sleeve" class="showcase-sleeve"></div>
                 <div id="showcase-disc" class="showcase-disc">

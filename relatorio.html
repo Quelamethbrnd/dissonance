@@ -123,9 +123,12 @@
             background: var(--btn-pink, #f7bbd7);
         }
         @media (max-width: 900px) {
-            .individual-apps-grid { grid-template-columns: 1fr; }
-            .kpi-row { grid-template-columns: repeat(2, 1fr); }
-            .combined-columns { grid-template-columns: 1fr; }
+           .individual-apps-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 18px;
+            margin-bottom: 34px;
+        }
         }
     </style>
 </head>
@@ -165,6 +168,8 @@
         </main>
     </div>
 
+    <script src="spotify.js"></script>
+    <script src="lastfm.js"></script>
     <script src="tema.js"></script>
     <script src="relatorio.js"></script>
 </body>

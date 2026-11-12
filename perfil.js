@@ -22,12 +22,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const biosPadrao = {
         '@ana_indie': 'Apaixonada por indie rock, shoegaze e vinis coloridos.',
-        '@lucas_rock': 'Colecionador de clássicos do rock alternativo e grunge.'
+        '@lucas_rock': 'Colecionador de classicos do rock alternativo e grunge.'
     };
     const bioText = document.getElementById('profile-bio-text');
     const savedBio = localStorage.getItem('bio_' + perfilAlvo) || biosPadrao[perfilAlvo];
     if (savedBio && bioText) bioText.textContent = savedBio;
-
     function obterSeguidos() {
         return JSON.parse(localStorage.getItem('dissonance_following_' + usuarioAtual)) || [];
     }
@@ -155,7 +154,6 @@ document.addEventListener('DOMContentLoaded', () => {
             reader.readAsDataURL(file);
         });
     }
-
     function renderizarVinis() {
         if (!vinylStack) return;
         const lista = obterVinis();
@@ -164,7 +162,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (statVinyls) statVinyls.textContent = ouvidosCount + '/' + lista.length;
 
         if (lista.length === 0) {
-            vinylStack.innerHTML = '<p style="font-size: 0.85rem; color: #aaa;">A estante 3D está vazia.</p>';
+            vinylStack.innerHTML = '<p style="font-size: 0.85rem; color: #aaa;">A estante 3D esta vazia.</p>';
             return;
         }
 
@@ -200,6 +198,7 @@ document.addEventListener('DOMContentLoaded', () => {
             vinylStack.appendChild(item3D);
         });
     }
+
     const vinylModal = document.getElementById('vinyl-display-modal');
     const closeVinylModalBtn = document.getElementById('btn-close-vinyl-modal');
     const showcaseSleeve = document.getElementById('showcase-sleeve');
@@ -245,7 +244,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (e.target === vinylModal) vinylModal.classList.remove('open');
         });
     }
-
     if (btnToggleListened) {
         btnToggleListened.addEventListener('click', () => {
             if (!ehMeuPerfil || vinilSelecionadoId === null) return;
@@ -387,7 +385,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             if (!comentariosHTML) {
-                comentariosHTML = '<small style="opacity:0.7;">Nenhum comentário ainda.</small>';
+                comentariosHTML = '<small style="opacity:0.7;">Nenhum comentario ainda.</small>';
             }
 
             const openClass = (idAberto === review.id) ? 'open' : '';
@@ -415,14 +413,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     '<div class="review-footer-row">' +
                         '<div class="review-actions-group">' +
                             '<button type="button" class="action-btn-perfil btn-like-perfil" ' + estiloLike + '>' + textoLike + '</button>' +
-                            '<button type="button" class="action-btn-perfil btn-toggle-perfil-comments">Comentários (' + comentarios.length + ')</button>' +
+                            '<button type="button" class="action-btn-perfil btn-toggle-perfil-comments">Comentarios (' + comentarios.length + ')</button>' +
                         '</div>' +
                         btnExcluirHTML +
                     '</div>' +
                     '<div class="perfil-comments-box ' + openClass + '">' +
                         '<div class="perfil-comments-list">' + comentariosHTML + '</div>' +
                         '<form class="perfil-comment-form">' +
-                            '<input type="text" placeholder="Escreva um comentário..." required>' +
+                            '<input type="text" placeholder="Escreva um comentario..." required>' +
                             '<button type="submit" class="btn-send-perfil-comment">Enviar</button>' +
                         '</form>' +
                     '</div>' +
@@ -431,12 +429,10 @@ document.addEventListener('DOMContentLoaded', () => {
             reviewsList.appendChild(card);
         });
     }
-
     if (sortReviewsSelect) {
-        sortReviewsSelect.addEventListener('change', () => {
-            carregarMinhasReviews();
-        });
+        sortReviewsSelect.addEventListener('change', () => carregarMinhasReviews());
     }
+
     if (reviewsList) {
         reviewsList.addEventListener('click', (event) => {
             const card = event.target.closest('.review-card');
@@ -460,7 +456,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 const item = todas.find(r => r.id === reviewId);
                 if (item) {
                     if (!item.likedBy) item.likedBy = [];
-
                     if (item.likedBy.includes(usuarioAtual)) {
                         item.likedBy = item.likedBy.filter(u => u !== usuarioAtual);
                         item.likes = Math.max(0, (item.likes || 1) - 1);
@@ -468,7 +463,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         item.likedBy.push(usuarioAtual);
                         item.likes = (item.likes || 0) + 1;
                     }
-
                     localStorage.setItem('dissonance_reviews', JSON.stringify(todas));
                     carregarMinhasReviews();
                 }
@@ -477,8 +471,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const toggleBtn = event.target.closest('.btn-toggle-perfil-comments');
             if (toggleBtn) {
-                const box = card.querySelector('.perfil-comments-box');
-                box.classList.toggle('open');
+                card.querySelector('.perfil-comments-box').classList.toggle('open');
                 return;
             }
 
@@ -510,395 +503,224 @@ document.addEventListener('DOMContentLoaded', () => {
             const item = todas.find(r => r.id === reviewId);
             if (item) {
                 if (!item.commentsList) item.commentsList = [];
-                item.commentsList.push({
-                    id: Date.now(),
-                    author: usuarioAtual,
-                    text: text
-                });
+                item.commentsList.push({ id: Date.now(), author: usuarioAtual, text: text });
                 localStorage.setItem('dissonance_reviews', JSON.stringify(todas));
                 carregarMinhasReviews(reviewId);
             }
         });
     }
-    // --- PETS PIXEL ART 2D DE CORPO INTEIRO (GRADE 24x24) ---
-    const spritesPixel2D = {
+    // --- MATRIZES PIXEL ART CHIBI 24x24 (ALTA DEFINICAO FOFA) ---
+    const spritesDetalhados = {
         cat: {
-            idle: '<svg viewBox="0 0 24 24" shape-rendering="crispEdges" width="100%" height="100%">' +
-                '<rect x="7" y="3" width="2" height="2" fill="#ffffff" stroke="#000" stroke-width="0.5"/>' +
-                '<rect x="15" y="3" width="2" height="2" fill="#ffffff" stroke="#000" stroke-width="0.5"/>' +
-                '<rect x="6" y="4" width="12" height="1" fill="#2b2d42"/>' +
-                '<rect x="5" y="6" width="2" height="4" fill="#f7bbd7" stroke="#000" stroke-width="0.5"/>' +
-                '<rect x="17" y="6" width="2" height="4" fill="#f7bbd7" stroke="#000" stroke-width="0.5"/>' +
-                '<rect x="7" y="5" width="10" height="7" fill="#ffffff" stroke="#000" stroke-width="0.5"/>' +
-                '<rect x="9" y="7" width="1.5" height="2" fill="#000"/>' +
-                '<rect x="13.5" y="7" width="1.5" height="2" fill="#000"/>' +
-                '<rect x="11" y="9" width="2" height="1" fill="#ff6b6b"/>' +
-                '<rect x="8" y="12" width="8" height="6" fill="#ffffff" stroke="#000" stroke-width="0.5"/>' +
-                '<rect x="9" y="13" width="6" height="3" fill="#f7bbd7"/>' +
-                '<rect x="16" y="14" width="3" height="2" fill="#ffffff" stroke="#000" stroke-width="0.5"/>' +
-                '<rect x="18" y="12" width="2" height="3" fill="#ffffff" stroke="#000" stroke-width="0.5"/>' +
-                '<rect x="8" y="18" width="3" height="2" fill="#ffffff" stroke="#000" stroke-width="0.5"/>' +
-                '<rect x="13" y="18" width="3" height="2" fill="#ffffff" stroke="#000" stroke-width="0.5"/>' +
-            '</svg>',
-            eating: '<svg viewBox="0 0 24 24" shape-rendering="crispEdges" width="100%" height="100%">' +
-                '<rect x="7" y="3" width="2" height="2" fill="#ffffff" stroke="#000" stroke-width="0.5"/>' +
-                '<rect x="15" y="3" width="2" height="2" fill="#ffffff" stroke="#000" stroke-width="0.5"/>' +
-                '<rect x="5" y="6" width="2" height="4" fill="#f7bbd7" stroke="#000" stroke-width="0.5"/>' +
-                '<rect x="17" y="6" width="2" height="4" fill="#f7bbd7" stroke="#000" stroke-width="0.5"/>' +
-                '<rect x="7" y="5" width="10" height="7" fill="#ffffff" stroke="#000" stroke-width="0.5"/>' +
-                '<rect x="9" y="7" width="2" height="1" fill="#000"/>' +
-                '<rect x="13" y="7" width="2" height="1" fill="#000"/>' +
-                '<rect x="10.5" y="9" width="3" height="2.5" fill="#ff4d6d" stroke="#000" stroke-width="0.4"/>' +
-                '<rect x="8" y="12" width="8" height="6" fill="#ffffff" stroke="#000" stroke-width="0.5"/>' +
-                '<rect x="9" y="13" width="6" height="3" fill="#f7bbd7"/>' +
-                '<rect x="16" y="13" width="3" height="2" fill="#ffffff" stroke="#000" stroke-width="0.5"/>' +
-                '<rect x="8" y="18" width="3" height="2" fill="#ffffff" stroke="#000" stroke-width="0.5"/>' +
-                '<rect x="13" y="18" width="3" height="2" fill="#ffffff" stroke="#000" stroke-width="0.5"/>' +
-            '</svg>',
-            sleepy: '<svg viewBox="0 0 24 24" shape-rendering="crispEdges" width="100%" height="100%">' +
-                '<rect x="6" y="11" width="12" height="7" fill="#ffffff" stroke="#000" stroke-width="0.5"/>' +
-                '<rect x="8" y="13" width="2" height="1" fill="#000"/>' +
-                '<rect x="12" y="13" width="2" height="1" fill="#000"/>' +
-                '<rect x="15" y="6" width="3" height="1" fill="#555"/>' +
-                '<rect x="16" y="7" width="1" height="1" fill="#555"/>' +
-                '<rect x="15" y="8" width="3" height="1" fill="#555"/>' +
-                '<rect x="7" y="18" width="10" height="2" fill="#f7bbd7" stroke="#000" stroke-width="0.5"/>' +
-            '</svg>'
+            cores: { O: '#27272a', W: '#ffffff', S: '#cbd5e1', E: '#f7bbd7', Y: '#111111', H: '#ffffff' },
+            mapa: [
+                '....OO..........OO......',
+                '...OWWO........OWWO.....',
+                '...OWEWOO....OOWEWO.....',
+                '..OWWEEWWOOOOOWWEEWWO...',
+                '..OWWWWWWWWWWWWWWWWWO...',
+                '.OWWWWWWWWWWWWWWWWWWWO..',
+                '.OWWWWWWWWWWWWWWWWWWWO..',
+                'OWWWYYWWWWWWWWWWYYWWWWO.',
+                'OWWWYHWWWWWWWWWWYHWWWWO.',
+                'OWEEWWWWWWOOWWWWWWWWEEO.',
+                'OWEEWWWWWWEEWWWWWWWWEEO.',
+                '.OOWWWWWWWWWWWWWWWWWOO..',
+                '..OOWWWWWWWWWWWWWWWOO...',
+                '...OWWWWWWWWWWWWWWWWO...',
+                '..OWWWWWWWWWWWWWWWWWWO..',
+                '..OWOWWWWWWWWWWWWWOWWO..',
+                '..OWOWWWWWWWWWWWWWOWWO..',
+                '..OWOWWWWWWWWWWWWWOWSO..',
+                '...OWWWWWWWWWWWWWWWOO...',
+                '....OOWWWOOOOOOWWWOO....',
+                '.....OOOO......OOOO.....',
+                '........................',
+                '........................',
+                '........................'
+            ]
         },
         dog: {
-            idle: '<svg viewBox="0 0 24 24" shape-rendering="crispEdges" width="100%" height="100%">' +
-                '<rect x="6" y="5" width="2" height="4" fill="#92400e" stroke="#000" stroke-width="0.5"/>' +
-                '<rect x="16" y="5" width="2" height="4" fill="#92400e" stroke="#000" stroke-width="0.5"/>' +
-                '<rect x="5" y="6" width="2" height="4" fill="#38bdf8" stroke="#000" stroke-width="0.5"/>' +
-                '<rect x="17" y="6" width="2" height="4" fill="#38bdf8" stroke="#000" stroke-width="0.5"/>' +
-                '<rect x="7" y="4" width="10" height="8" fill="#d97706" stroke="#000" stroke-width="0.5"/>' +
-                '<rect x="9" y="7" width="1.5" height="2" fill="#000"/>' +
-                '<rect x="13.5" y="7" width="1.5" height="2" fill="#000"/>' +
-                '<rect x="11" y="9" width="2" height="1.5" fill="#000"/>' +
-                '<rect x="8" y="12" width="8" height="6" fill="#d97706" stroke="#000" stroke-width="0.5"/>' +
-                '<rect x="9" y="12" width="6" height="2" fill="#38bdf8" stroke="#000" stroke-width="0.4"/>' +
-                '<rect x="16" y="13" width="3" height="2" fill="#92400e" stroke="#000" stroke-width="0.5"/>' +
-                '<rect x="8" y="18" width="3" height="2" fill="#d97706" stroke="#000" stroke-width="0.5"/>' +
-                '<rect x="13" y="18" width="3" height="2" fill="#d97706" stroke="#000" stroke-width="0.5"/>' +
-            '</svg>',
-            eating: '<svg viewBox="0 0 24 24" shape-rendering="crispEdges" width="100%" height="100%">' +
-                '<rect x="5" y="6" width="2" height="4" fill="#38bdf8" stroke="#000" stroke-width="0.5"/>' +
-                '<rect x="17" y="6" width="2" height="4" fill="#38bdf8" stroke="#000" stroke-width="0.5"/>' +
-                '<rect x="7" y="4" width="10" height="8" fill="#d97706" stroke="#000" stroke-width="0.5"/>' +
-                '<rect x="9" y="7" width="2" height="1" fill="#000"/>' +
-                '<rect x="13" y="7" width="2" height="1" fill="#000"/>' +
-                '<rect x="10.5" y="9" width="3" height="2.5" fill="#ff4d6d" stroke="#000" stroke-width="0.4"/>' +
-                '<rect x="8" y="12" width="8" height="6" fill="#d97706" stroke="#000" stroke-width="0.5"/>' +
-                '<rect x="16" y="12" width="3" height="2" fill="#92400e" stroke="#000" stroke-width="0.5"/>' +
-                '<rect x="8" y="18" width="3" height="2" fill="#d97706" stroke="#000" stroke-width="0.5"/>' +
-                '<rect x="13" y="18" width="3" height="2" fill="#d97706" stroke="#000" stroke-width="0.5"/>' +
-            '</svg>',
-            sleepy: '<svg viewBox="0 0 24 24" shape-rendering="crispEdges" width="100%" height="100%">' +
-                '<rect x="6" y="11" width="12" height="7" fill="#d97706" stroke="#000" stroke-width="0.5"/>' +
-                '<rect x="8" y="13" width="2" height="1" fill="#000"/>' +
-                '<rect x="12" y="13" width="2" height="1" fill="#000"/>' +
-                '<rect x="15" y="6" width="3" height="1" fill="#555"/>' +
-                '<rect x="15" y="8" width="3" height="1" fill="#555"/>' +
-                '<rect x="7" y="18" width="10" height="2" fill="#38bdf8" stroke="#000" stroke-width="0.5"/>' +
-            '</svg>'
+            cores: { O: '#18181b', C: '#eab308', D: '#ca8a04', W: '#ffffff', P: '#f472b6', Y: '#111111' },
+            mapa: [
+                '...OOO....OOO...........',
+                '..OCCCO..OCCCO..........',
+                '..OCDCCOOCCDCO..........',
+                '.OCCCCCCCCCCCCO.........',
+                '.OCCCCCCCCCCCCCO........',
+                'OCCYYCCCCCCCCCCCO.......',
+                'OCCYWCCCCCCCCCCCO...OOO.',
+                'OCPPWWWWCCCCCCCCCO.OWWCO',
+                'OOWWWOOCCCCCCCCCCCOOCCO.',
+                '.OOWWWWCCCCCCCCCCCCCCO..',
+                '..OOWWWCCCCCCCCCCCCCO...',
+                '..OWWWWCCCCCCCCCCCCWO...',
+                '.OWWWWWCCCCCCCCCCCWWWO..',
+                '.OWOOWWCCCCCCCCCCWWOOWO.',
+                '.OOO.OOOOOOOOOOOOOO.OOO.',
+                '........................',
+                '........................',
+                '........................',
+                '........................',
+                '........................',
+                '........................',
+                '........................',
+                '........................',
+                '........................'
+            ]
         },
         frog: {
-            idle: '<svg viewBox="0 0 24 24" shape-rendering="crispEdges" width="100%" height="100%">' +
-                '<rect x="7" y="3" width="3" height="3" fill="#51cf66" stroke="#000" stroke-width="0.5"/>' +
-                '<rect x="14" y="3" width="3" height="3" fill="#51cf66" stroke="#000" stroke-width="0.5"/>' +
-                '<rect x="8" y="4" width="1" height="1" fill="#000"/>' +
-                '<rect x="15" y="4" width="1" height="1" fill="#000"/>' +
-                '<rect x="6" y="5" width="12" height="7" fill="#51cf66" stroke="#000" stroke-width="0.5"/>' +
-                '<rect x="9" y="9" width="6" height="1" fill="#000"/>' +
-                '<rect x="7" y="12" width="10" height="6" fill="#51cf66" stroke="#000" stroke-width="0.5"/>' +
-                '<rect x="9" y="13" width="6" height="4" fill="#b2f2bb"/>' +
-                '<rect x="6" y="18" width="4" height="2" fill="#40c057" stroke="#000" stroke-width="0.5"/>' +
-                '<rect x="14" y="18" width="4" height="2" fill="#40c057" stroke="#000" stroke-width="0.5"/>' +
-            '</svg>',
-            eating: '<svg viewBox="0 0 24 24" shape-rendering="crispEdges" width="100%" height="100%">' +
-                '<rect x="7" y="3" width="3" height="3" fill="#51cf66" stroke="#000" stroke-width="0.5"/>' +
-                '<rect x="14" y="3" width="3" height="3" fill="#51cf66" stroke="#000" stroke-width="0.5"/>' +
-                '<rect x="6" y="5" width="12" height="7" fill="#51cf66" stroke="#000" stroke-width="0.5"/>' +
-                '<rect x="9" y="8" width="6" height="3" fill="#ff4d6d" stroke="#000" stroke-width="0.4"/>' +
-                '<rect x="7" y="12" width="10" height="6" fill="#51cf66" stroke="#000" stroke-width="0.5"/>' +
-                '<rect x="6" y="18" width="4" height="2" fill="#40c057" stroke="#000" stroke-width="0.5"/>' +
-                '<rect x="14" y="18" width="4" height="2" fill="#40c057" stroke="#000" stroke-width="0.5"/>' +
-            '</svg>',
-            sleepy: '<svg viewBox="0 0 24 24" shape-rendering="crispEdges" width="100%" height="100%">' +
-                '<rect x="6" y="11" width="12" height="7" fill="#51cf66" stroke="#000" stroke-width="0.5"/>' +
-                '<rect x="8" y="14" width="8" height="1" fill="#000"/>' +
-                '<rect x="15" y="6" width="3" height="1" fill="#555"/>' +
-                '<rect x="15" y="8" width="3" height="1" fill="#555"/>' +
-                '<rect x="7" y="18" width="10" height="2" fill="#40c057" stroke="#000" stroke-width="0.5"/>' +
-            '</svg>'
-        },
-        bunny: {
-            idle: '<svg viewBox="0 0 24 24" shape-rendering="crispEdges" width="100%" height="100%">' +
-                '<rect x="8" y="1" width="2.5" height="5" fill="#ffffff" stroke="#000" stroke-width="0.5"/>' +
-                '<rect x="13.5" y="1" width="2.5" height="5" fill="#ffffff" stroke="#000" stroke-width="0.5"/>' +
-                '<rect x="9" y="2" width="1" height="3" fill="#f7bbd7"/>' +
-                '<rect x="14" y="2" width="1" height="3" fill="#f7bbd7"/>' +
-                '<rect x="7" y="6" width="10" height="6" fill="#ffffff" stroke="#000" stroke-width="0.5"/>' +
-                '<rect x="9" y="8" width="1.5" height="2" fill="#d9387a"/>' +
-                '<rect x="13.5" y="8" width="1.5" height="2" fill="#d9387a"/>' +
-                '<rect x="11" y="10" width="2" height="1" fill="#ff8787"/>' +
-                '<rect x="8" y="12" width="8" height="6" fill="#ffffff" stroke="#000" stroke-width="0.5"/>' +
-                '<rect x="9" y="13" width="6" height="4" fill="#f7bbd7"/>' +
-                '<rect x="16" y="15" width="2.5" height="2.5" fill="#ffffff" stroke="#000" stroke-width="0.5"/>' +
-                '<rect x="8" y="18" width="3" height="2" fill="#ffffff" stroke="#000" stroke-width="0.5"/>' +
-                '<rect x="13" y="18" width="3" height="2" fill="#ffffff" stroke="#000" stroke-width="0.5"/>' +
-            '</svg>',
-            eating: '<svg viewBox="0 0 24 24" shape-rendering="crispEdges" width="100%" height="100%">' +
-                '<rect x="8" y="1" width="2.5" height="5" fill="#ffffff" stroke="#000" stroke-width="0.5"/>' +
-                '<rect x="13.5" y="1" width="2.5" height="5" fill="#ffffff" stroke="#000" stroke-width="0.5"/>' +
-                '<rect x="7" y="6" width="10" height="6" fill="#ffffff" stroke="#000" stroke-width="0.5"/>' +
-                '<rect x="9" y="8" width="2" height="1" fill="#d9387a"/>' +
-                '<rect x="13" y="8" width="2" height="1" fill="#d9387a"/>' +
-                '<rect x="10.5" y="9.5" width="3" height="2" fill="#ff4d6d" stroke="#000" stroke-width="0.4"/>' +
-                '<rect x="8" y="12" width="8" height="6" fill="#ffffff" stroke="#000" stroke-width="0.5"/>' +
-                '<rect x="8" y="18" width="3" height="2" fill="#ffffff" stroke="#000" stroke-width="0.5"/>' +
-                '<rect x="13" y="18" width="3" height="2" fill="#ffffff" stroke="#000" stroke-width="0.5"/>' +
-            '</svg>',
-            sleepy: '<svg viewBox="0 0 24 24" shape-rendering="crispEdges" width="100%" height="100%">' +
-                '<rect x="6" y="11" width="12" height="7" fill="#ffffff" stroke="#000" stroke-width="0.5"/>' +
-                '<rect x="8" y="13" width="2" height="1" fill="#000"/>' +
-                '<rect x="12" y="13" width="2" height="1" fill="#000"/>' +
-                '<rect x="15" y="6" width="3" height="1" fill="#555"/>' +
-                '<rect x="15" y="8" width="3" height="1" fill="#555"/>' +
-                '<rect x="7" y="18" width="10" height="2" fill="#f7bbd7" stroke="#000" stroke-width="0.5"/>' +
-            '</svg>'
+            cores: { O: '#3d251e', G: '#8cc152', D: '#6da338', C: '#f68b67', B: '#f7ecc5', W: '#ffffff', Y: '#1e1b18' },
+            mapa: [
+                '....OOOOOO....OOOOOO....',
+                '...OGGGGGGO..OGGGGGGO...',
+                '..OGGYYYYGGOOGGYYYYGGO..',
+                '..OGGYWWYGGGGGGYWWYGGO..',
+                '..OGGYYYYGGGGGGYYYYGGO..',
+                '.OGGGGGGGGGGGGGGGGGGGGO.',
+                '.OGGGGGGGGGOOOGGGGGGGGO.',
+                'OCCCCGGGGGGGGGGGGGGCCCCO',
+                'OCCCCGGGGGGGGGGGGGGCCCCO',
+                '.OGGGGGGBBBBBBBBGGGGGO..',
+                'OGGGGGGBBBBBBBBBBGGGGGO.',
+                'OGGGGGGBBBBBBBBBBBGGGGO.',
+                'OGGOGGGBBBBBBBBBBBGOGGO.',
+                'OGGOGGGBBBBBBBBBBBGOGGO.',
+                'OGGOGGGGGGGGGGGGGGGOGGO.',
+                '.OO.OOOOOO....OOOOOO.OO.',
+                '........................',
+                '........................',
+                '........................',
+                '........................',
+                '........................',
+                '........................',
+                '........................',
+                '........................'
+            ]
+        },        bunny: {
+            cores: { O: '#27272a', W: '#ffffff', S: '#e9d5ff', E: '#f472b6', Y: '#111111', H: '#ffffff' },
+            mapa: [
+                '......OOOOOOOOOO........',
+                '.....OWWWWWWWWWWO.......',
+                '....OWWWEEEEEEWWWO......',
+                '...OWWWEEEEEEEEWWWO.....',
+                '..OWWWWWWWWWWWWWWWOO....',
+                '.OWWWWWWWWWWWWWWWOO.....',
+                '.OWWYYWWWWWWWWWWOO......',
+                '.OWWYHWWWWWWWWWWWO......',
+                '.OWEEWWWWWWWWWWWWWO.....',
+                '..OOWWWWWWWWWWWWWWWO....',
+                '...OWWWWWWWWWWWWWWWWO...',
+                '..OWWWWWWWWWWWWWWWWWWO..',
+                '..OWWWWWWWWWWWWWWWWWWSO.',
+                '..OWWWWWWWWWWWWWWWWWWSO.',
+                '...OOWWWWWWWWWWWWWWWOO..',
+                '....OOOOOOOOOOOOOOOO....',
+                '........................',
+                '........................',
+                '........................',
+                '........................',
+                '........................',
+                '........................',
+                '........................',
+                '........................'
+            ]
         },
         fox: {
-            idle: '<svg viewBox="0 0 24 24" shape-rendering="crispEdges" width="100%" height="100%">' +
-                '<rect x="6" y="2" width="3" height="3" fill="#ff6b35" stroke="#000" stroke-width="0.5"/>' +
-                '<rect x="15" y="2" width="3" height="3" fill="#ff6b35" stroke="#000" stroke-width="0.5"/>' +
-                '<rect x="6" y="5" width="12" height="7" fill="#ff6b35" stroke="#000" stroke-width="0.5"/>' +
-                '<rect x="7" y="9" width="10" height="3" fill="#ffffff"/>' +
-                '<rect x="9" y="7" width="1.5" height="2" fill="#000"/>' +
-                '<rect x="13.5" y="7" width="1.5" height="2" fill="#000"/>' +
-                '<rect x="11" y="9" width="2" height="1.5" fill="#000"/>' +
-                '<rect x="8" y="12" width="8" height="6" fill="#ff6b35" stroke="#000" stroke-width="0.5"/>' +
-                '<rect x="9" y="13" width="6" height="4" fill="#ffffff"/>' +
-                '<rect x="16" y="13" width="4" height="4" fill="#ff6b35" stroke="#000" stroke-width="0.5"/>' +
-                '<rect x="18" y="13" width="2" height="2" fill="#ffffff"/>' +
-                '<rect x="8" y="18" width="3" height="2" fill="#2b2d42" stroke="#000" stroke-width="0.5"/>' +
-                '<rect x="13" y="18" width="3" height="2" fill="#2b2d42" stroke="#000" stroke-width="0.5"/>' +
-            '</svg>',
-            eating: '<svg viewBox="0 0 24 24" shape-rendering="crispEdges" width="100%" height="100%">' +
-                '<rect x="6" y="2" width="3" height="3" fill="#ff6b35" stroke="#000" stroke-width="0.5"/>' +
-                '<rect x="15" y="2" width="3" height="3" fill="#ff6b35" stroke="#000" stroke-width="0.5"/>' +
-                '<rect x="6" y="5" width="12" height="7" fill="#ff6b35" stroke="#000" stroke-width="0.5"/>' +
-                '<rect x="9" y="7" width="2" height="1" fill="#000"/>' +
-                '<rect x="13" y="7" width="2" height="1" fill="#000"/>' +
-                '<rect x="10.5" y="9" width="3" height="2.5" fill="#ff4d6d" stroke="#000" stroke-width="0.4"/>' +
-                '<rect x="8" y="12" width="8" height="6" fill="#ff6b35" stroke="#000" stroke-width="0.5"/>' +
-                '<rect x="16" y="12" width="4" height="4" fill="#ff6b35" stroke="#000" stroke-width="0.5"/>' +
-                '<rect x="8" y="18" width="3" height="2" fill="#2b2d42" stroke="#000" stroke-width="0.5"/>' +
-                '<rect x="13" y="18" width="3" height="2" fill="#2b2d42" stroke="#000" stroke-width="0.5"/>' +
-            '</svg>',
-            sleepy: '<svg viewBox="0 0 24 24" shape-rendering="crispEdges" width="100%" height="100%">' +
-                '<rect x="6" y="11" width="12" height="7" fill="#ff6b35" stroke="#000" stroke-width="0.5"/>' +
-                '<rect x="8" y="13" width="2" height="1" fill="#000"/>' +
-                '<rect x="12" y="13" width="2" height="1" fill="#000"/>' +
-                '<rect x="15" y="6" width="3" height="1" fill="#555"/>' +
-                '<rect x="15" y="8" width="3" height="1" fill="#555"/>' +
-                '<rect x="7" y="18" width="10" height="2" fill="#ffffff" stroke="#000" stroke-width="0.5"/>' +
-            '</svg>'
+            cores: { O: '#18181b', F: '#f59e0b', Y: '#fef08a', W: '#ffffff', P: '#fbcfe8', E: '#111111' },
+            mapa: [
+                '...OOO..........OOO.....',
+                '..OYYYO........OYYYO....',
+                '..OYFYYO......OYYFYO....',
+                '.OFFFFFFOOOOOOFFFFFFO...',
+                '.OFFFFFFFFFFFFFFFFFFO...',
+                'OFFFFFFFFFFFFFFFFFFFFO..',
+                'OFFFFEEFFFFFFFFEEFFFFO..',
+                'OFFFFEEFFFFFFFFEEFFFFO..',
+                'OFFPPWWWWWWOOWWWWWWPPFO.',
+                '.OOWWWWWWWWWWWWWWWWWOO..',
+                '..OOWWWWWWWWWWWWWWWOO...',
+                '...OFFFFFFFFFFFFFFFFO...',
+                '..OFFFFFFFFFFFFFFFFFFOOO',
+                '..OFOFFYYYYYYYYFFOFFWWWO',
+                '..OFOFFYYYYYYYYFFOFFWWWO',
+                '...OFFFFFFFFFFFFFOOOWWWO',
+                '....OOOOOOOOOOOOOOOOOOO.',
+                '........................',
+                '........................',
+                '........................',
+                '........................',
+                '........................',
+                '........................',
+                '........................'
+            ]
+        },
+        bird: {
+            cores: { O: '#18181b', W: '#fef08a', S: '#facc15', E: '#f472b6', Y: '#111111', B: '#fb923c' },
+            mapa: [
+                '.......OO..OO...........',
+                '......OWWOOWWO..........',
+                '.....OWWWWWWWWOO........',
+                '....OWWWWWWWWWWWO.......',
+                '...OWWWWWWWWWWWWWO......',
+                '...OWWYYWWWWWWYYWWO.....',
+                '...OWWYYWWBBWWYYWWO.....',
+                '...OWEEWWWBBWWWEEWO.....',
+                '..OWWWWWWWWWWWWWWWWO....',
+                '.OWWWWWSSSSSSSSWWWWWO...',
+                '.OWWWWSSSSSSSSSSWWWWO...',
+                '.OWWWWSSSSSSSSSSWWWWO...',
+                '..OWWWWSSSSSSSSWWWWO....',
+                '...OOWWWWWWWWWWWWOO.....',
+                '.....OBBO....OBBO.......',
+                '......OO......OO........',
+                '........................',
+                '........................',
+                '........................',
+                '........................',
+                '........................',
+                '........................',
+                '........................',
+                '........................'
+            ]
         }
     };
+    const variacoesCoresPets = {
+        cat: [
+            { id: 'branco', nome: 'Branco Neve', cores: { O: '#27272a', W: '#ffffff', S: '#cbd5e1', E: '#f7bbd7', Y: '#111111', H: '#ffffff' } },
+            { id: 'preto', nome: 'Gato Preto', cores: { O: '#09090b', W: '#27272a', S: '#18181b', E: '#f472b6', Y: '#facc15', H: '#ffffff' } },
+            { id: 'laranja', nome: 'Laranja Malhado', cores: { O: '#431407', W: '#fb923c', S: '#ea580c', E: '#fed7aa', Y: '#111111', H: '#ffffff' } },
+            { id: 'cinza', nome: 'Cinza Nublado', cores: { O: '#1f2937', W: '#9ca3af', S: '#6b7280', E: '#f9a8d4', Y: '#111111', H: '#ffffff' } },
+            { id: 'siames', nome: 'Siames Creme', cores: { O: '#292524', W: '#fef3c7', S: '#78350f', E: '#fda4af', Y: '#38bdf8', H: '#ffffff' } }
+        ],
+        dog: [
+            { id: 'corgi', nome: 'Corgi Caramelo', cores: { O: '#18181b', C: '#eab308', D: '#ca8a04', W: '#ffffff', P: '#f472b6', Y: '#111111' } },
+            { id: 'husky', nome: 'Husky Cinza', cores: { O: '#18181b', C: '#94a3b8', D: '#64748b', W: '#ffffff', P: '#f472b6', Y: '#111111' } },
+            { id: 'doberman', nome: 'Preto e Canela', cores: { O: '#09090b', C: '#27272a', D: '#18181b', W: '#d97706', P: '#f472b6', Y: '#111111' } },
+            { id: 'golden', nome: 'Golden Creme', cores: { O: '#451a03', C: '#fde047', D: '#eab308', W: '#fef9c3', P: '#fb7185', Y: '#111111' } }
+        ],
+        frog: [
+            { id: 'verde', nome: 'Verde Classico', cores: { O: '#3d251e', G: '#8cc152', D: '#6da338', C: '#f68b67', B: '#f7ecc5', W: '#ffffff', Y: '#1e1b18' } },
+            { id: 'morango', nome: 'Sapo Morango', cores: { O: '#4c0519', G: '#fb7185', D: '#e11d48', C: '#fda4af', B: '#ffe4e6', W: '#ffffff', Y: '#1e1b18' } },
+            { id: 'azul', nome: 'Sapo Tropical Azul', cores: { O: '#172554', G: '#38bdf8', D: '#0284c7', C: '#f472b6', B: '#e0f2fe', W: '#ffffff', Y: '#1e1b18' } }
+        ],
+        bunny: [
+            { id: 'branco', nome: 'Branco Pastel', cores: { O: '#27272a', W: '#ffffff', S: '#e9d5ff', E: '#f472b6', Y: '#111111', H: '#ffffff' } },
+            { id: 'marrom', nome: 'Canela', cores: { O: '#292524', W: '#b45309', S: '#92400e', E: '#fbcfe8', Y: '#111111', H: '#ffffff' } },
+            { id: 'preto', nome: 'Coelho Grafite', cores: { O: '#09090b', W: '#3f3f46', S: '#27272a', E: '#f472b6', Y: '#ffffff', H: '#ffffff' } },
+            { id: 'lilas', nome: 'Lilas Suave', cores: { O: '#2e1065', W: '#ddd6fe', S: '#c4b5fd', E: '#f472b6', Y: '#111111', H: '#ffffff' } }
+        ],
+        fox: [
+            { id: 'laranja', nome: 'Raposa Vermelha', cores: { O: '#18181b', F: '#f59e0b', Y: '#fef08a', W: '#ffffff', P: '#fbcfe8', E: '#111111' } },
+            { id: 'artico', nome: 'Raposa do Artico', cores: { O: '#1e293b', F: '#f8fafc', Y: '#bae6fd', W: '#ffffff', P: '#f9a8d4', E: '#111111' } },
+            { id: 'sakura', nome: 'Raposa Sakura', cores: { O: '#4c0519', F: '#f472b6', Y: '#fbcfe8', W: '#ffffff', P: '#ffe4e6', E: '#111111' } }
+        ],
+        bird: [
+            { id: 'calopsita', nome: 'Calopsita Amarela', cores: { O: '#18181b', W: '#fef08a', S: '#facc15', E: '#f472b6', Y: '#111111', B: '#fb923c' } },
+            { id: 'azul', nome: 'Periquito Azul', cores: { O: '#1e3a8a', W: '#bae6fd', S: '#38bdf8', E: '#f472b6', Y: '#111111', B: '#fb923c' } },
+            { id: 'verde', nome: 'Periquito Limao', cores: { O: '#14532d', W: '#fef08a', S: '#84cc16', E: '#fb7185', Y: '#111111', B: '#fb923c' } },
+            { id: 'lilas', nome: 'Periquito Lilas', cores: { O: '#4c1d95', W: '#fef9c3', S: '#d8b4fe', E: '#f472b6', Y: '#111111', B: '#fb923c' } },
+            { id: 'rosa', nome: 'Calopsita Rosa', cores: { O: '#831843', W: '#ffffff', S: '#fbcfe8', E: '#f43f5e', Y: '#111111', B: '#fb923c' } }
+        ]
+    };
 
-    const discoComidaSVG = '<svg viewBox="0 0 12 12" shape-rendering="crispEdges" width="100%" height="100%">' +
-        '<rect x="3" y="1" width="6" height="10" fill="#111" stroke="#000" stroke-width="0.5"/>' +
-        '<rect x="1" y="3" width="10" height="6" fill="#111" stroke="#000" stroke-width="0.5"/>' +
-        '<rect x="4" y="4" width="4" height="4" fill="#f7bbd7"/>' +
-        '<rect x="5" y="5" width="2" height="2" fill="#fff"/>' +
-    '</svg>';
-    const chavePet = 'dissonance_pet_' + perfilAlvo;
-    const petStageEl = document.getElementById('pet-visual-stage');
-    const petSpriteEl = document.getElementById('pet-sprite-container');
-    const petNameEl = document.getElementById('pet-name-display');
-    const petMoodEl = document.getElementById('pet-mood-text');
-    const petEnergyLabel = document.getElementById('pet-energy-label');
-    const petEnergyBar = document.getElementById('pet-energy-bar');
-    const btnConfigPet = document.getElementById('btn-config-pet');
-    const btnFeedPet = document.getElementById('btn-feed-pet');
-    const petSetupForm = document.getElementById('pet-setup-form');
-    let estaComendo = false;
-
-    if (!ehMeuPerfil) {
-        if (btnConfigPet) btnConfigPet.style.display = 'none';
-        if (btnFeedPet) btnFeedPet.style.display = 'none';
-    }
-
-    function obterPet() {
-        const salvo = localStorage.getItem(chavePet);
-        if (!salvo) {
-            const padrao = { spriteKey: 'cat', especie: 'Gatinho de Fones', nome: 'Mochi', bonusManual: 0 };
-            if (ehMeuPerfil) localStorage.setItem(chavePet, JSON.stringify(padrao));
-            return padrao;
-        }
-        const parsed = JSON.parse(salvo);
-        if (!parsed.spriteKey) parsed.spriteKey = 'cat';
-        return parsed;
-    }
-
-    function dispararAnimacaoAlimentar() {
-        if (!petStageEl || !petSpriteEl) return;
-        const pet = obterPet();
-        const conjunto = spritesPixel2D[pet.spriteKey] || spritesPixel2D.cat;
-
-        const comida = document.createElement('div');
-        comida.className = 'pet-food-drop';
-        comida.innerHTML = discoComidaSVG;
-        petStageEl.appendChild(comida);
-
-        estaComendo = true;
-        petSpriteEl.classList.remove('sleepy');
-        petSpriteEl.classList.add('eating');
-        petSpriteEl.innerHTML = conjunto.eating;
-        petMoodEl.textContent = 'Nham! Mastigando um disco novo...';
-
-        setTimeout(() => {
-            comida.remove();
-            estaComendo = false;
-            petSpriteEl.classList.remove('eating');
-            atualizarPetMusical();
-        }, 1200);
-    }
-
-    function atualizarPetMusical() {
-        if (!petSpriteEl || estaComendo) return;
-        const pet = obterPet();
-        const conjunto = spritesPixel2D[pet.spriteKey] || spritesPixel2D.cat;
-
-        const todasReviews = JSON.parse(localStorage.getItem('dissonance_reviews')) || [];
-        const reviewsDoPerfil = todasReviews.filter(r => r.username === perfilAlvo).length;
-        const vinisOuvidos = obterVinis().filter(v => v.listened).length;
-        const appsConectados = JSON.parse(localStorage.getItem('dissonance_apps_' + perfilAlvo)) || ['Spotify'];
-
-        const pontosConsistencia = (reviewsDoPerfil * 15) + (vinisOuvidos * 12) + (appsConectados.length * 10) + (pet.bonusManual || 0);
-        const energia = Math.min(100, Math.max(15, pontosConsistencia));
-
-        petNameEl.textContent = pet.nome + ' (' + pet.especie + ')';
-        petEnergyLabel.textContent = energia + '%';
-        petEnergyBar.style.width = energia + '%';
-
-        if (energia >= 80) {
-            petSpriteEl.classList.remove('sleepy');
-            petSpriteEl.innerHTML = conjunto.idle;
-            petMoodEl.textContent = 'Em sintonia total! Dançando no ritmo da semana.';
-            petEnergyBar.style.background = '#51cf66';
-        } else if (energia >= 45) {
-            petSpriteEl.classList.remove('sleepy');
-            petSpriteEl.innerHTML = conjunto.idle;
-            petMoodEl.textContent = 'Curtindo seus álbuns salvos.';
-            petEnergyBar.style.background = 'var(--btn-pink, #f7bbd7)';
-        } else {
-            petSpriteEl.classList.add('sleepy');
-            petSpriteEl.innerHTML = conjunto.sleepy;
-            petMoodEl.textContent = 'Com fome de música! Ouça um disco ou poste uma review.';
-            petEnergyBar.style.background = '#ffd43b';
-        }
-    }
-
-    if (ehMeuPerfil && btnConfigPet && petSetupForm) {
-        btnConfigPet.addEventListener('click', () => {
-            const pet = obterPet();
-            document.getElementById('pet-name-input').value = pet.nome;
-            petSetupForm.style.display = petSetupForm.style.display === 'none' ? 'block' : 'none';
-        });
-
-        petSetupForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const [spriteKey, especie] = document.getElementById('pet-species-select').value.split('|');
-            const nome = document.getElementById('pet-name-input').value.trim() || 'Mochi';
-            const petAtual = obterPet();
-
-            localStorage.setItem(chavePet, JSON.stringify({
-                spriteKey: spriteKey,
-                especie: especie,
-                nome: nome,
-                bonusManual: petAtual.bonusManual || 0
-            }));
-
-            petSetupForm.style.display = 'none';
-            atualizarPetMusical();
-        });
-    }
-
-    if (ehMeuPerfil && btnFeedPet) {
-        btnFeedPet.addEventListener('click', () => {
-            const pet = obterPet();
-            pet.bonusManual = Math.min(40, (pet.bonusManual || 0) + 10);
-            localStorage.setItem(chavePet, JSON.stringify(pet));
-            dispararAnimacaoAlimentar();
-        });
-    }
-    const logoutBtn = document.querySelector('.btn-logout');
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', (event) => {
-            event.preventDefault();
-            localStorage.removeItem('usuarioLogado');
-            window.location.href = 'index.html';
-        });
-    }
-
-    function escapeHTML(str) {
-        const div = document.createElement('div');
-        div.textContent = str;
-        return div.innerHTML;
-    }
-
-    renderizarVinis();
-    carregarMinhasReviews();
-    atualizarPetMusical();
-});
-
-async function buscarCapaOnline(termoBusca) {
-    try {
-        const dominio = ['itunes', 'apple', 'com'].join('.');
-        const caminho = '/search?term=' + encodeURIComponent(termoBusca) + '&media=music&entity=album&limit=1';
-        const respItunes = await fetch('https://' + dominio + caminho);
-        if (respItunes.ok) {
-            const dadosItunes = await respItunes.json();
-            if (dadosItunes.results && dadosItunes.results.length > 0) {
-                return dadosItunes.results.at(0).artworkUrl100.replace('100x100bb', '600x600bb');
-            }
-        }
-    } catch (e) {}
-
-    return 'imgs/Blonde_-_Frank_Ocean.jpeg';
-}
-
-function extrairCorDominante(urlImagem) {
-    return new Promise((resolve) => {
-        const img = new Image();
-        img.crossOrigin = 'Anonymous';
-
-        img.onload = () => {
-            try {
-                const canvas = document.createElement('canvas');
-                canvas.width = 20;
-                canvas.height = 20;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0, 20, 20);
-
-                const pixels = ctx.getImageData(0, 0, 20, 20).data;
-                let r = 0, g = 0, b = 0, total = 0;
-
-                for (let i = 0; i < pixels.length; i += 4) {
-                    r += pixels[i];
-                    g += pixels[i + 1];
-                    b += pixels[i + 2];
-                    total++;
-                }
-                const toHex = (n) => Math.round(n / total).toString(16).padStart(2, '0');
-                resolve('#' + toHex(r) + toHex(g) + toHex(b));
-            } catch (e) {
-                resolve('#f7bbd7');
-            }
-        };
-        img.onerror = () => resolve('#f7bbd7');
-        img.src = urlImagem;
-    });
-}
