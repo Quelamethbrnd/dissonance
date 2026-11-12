@@ -22,12 +22,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const biosPadrao = {
         '@ana_indie': 'Apaixonada por indie rock, shoegaze e vinis coloridos.',
-        '@lucas_rock': 'Colecionador de clássicos do rock alternativo e grunge.'
+        '@lucas_rock': 'Colecionador de classicos do rock alternativo e grunge.'
     };
     const bioText = document.getElementById('profile-bio-text');
     const savedBio = localStorage.getItem('bio_' + perfilAlvo) || biosPadrao[perfilAlvo];
     if (savedBio && bioText) bioText.textContent = savedBio;
-
     function obterSeguidos() {
         return JSON.parse(localStorage.getItem('dissonance_following_' + usuarioAtual)) || [];
     }
@@ -61,7 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const atualizarEstadoBotao = () => {
             const jaSegue = obterSeguidos().includes(perfilAlvo);
-            followBtn.textContent = jaSegue ? '✓ Seguindo' : '+ Seguir';
+            followBtn.textContent = jaSegue ? 'Seguindo' : '+ Seguir';
             followBtn.classList.toggle('following', jaSegue);
             const statFollowers = document.getElementById('stat-followers');
             if (statFollowers) statFollowers.textContent = contarSeguidoresDe(perfilAlvo);
@@ -126,7 +125,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const luminancia = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
         return luminancia > 0.55 ? '#000000' : '#ffffff';
     }
-
     if (vinylCoverInput && ehMeuPerfil) {
         vinylCoverInput.addEventListener('change', (event) => {
             const file = event.target.files.item(0);
@@ -146,7 +144,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     ctx.drawImage(img, sx, sy, minSide, minSide, 0, 0, size, size);
                     capaQuadradaBase64 = canvas.toDataURL('image/jpeg', 0.8);
                     if (vinylUploadLabel) {
-                        vinylUploadLabel.textContent = '✓ Capa Pronta';
+                        vinylUploadLabel.textContent = 'Capa Pronta';
                         vinylUploadLabel.classList.add('has-image');
                     }
                 };
@@ -164,7 +162,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (statVinyls) statVinyls.textContent = ouvidosCount + '/' + lista.length;
 
         if (lista.length === 0) {
-            vinylStack.innerHTML = '<p style="font-size: 0.85rem; color: #aaa;">A estante 3D está vazia.</p>';
+            vinylStack.innerHTML = '<p style="font-size: 0.85rem; color: #aaa;">A estante 3D esta vazia.</p>';
             return;
         }
 
@@ -181,7 +179,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const capa = vinil.coverImage || vinil.spineImage || 'imgs/Blonde_-_Frank_Ocean.jpeg';
             const checkIcon = vinil.listened ? '✓' : '';
             const btnRemoverHTML = ehMeuPerfil
-                ? '<button type="button" class="btn-remove-vinyl" title="Remover" data-id="' + vinil.id + '">✕</button>'
+                ? '<button type="button" class="btn-remove-vinyl" title="Remover" data-id="' + vinil.id + '">X</button>'
                 : '';
 
             item3D.innerHTML =
@@ -200,32 +198,6 @@ document.addEventListener('DOMContentLoaded', () => {
             vinylStack.appendChild(item3D);
         });
     }
-    if (vinylStack && ehMeuPerfil) {
-        vinylStack.addEventListener('click', (event) => {
-            const removeBtn = event.target.closest('.btn-remove-vinyl');
-            if (removeBtn) {
-                event.stopPropagation();
-                const idRemover = Number(removeBtn.dataset.id);
-                salvarVinis(obterVinis().filter(v => v.id !== idRemover));
-                renderizarVinis();
-                atualizarPetMusical();
-                return;
-            }
-            const item3D = event.target.closest('.vinyl-3d-item');
-            if (item3D) {
-                const idToggle = Number(item3D.dataset.id);
-                const lista = obterVinis();
-                const item = lista.find(v => v.id === idToggle);
-                if (item) {
-                    item.listened = !item.listened;
-                    salvarVinis(lista);
-                    renderizarVinis();
-                    atualizarPetMusical();
-                }
-            }
-        });
-    }
-
     const vinylModal = document.getElementById('vinyl-display-modal');
     const closeVinylModalBtn = document.getElementById('btn-close-vinyl-modal');
     const showcaseSleeve = document.getElementById('showcase-sleeve');
@@ -258,7 +230,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 btnToggleListened.style.display = 'none';
             } else {
                 btnToggleListened.style.display = 'inline-block';
-                btnToggleListened.textContent = vinil.listened ? '✓ Ouvido (Desmarcar)' : 'Marcar como Ouvido';
+                btnToggleListened.textContent = vinil.listened ? 'Ouvido (Desmarcar)' : 'Marcar como Ouvido';
             }
         }
 
@@ -282,11 +254,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 salvarVinis(lista);
                 renderizarVinis();
                 atualizarPetMusical();
-                btnToggleListened.textContent = item.listened ? '✓ Ouvido (Desmarcar)' : 'Marcar como Ouvido';
+                btnToggleListened.textContent = item.listened ? 'Ouvido (Desmarcar)' : 'Marcar como Ouvido';
             }
         });
     }
-
     if (vinylStack) {
         vinylStack.addEventListener('click', (event) => {
             const removeBtn = event.target.closest('.btn-remove-vinyl');
@@ -307,51 +278,49 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    const reviewsList = document.getElementById('user-reviews-list');
-    const statReviews = document.getElementById('stat-reviews');
-    const statLikes = document.getElementById('stat-likes');
+    if (addVinylForm && ehMeuPerfil) {
+        addVinylForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const album = document.getElementById('vinyl-album').value.trim();
+            const artist = document.getElementById('vinyl-artist').value.trim();
+            const colorInput = document.getElementById('vinyl-spine-color');
+            let color = colorInput.value;
+            if (!album || !artist) return;
 
-    function montarAvatarHTML(username) {
-        const foto = localStorage.getItem('avatar_' + username);
-        if (foto) {
-            return '<img src="' + foto + '" alt="' + escapeHTML(username) + '" class="review-avatar">';
-        }
-        const inicial = username.replace('@', '').charAt(0).toUpperCase() || 'U';
-        return '<div class="review-avatar">' + inicial + '</div>';
+            let capaFinal = capaQuadradaBase64;
+            if (!capaFinal) {
+                capaFinal = await buscarCapaOnline(album + ' ' + artist);
+            }
+
+            if (color.toLowerCase() === '#f7bbd7') {
+                color = await extrairCorDominante(capaFinal);
+            }
+
+            try {
+                const lista = obterVinis();
+                lista.unshift({
+                    id: Date.now(),
+                    album: album,
+                    artist: artist,
+                    color: color,
+                    coverImage: capaFinal,
+                    listened: false
+                });
+                salvarVinis(lista);
+                addVinylForm.reset();
+                document.getElementById('vinyl-spine-color').value = '#f7bbd7';
+                capaQuadradaBase64 = '';
+                if (vinylUploadLabel) {
+                    vinylUploadLabel.textContent = 'Imagem';
+                    vinylUploadLabel.classList.remove('has-image');
+                }
+                renderizarVinis();
+                atualizarPetMusical();
+            } catch (err) {
+                alert('Limite de armazenamento atingido.');
+            }
+        });
     }
-
-    function carregarMinhasReviews(idAberto = null) {
-        const todas = JSON.parse(localStorage.getItem('dissonance_reviews')) || [];
-        const doPerfil = todas.filter(r => r.username === perfilAlvo);
-
-        if (statReviews) statReviews.textContent = doPerfil.length;
-        const totalCurtidas = doPerfil.reduce((soma, item) => soma + (item.likes || 0), 0);
-        if (statLikes) statLikes.textContent = totalCurtidas;
-
-        if (!reviewsList) return;
-        if (doPerfil.length === 0) {
-            reviewsList.innerHTML = '<p>Nenhuma review publicada ainda.</p>';
-            return;
-        }
-
-        reviewsList.innerHTML = '';
-        doPerfil.forEach(review => {
-            const comentarios = review.commentsList || [];
-            const card = document.createElement('article');
-            card.classList.add('review-card');
-            card.dataset.id = review.id;
-
-            let comentariosHTML = '';
-            comentarios.forEach(c => {
-                const btnDel = (c.author === usuarioAtual)
-                    ? '<button type="button" class="btn-del-comment" data-cid="' + c.id + '" style="background:none;border:none;color:#c92a2a;font-weight:bold;cursor:pointer;">✕</button>'
-                    : '';
-                comentariosHTML +=
-                    '<div class="perfil-comment-item">' +
-                        '<span><strong>' + escapeHTML(c.author) + ':</strong> ' + escapeHTML(c.text) + '</span>' +
-                        btnDel +
-                    '</div>';
-            });
     const reviewsList = document.getElementById('user-reviews-list');
     const statReviews = document.getElementById('stat-reviews');
     const statLikes = document.getElementById('stat-likes');
@@ -382,18 +351,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const criterio = sortReviewsSelect ? sortReviewsSelect.value : 'recentes';
         doPerfil = [...doPerfil].sort((a, b) => {
-            if (criterio === 'antigas') {
-                return a.id - b.id;
-            }
-            if (criterio === 'maior-nota') {
-                return contarEstrelas(b.rating) - contarEstrelas(a.rating) || (b.id - a.id);
-            }
-            if (criterio === 'menor-nota') {
-                return contarEstrelas(a.rating) - contarEstrelas(b.rating) || (b.id - a.id);
-            }
-            if (criterio === 'mais-curtidas') {
-                return (b.likes || 0) - (a.likes || 0) || (b.id - a.id);
-            }
+            if (criterio === 'antigas') return a.id - b.id;
+            if (criterio === 'maior-nota') return contarEstrelas(b.rating) - contarEstrelas(a.rating) || (b.id - a.id);
+            if (criterio === 'menor-nota') return contarEstrelas(a.rating) - contarEstrelas(b.rating) || (b.id - a.id);
+            if (criterio === 'mais-curtidas') return (b.likes || 0) - (a.likes || 0) || (b.id - a.id);
             return b.id - a.id;
         });
 
@@ -402,7 +363,6 @@ document.addEventListener('DOMContentLoaded', () => {
             reviewsList.innerHTML = '<p>Nenhuma review publicada ainda.</p>';
             return;
         }
-
         reviewsList.innerHTML = '';
         doPerfil.forEach(review => {
             const comentarios = review.commentsList || [];
@@ -423,7 +383,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             if (!comentariosHTML) {
-                comentariosHTML = '<small style="opacity:0.7;">Nenhum comentário ainda.</small>';
+                comentariosHTML = '<small style="opacity:0.7;">Nenhum comentario ainda.</small>';
             }
 
             const openClass = (idAberto === review.id) ? 'open' : '';
@@ -451,14 +411,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     '<div class="review-footer-row">' +
                         '<div class="review-actions-group">' +
                             '<button type="button" class="action-btn-perfil btn-like-perfil" ' + estiloLike + '>' + textoLike + '</button>' +
-                            '<button type="button" class="action-btn-perfil btn-toggle-perfil-comments">Comentários (' + comentarios.length + ')</button>' +
+                            '<button type="button" class="action-btn-perfil btn-toggle-perfil-comments">Comentarios (' + comentarios.length + ')</button>' +
                         '</div>' +
                         btnExcluirHTML +
                     '</div>' +
                     '<div class="perfil-comments-box ' + openClass + '">' +
                         '<div class="perfil-comments-list">' + comentariosHTML + '</div>' +
                         '<form class="perfil-comment-form">' +
-                            '<input type="text" placeholder="Escreva um comentário..." required>' +
+                            '<input type="text" placeholder="Escreva um comentario..." required>' +
                             '<button type="submit" class="btn-send-perfil-comment">Enviar</button>' +
                         '</form>' +
                     '</div>' +
@@ -469,55 +429,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (sortReviewsSelect) {
-        sortReviewsSelect.addEventListener('change', () => {
-            carregarMinhasReviews();
-        });
-    }
-
-            if (!comentariosHTML) {
-                comentariosHTML = '<small style="opacity:0.7;">Nenhum comentário ainda.</small>';
-            }
-
-            const openClass = (idAberto === review.id) ? 'open' : '';
-            const jaCurtiu = (review.likedBy || []).includes(usuarioAtual);
-            const estiloLike = jaCurtiu ? 'style="background-color: var(--btn-pink); color: #000000;"' : '';
-            const textoLike = jaCurtiu ? '♥ Curtido (' + (review.likes || 0) + ')' : '♡ Curtir (' + (review.likes || 0) + ')';
-
-            const avatarHTML = montarAvatarHTML(review.username);
-            const anexoHTML = review.media_url
-                ? '<img src="' + review.media_url + '" alt="Anexo do post" class="review-media-attachment">'
-                : '';
-            const btnExcluirHTML = ehMeuPerfil
-                ? '<button type="button" class="btn-delete-review" data-id="' + review.id + '">Excluir review</button>'
-                : '';
-
-            card.innerHTML =
-                avatarHTML +
-                '<div class="review-body">' +
-                    '<div class="review-header">' +
-                        '<strong>' + escapeHTML(review.album_name) + '</strong>' +
-                        '<span>' + escapeHTML(review.rating) + '</span>' +
-                    '</div>' +
-                    '<p class="review-text">' + escapeHTML(review.comment) + '</p>' +
-                    anexoHTML +
-                    '<div class="review-footer-row">' +
-                        '<div class="review-actions-group">' +
-                            '<button type="button" class="action-btn-perfil btn-like-perfil" ' + estiloLike + '>' + textoLike + '</button>' +
-                            '<button type="button" class="action-btn-perfil btn-toggle-perfil-comments">💬 Comentários (' + comentarios.length + ')</button>' +
-                        '</div>' +
-                        btnExcluirHTML +
-                    '</div>' +
-                    '<div class="perfil-comments-box ' + openClass + '">' +
-                        '<div class="perfil-comments-list">' + comentariosHTML + '</div>' +
-                        '<form class="perfil-comment-form">' +
-                            '<input type="text" placeholder="Escreva um comentário..." required>' +
-                            '<button type="submit" class="btn-send-perfil-comment">Enviar</button>' +
-                        '</form>' +
-                    '</div>' +
-                '</div>';
-
-            reviewsList.appendChild(card);
-        });
+        sortReviewsSelect.addEventListener('change', () => carregarMinhasReviews());
     }
     if (reviewsList) {
         reviewsList.addEventListener('click', (event) => {
@@ -542,7 +454,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 const item = todas.find(r => r.id === reviewId);
                 if (item) {
                     if (!item.likedBy) item.likedBy = [];
-
                     if (item.likedBy.includes(usuarioAtual)) {
                         item.likedBy = item.likedBy.filter(u => u !== usuarioAtual);
                         item.likes = Math.max(0, (item.likes || 1) - 1);
@@ -550,7 +461,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         item.likedBy.push(usuarioAtual);
                         item.likes = (item.likes || 0) + 1;
                     }
-
                     localStorage.setItem('dissonance_reviews', JSON.stringify(todas));
                     carregarMinhasReviews();
                 }
@@ -559,8 +469,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const toggleBtn = event.target.closest('.btn-toggle-perfil-comments');
             if (toggleBtn) {
-                const box = card.querySelector('.perfil-comments-box');
-                box.classList.toggle('open');
+                card.querySelector('.perfil-comments-box').classList.toggle('open');
                 return;
             }
 
@@ -592,260 +501,366 @@ document.addEventListener('DOMContentLoaded', () => {
             const item = todas.find(r => r.id === reviewId);
             if (item) {
                 if (!item.commentsList) item.commentsList = [];
-                item.commentsList.push({
-                    id: Date.now(),
-                    author: usuarioAtual,
-                    text: text
-                });
+                item.commentsList.push({ id: Date.now(), author: usuarioAtual, text: text });
                 localStorage.setItem('dissonance_reviews', JSON.stringify(todas));
                 carregarMinhasReviews(reviewId);
             }
         });
     }
-
-    // --- WEB TAMAGOTCHI MUSICAL (SPRITES 2D PIXEL ART) ---
-    const spritesPixel2D = {
-        cat: {
-            idle: '<svg viewBox="0 0 16 16" shape-rendering="crispEdges" width="100%" height="100%">' +
-                '<rect x="2" y="4" width="2" height="5" fill="#f7bbd7" stroke="#000" stroke-width="0.6"/>' +
-                '<rect x="12" y="4" width="2" height="5" fill="#f7bbd7" stroke="#000" stroke-width="0.6"/>' +
-                '<rect x="3" y="2" width="10" height="1" fill="#000"/>' +
-                '<rect x="4" y="3" width="2" height="2" fill="#2b2d42"/>' +
-                '<rect x="10" y="3" width="2" height="2" fill="#2b2d42"/>' +
-                '<rect x="4" y="5" width="8" height="7" fill="#ffffff" stroke="#000" stroke-width="0.6"/>' +
-                '<rect x="5" y="7" width="2" height="2" fill="#000"/>' +
-                '<rect x="9" y="7" width="2" height="2" fill="#000"/>' +
-                '<rect x="7" y="9" width="2" height="1" fill="#ff6b6b"/>' +
-                '<rect x="5" y="12" width="6" height="3" fill="#f7bbd7" stroke="#000" stroke-width="0.6"/>' +
-            '</svg>',
-            eating: '<svg viewBox="0 0 16 16" shape-rendering="crispEdges" width="100%" height="100%">' +
-                '<rect x="2" y="4" width="2" height="5" fill="#f7bbd7" stroke="#000" stroke-width="0.6"/>' +
-                '<rect x="12" y="4" width="2" height="5" fill="#f7bbd7" stroke="#000" stroke-width="0.6"/>' +
-                '<rect x="3" y="2" width="10" height="1" fill="#000"/>' +
-                '<rect x="4" y="5" width="8" height="7" fill="#ffffff" stroke="#000" stroke-width="0.6"/>' +
-                '<rect x="5" y="7" width="2" height="1" fill="#000"/>' +
-                '<rect x="9" y="7" width="2" height="1" fill="#000"/>' +
-                '<rect x="6" y="9" width="4" height="2" fill="#ff4d6d" stroke="#000" stroke-width="0.4"/>' +
-                '<rect x="5" y="12" width="6" height="3" fill="#f7bbd7" stroke="#000" stroke-width="0.6"/>' +
-            '</svg>',
-            sleepy: '<svg viewBox="0 0 16 16" shape-rendering="crispEdges" width="100%" height="100%">' +
-                '<rect x="4" y="6" width="8" height="6" fill="#ffffff" stroke="#000" stroke-width="0.6"/>' +
-                '<rect x="5" y="8" width="2" height="1" fill="#000"/>' +
-                '<rect x="9" y="8" width="2" height="1" fill="#000"/>' +
-                '<rect x="12" y="2" width="2" height="1" fill="#555"/>' +
-                '<rect x="13" y="3" width="1" height="1" fill="#555"/>' +
-                '<rect x="12" y="4" width="2" height="1" fill="#555"/>' +
-                '<rect x="5" y="12" width="6" height="3" fill="#f7bbd7" stroke="#000" stroke-width="0.6"/>' +
-            '</svg>'
-        },
-        dog: {
-            idle: '<svg viewBox="0 0 16 16" shape-rendering="crispEdges" width="100%" height="100%">' +
-                '<rect x="2" y="5" width="2" height="5" fill="#38bdf8" stroke="#000" stroke-width="0.6"/>' +
-                '<rect x="12" y="5" width="2" height="5" fill="#38bdf8" stroke="#000" stroke-width="0.6"/>' +
-                '<rect x="3" y="3" width="10" height="1" fill="#000"/>' +
-                '<rect x="4" y="4" width="8" height="8" fill="#d97706" stroke="#000" stroke-width="0.6"/>' +
-                '<rect x="5" y="7" width="2" height="2" fill="#000"/>' +
-                '<rect x="9" y="7" width="2" height="2" fill="#000"/>' +
-                '<rect x="7" y="9" width="2" height="2" fill="#000"/>' +
-                '<rect x="5" y="12" width="6" height="3" fill="#38bdf8" stroke="#000" stroke-width="0.6"/>' +
-            '</svg>',
-            eating: '<svg viewBox="0 0 16 16" shape-rendering="crispEdges" width="100%" height="100%">' +
-                '<rect x="2" y="5" width="2" height="5" fill="#38bdf8" stroke="#000" stroke-width="0.6"/>' +
-                '<rect x="12" y="5" width="2" height="5" fill="#38bdf8" stroke="#000" stroke-width="0.6"/>' +
-                '<rect x="4" y="4" width="8" height="8" fill="#d97706" stroke="#000" stroke-width="0.6"/>' +
-                '<rect x="5" y="7" width="2" height="1" fill="#000"/>' +
-                '<rect x="9" y="7" width="2" height="1" fill="#000"/>' +
-                '<rect x="6" y="9" width="4" height="2" fill="#ff4d6d" stroke="#000" stroke-width="0.4"/>' +
-                '<rect x="5" y="12" width="6" height="3" fill="#38bdf8" stroke="#000" stroke-width="0.6"/>' +
-            '</svg>',
-            sleepy: '<svg viewBox="0 0 16 16" shape-rendering="crispEdges" width="100%" height="100%">' +
-                '<rect x="4" y="5" width="8" height="7" fill="#d97706" stroke="#000" stroke-width="0.6"/>' +
-                '<rect x="5" y="8" width="2" height="1" fill="#000"/>' +
-                '<rect x="9" y="8" width="2" height="1" fill="#000"/>' +
-                '<rect x="12" y="2" width="2" height="1" fill="#555"/>' +
-                '<rect x="12" y="4" width="2" height="1" fill="#555"/>' +
-                '<rect x="5" y="12" width="6" height="3" fill="#38bdf8" stroke="#000" stroke-width="0.6"/>' +
-            '</svg>'
-        },
-        frog: {
-            idle: '<svg viewBox="0 0 16 16" shape-rendering="crispEdges" width="100%" height="100%">' +
-                '<rect x="4" y="3" width="3" height="3" fill="#51cf66" stroke="#000" stroke-width="0.6"/>' +
-                '<rect x="9" y="3" width="3" height="3" fill="#51cf66" stroke="#000" stroke-width="0.6"/>' +
-                '<rect x="5" y="4" width="1" height="1" fill="#000"/>' +
-                '<rect x="10" y="4" width="1" height="1" fill="#000"/>' +
-                '<rect x="3" y="6" width="10" height="6" fill="#51cf66" stroke="#000" stroke-width="0.6"/>' +
-                '<rect x="5" y="9" width="6" height="1" fill="#000"/>' +
-                '<rect x="5" y="12" width="6" height="3" fill="#2b2d42" stroke="#000" stroke-width="0.6"/>' +
-                '<rect x="7" y="13" width="2" height="1" fill="#f7bbd7"/>' +
-            '</svg>',
-            eating: '<svg viewBox="0 0 16 16" shape-rendering="crispEdges" width="100%" height="100%">' +
-                '<rect x="4" y="3" width="3" height="3" fill="#51cf66" stroke="#000" stroke-width="0.6"/>' +
-                '<rect x="9" y="3" width="3" height="3" fill="#51cf66" stroke="#000" stroke-width="0.6"/>' +
-                '<rect x="3" y="6" width="10" height="6" fill="#51cf66" stroke="#000" stroke-width="0.6"/>' +
-                '<rect x="5" y="8" width="6" height="3" fill="#ff4d6d" stroke="#000" stroke-width="0.4"/>' +
-                '<rect x="5" y="12" width="6" height="3" fill="#2b2d42" stroke="#000" stroke-width="0.6"/>' +
-            '</svg>',
-            sleepy: '<svg viewBox="0 0 16 16" shape-rendering="crispEdges" width="100%" height="100%">' +
-                '<rect x="3" y="6" width="10" height="6" fill="#51cf66" stroke="#000" stroke-width="0.6"/>' +
-                '<rect x="5" y="9" width="6" height="1" fill="#000"/>' +
-                '<rect x="12" y="2" width="2" height="1" fill="#555"/>' +
-                '<rect x="12" y="4" width="2" height="1" fill="#555"/>' +
-                '<rect x="5" y="12" width="6" height="3" fill="#2b2d42" stroke="#000" stroke-width="0.6"/>' +
-            '</svg>'
-        },
-        bunny: {
-            idle: '<svg viewBox="0 0 16 16" shape-rendering="crispEdges" width="100%" height="100%">' +
-                '<rect x="5" y="1" width="2" height="4" fill="#ffffff" stroke="#000" stroke-width="0.6"/>' +
-                '<rect x="9" y="1" width="2" height="4" fill="#ffffff" stroke="#000" stroke-width="0.6"/>' +
-                '<rect x="4" y="5" width="8" height="7" fill="#ffffff" stroke="#000" stroke-width="0.6"/>' +
-                '<rect x="5" y="7" width="2" height="2" fill="#d9387a"/>' +
-                '<rect x="9" y="7" width="2" height="2" fill="#d9387a"/>' +
-                '<rect x="7" y="9" width="2" height="1" fill="#ff8787"/>' +
-                '<rect x="5" y="12" width="6" height="3" fill="#b2f2bb" stroke="#000" stroke-width="0.6"/>' +
-            '</svg>',
-            eating: '<svg viewBox="0 0 16 16" shape-rendering="crispEdges" width="100%" height="100%">' +
-                '<rect x="5" y="1" width="2" height="4" fill="#ffffff" stroke="#000" stroke-width="0.6"/>' +
-                '<rect x="9" y="1" width="2" height="4" fill="#ffffff" stroke="#000" stroke-width="0.6"/>' +
-                '<rect x="4" y="5" width="8" height="7" fill="#ffffff" stroke="#000" stroke-width="0.6"/>' +
-                '<rect x="5" y="7" width="2" height="1" fill="#d9387a"/>' +
-                '<rect x="9" y="7" width="2" height="1" fill="#d9387a"/>' +
-                '<rect x="6" y="9" width="4" height="2" fill="#ff4d6d" stroke="#000" stroke-width="0.4"/>' +
-                '<rect x="5" y="12" width="6" height="3" fill="#b2f2bb" stroke="#000" stroke-width="0.6"/>' +
-            '</svg>',
-            sleepy: '<svg viewBox="0 0 16 16" shape-rendering="crispEdges" width="100%" height="100%">' +
-                '<rect x="4" y="5" width="8" height="7" fill="#ffffff" stroke="#000" stroke-width="0.6"/>' +
-                '<rect x="5" y="8" width="2" height="1" fill="#000"/>' +
-                '<rect x="9" y="8" width="2" height="1" fill="#000"/>' +
-                '<rect x="12" y="2" width="2" height="1" fill="#555"/>' +
-                '<rect x="12" y="4" width="2" height="1" fill="#555"/>' +
-                '<rect x="5" y="12" width="6" height="3" fill="#b2f2bb" stroke="#000" stroke-width="0.6"/>' +
-            '</svg>'
-        },
-        fox: {
-            idle: '<svg viewBox="0 0 16 16" shape-rendering="crispEdges" width="100%" height="100%">' +
-                '<rect x="3" y="2" width="3" height="3" fill="#ff6b35" stroke="#000" stroke-width="0.6"/>' +
-                '<rect x="10" y="2" width="3" height="3" fill="#ff6b35" stroke="#000" stroke-width="0.6"/>' +
-                '<rect x="3" y="5" width="10" height="7" fill="#ff6b35" stroke="#000" stroke-width="0.6"/>' +
-                '<rect x="4" y="9" width="8" height="3" fill="#ffffff"/>' +
-                '<rect x="5" y="7" width="2" height="2" fill="#000"/>' +
-                '<rect x="9" y="7" width="2" height="2" fill="#000"/>' +
-                '<rect x="7" y="9" width="2" height="1" fill="#000"/>' +
-                '<rect x="5" y="12" width="6" height="3" fill="#2b2d42" stroke="#000" stroke-width="0.6"/>' +
-            '</svg>',
-            eating: '<svg viewBox="0 0 16 16" shape-rendering="crispEdges" width="100%" height="100%">' +
-                '<rect x="3" y="2" width="3" height="3" fill="#ff6b35" stroke="#000" stroke-width="0.6"/>' +
-                '<rect x="10" y="2" width="3" height="3" fill="#ff6b35" stroke="#000" stroke-width="0.6"/>' +
-                '<rect x="3" y="5" width="10" height="7" fill="#ff6b35" stroke="#000" stroke-width="0.6"/>' +
-                '<rect x="5" y="7" width="2" height="1" fill="#000"/>' +
-                '<rect x="9" y="7" width="2" height="1" fill="#000"/>' +
-                '<rect x="6" y="9" width="4" height="2" fill="#ff4d6d" stroke="#000" stroke-width="0.4"/>' +
-                '<rect x="5" y="12" width="6" height="3" fill="#2b2d42" stroke="#000" stroke-width="0.6"/>' +
-            '</svg>',
-            sleepy: '<svg viewBox="0 0 16 16" shape-rendering="crispEdges" width="100%" height="100%">' +
-                '<rect x="3" y="5" width="10" height="7" fill="#ff6b35" stroke="#000" stroke-width="0.6"/>' +
-                '<rect x="5" y="8" width="2" height="1" fill="#000"/>' +
-                '<rect x="9" y="8" width="2" height="1" fill="#000"/>' +
-                '<rect x="12" y="2" width="2" height="1" fill="#555"/>' +
-                '<rect x="12" y="4" width="2" height="1" fill="#555"/>' +
-                '<rect x="5" y="12" width="6" height="3" fill="#2b2d42" stroke="#000" stroke-width="0.6"/>' +
-            '</svg>'
-        }
-    };
-
-    const discoComidaSVG = '<svg viewBox="0 0 12 12" shape-rendering="crispEdges" width="100%" height="100%">' +
-        '<rect x="3" y="1" width="6" height="10" fill="#111" stroke="#000" stroke-width="0.5"/>' +
-        '<rect x="1" y="3" width="10" height="6" fill="#111" stroke="#000" stroke-width="0.5"/>' +
-        '<rect x="4" y="4" width="4" height="4" fill="#f7bbd7"/>' +
-        '<rect x="5" y="5" width="2" height="2" fill="#fff"/>' +
-    '</svg>';
+    // --- MOTOR CANVAS 2D PIXEL ART COM ACESSORIOS E CENARIOS ---
+    const petCanvas = document.getElementById('pet-canvas');
+    const petCtx = petCanvas ? petCanvas.getContext('2d') : null;
     const chavePet = 'dissonance_pet_' + perfilAlvo;
-    const petStageEl = document.getElementById('pet-visual-stage');
-    const petSpriteEl = document.getElementById('pet-sprite-container');
     const petNameEl = document.getElementById('pet-name-display');
     const petMoodEl = document.getElementById('pet-mood-text');
+    const petMoodLabel = document.getElementById('pet-mood-label');
+    const petMoodBar = document.getElementById('pet-mood-bar');
     const petEnergyLabel = document.getElementById('pet-energy-label');
     const petEnergyBar = document.getElementById('pet-energy-bar');
     const btnConfigPet = document.getElementById('btn-config-pet');
+    const btnPetLove = document.getElementById('btn-pet-love');
     const btnFeedPet = document.getElementById('btn-feed-pet');
+    const btnSleepPet = document.getElementById('btn-sleep-pet');
     const petSetupForm = document.getElementById('pet-setup-form');
-    let estaComendo = false;
 
     if (!ehMeuPerfil) {
         if (btnConfigPet) btnConfigPet.style.display = 'none';
-        if (btnFeedPet) btnFeedPet.style.display = 'none';
+        const actionsRow = document.getElementById('pet-actions-row');
+        if (actionsRow) actionsRow.style.display = 'none';
     }
 
+    const paletasPets = {
+        cat: { body: '#ffffff', shade: '#e2e8f0', ear: '#f7bbd7', eye: '#111111', collar: '#ff1b9c' },
+        dog: { body: '#d97706', shade: '#b45309', ear: '#78350f', eye: '#111111', collar: '#38bdf8' },
+        frog: { body: '#51cf66', shade: '#2b8a3e', ear: '#8ce99a', eye: '#111111', collar: '#f7bbd7' },
+        bunny: { body: '#fdf2f8', shade: '#fbcfe8', ear: '#f472b6', eye: '#db2777', collar: '#8ce99a' },
+        fox: { body: '#ea580c', shade: '#c2410c', ear: '#111111', eye: '#111111', collar: '#ffffff' }
+    };
+
+    const mapaSprite16 = [
+        '..E........E....',
+        '.EBE......EBE...',
+        '.EBBE....EBBE...',
+        '.BBBBBBBBBBBB...',
+        'BBBBBBBBBBBBBB..',
+        'BBWBBBBBBBBWBB..',
+        'BBWBBBBBBBBWBB..',
+        'BBBBBBPPBBBBBB..',
+        '.BBBBBBBBBBBB...',
+        '..CCCCCCCCCC....',
+        '..BBBBBBBBBB..T.',
+        '.BBBBBBBBBBBBTT.',
+        '.BBBBBBBBBBBBT..',
+        '..BBBBBBBBBB....',
+        '..BB..BB..BB....',
+        '..SS..SS..SS....'
+    ];
+
+    const particulasPet = [];
+    const estadoPet = {
+        x: 70,
+        dir: 1,
+        frame: 0,
+        timer: 0,
+        acao: 'walk',
+        acaoTimer: 0,
+        dormindo: false
+    };
+
+    function spawnParticulas(tipo, qtd) {
+        for (let i = 0; i < qtd; i++) {
+            particulasPet.push({
+                tipo: tipo,
+                x: estadoPet.x + 14 + (Math.random() * 24 - 12),
+                y: 42 + (Math.random() * 10 - 5),
+                vx: (Math.random() - 0.5) * 0.8,
+                vy: -0.7 - Math.random() * 0.6,
+                vida: 65
+            });
+        }
+    }
+    function desenharCenarioEspecie(ctx, especieKey, frame) {
+        ctx.save();
+        if (especieKey === 'dog') {
+            const bx = 178, by = 76;
+            ctx.fillStyle = '#1e293b';
+            ctx.fillRect(bx, by, 48, 26);
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(bx, by, 48, 26);
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(bx + 4, by - 4, 16, 4);
+            ctx.fillRect(bx + 28, by - 4, 16, 4);
+            ctx.fillStyle = (frame % 2 === 0) ? '#38bdf8' : '#ff1b9c';
+            ctx.fillRect(bx + 9, by - 4, 4, 2);
+            ctx.fillRect(bx + 33, by - 4, 4, 2);
+            ctx.fillStyle = '#51cf66';
+            ctx.fillRect(bx + 22, by + 6, 4, 4);
+            ctx.fillStyle = '#ffd43b';
+            ctx.fillRect(bx + 22, by + 14, 4, 4);
+        } else if (especieKey === 'frog') {
+            const vx = 182, vy = 84;
+            ctx.fillStyle = '#f7bbd7';
+            ctx.fillRect(vx, vy, 40, 18);
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(vx, vy, 40, 18);
+            ctx.fillStyle = '#2b2d42';
+            ctx.fillRect(vx + 2, vy - 12, 36, 12);
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(vx + 6, vy - 3, 22, 3);
+            ctx.fillStyle = (frame % 2 === 0) ? '#ffffff' : '#51cf66';
+            ctx.fillRect(vx + 15, vy - 3, 4, 3);
+        } else if (especieKey === 'bunny') {
+            const gx = 194, gy = 64;
+            ctx.fillStyle = '#d9387a';
+            ctx.fillRect(gx, gy + 20, 18, 18);
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(gx, gy + 20, 18, 18);
+            ctx.fillStyle = '#f8f9fa';
+            ctx.fillRect(gx + 4, gy + 24, 10, 10);
+            ctx.fillStyle = '#78350f';
+            ctx.fillRect(gx + 7, gy, 4, 22);
+        } else if (especieKey === 'fox') {
+            const cx = 192, cy = 86;
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(cx, cy, 16, 16);
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(cx, cy, 16, 16);
+            ctx.fillRect(cx + 16, cy + 4, 4, 8);
+            ctx.fillStyle = 'rgba(120, 120, 120, 0.75)';
+            const shift = (frame % 2 === 0) ? 0 : 3;
+            ctx.fillRect(cx + 4, cy - 8 - shift, 3, 5);
+            ctx.fillRect(cx + 10, cy - 11 + shift, 3, 5);
+        }
+        ctx.restore();
+    }
+    function desenharAcessorioPet(ctx, especieKey, px, bobY) {
+        if (especieKey === 'cat' || especieKey === 'fox') {
+            ctx.fillStyle = '#111111';
+            ctx.fillRect(2 * px, 1 * px + bobY, 10 * px, px);
+            ctx.fillStyle = (especieKey === 'cat') ? '#ff1b9c' : '#38bdf8';
+            ctx.fillRect(0 * px, 4 * px + bobY, 2 * px, 4 * px);
+            ctx.fillRect(12 * px, 4 * px + bobY, 2 * px, 4 * px);
+            ctx.fillStyle = '#111111';
+            ctx.fillRect(0 * px, 5 * px + bobY, px, 2 * px);
+            ctx.fillRect(13 * px, 5 * px + bobY, px, 2 * px);
+        } else if (especieKey === 'dog') {
+            ctx.fillStyle = '#111111';
+            ctx.fillRect(1 * px, 5 * px + bobY, 12 * px, 2 * px);
+            ctx.fillStyle = '#38bdf8';
+            ctx.fillRect(2 * px, 5 * px + bobY, 2 * px, px);
+            ctx.fillRect(8 * px, 5 * px + bobY, 2 * px, px);
+        } else if (especieKey === 'bunny') {
+            ctx.fillStyle = '#d9387a';
+            ctx.fillRect(2 * px, 2 * px + bobY, 10 * px, 2 * px);
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(2 * px, 3 * px + bobY, 10 * px, px);
+        } else if (especieKey === 'frog') {
+            ctx.fillStyle = '#111111';
+            ctx.fillRect(2 * px, 2 * px + bobY, 10 * px, px);
+            ctx.fillStyle = '#ffd43b';
+            ctx.fillRect(0 * px, 5 * px + bobY, 2 * px, 3 * px);
+            ctx.fillRect(12 * px, 5 * px + bobY, 2 * px, 3 * px);
+        }
+    }
+    function desenharPixelPet(ctx, x, y, paleta, especieKey, dir, passo, acao) {
+        const px = 3;
+        ctx.save();
+        if (dir === -1) {
+            ctx.translate(x + 16 * px, y);
+            ctx.scale(-1, 1);
+        } else {
+            ctx.translate(x, y);
+        }
+
+        const bobY = (acao === 'sleep') ? 4 : (passo % 2 === 0 ? 0 : -2);
+
+        for (let r = 0; r < 16; r++) {
+            for (let c = 0; c < 16; c++) {
+                const ch = mapaSprite16[r][c];
+                if (ch === '.') continue;
+
+                let cor = paleta.body;
+                if (ch === 'E') cor = paleta.ear;
+                else if (ch === 'S' || ch === 'T') cor = paleta.shade;
+                else if (ch === 'C') cor = paleta.collar;
+                else if (ch === 'P') cor = (acao === 'eat') ? '#ff1b9c' : paleta.ear;
+                else if (ch === 'W') cor = (acao === 'sleep') ? paleta.shade : paleta.eye;
+
+                ctx.fillStyle = cor;
+                const offsetPata = (r >= 14 && passo % 2 === 1 && acao !== 'sleep') ? -2 : 0;
+                ctx.fillRect(c * px, r * px + bobY + offsetPata, px, px);
+            }
+        }
+
+        desenharAcessorioPet(ctx, especieKey, px, bobY);
+        ctx.restore();
+    }
+
+    function desenharParticula(ctx, p) {
+        ctx.save();
+        ctx.globalAlpha = Math.max(0, p.vida / 65);
+        if (p.tipo === 'heart') {
+            ctx.fillStyle = '#ff1b9c';
+            ctx.fillRect(p.x, p.y, 4, 4);
+            ctx.fillRect(p.x + 6, p.y, 4, 4);
+            ctx.fillRect(p.x - 1, p.y + 3, 12, 4);
+            ctx.fillRect(p.x + 2, p.y + 7, 6, 3);
+            ctx.fillRect(p.x + 4, p.y + 10, 2, 2);
+        } else if (p.tipo === 'food') {
+            ctx.fillStyle = '#111111';
+            ctx.fillRect(p.x, p.y, 10, 10);
+            ctx.fillStyle = '#f7bbd7';
+            ctx.fillRect(p.x + 3, p.y + 3, 4, 4);
+        } else {
+            ctx.fillStyle = '#38bdf8';
+            ctx.font = 'bold 11px monospace';
+            ctx.fillText('Z', p.x, p.y);
+        }
+        ctx.restore();
+    }
+
+    function loopCanvasPet() {
+        if (!petCtx || !petCanvas) return;
+        petCtx.clearRect(0, 0, petCanvas.width, petCanvas.height);
+
+        const petAtual = obterPet();
+        const especieKey = petAtual.spriteKey || 'cat';
+        const paleta = paletasPets[especieKey] || paletasPets.cat;
+
+        petCtx.fillStyle = 'rgba(0, 0, 0, 0.15)';
+        petCtx.fillRect(12, 102, petCanvas.width - 24, 4);
+
+        desenharCenarioEspecie(petCtx, especieKey, estadoPet.frame);
+
+        estadoPet.timer++;
+        if (estadoPet.acaoTimer > 0) {
+            estadoPet.acaoTimer--;
+            if (estadoPet.acaoTimer === 0) {
+                estadoPet.acao = estadoPet.dormindo ? 'sleep' : 'walk';
+                atualizarPetMusical();
+            }
+        }
+
+        const limiteDireito = (especieKey === 'cat') ? petCanvas.width - 62 : 126;
+        if (!estadoPet.dormindo && estadoPet.acao !== 'eat') {
+            estadoPet.x += estadoPet.dir * 0.65;
+            if (estadoPet.x > limiteDireito) estadoPet.dir = -1;
+            if (estadoPet.x < 14) estadoPet.dir = 1;
+        }
+
+        if (estadoPet.timer % 16 === 0) {
+            estadoPet.frame++;
+            if (estadoPet.dormindo && estadoPet.timer % 48 === 0) {
+                spawnParticulas('zzz', 1);
+            }
+        }
+
+        const acaoRender = estadoPet.dormindo ? 'sleep' : estadoPet.acao;
+        desenharPixelPet(petCtx, estadoPet.x, 54, paleta, especieKey, estadoPet.dir, estadoPet.frame, acaoRender);
+
+        for (let i = particulasPet.length - 1; i >= 0; i--) {
+            const p = particulasPet[i];
+            p.x += p.vx;
+            p.y += p.vy;
+            p.vida--;
+            desenharParticula(petCtx, p);
+            if (p.vida <= 0) particulasPet.splice(i, 1);
+        }
+
+        requestAnimationFrame(loopCanvasPet);
+    }
     function obterPet() {
         const salvo = localStorage.getItem(chavePet);
         if (!salvo) {
-            const padrao = { spriteKey: 'cat', especie: 'Gatinho de Fones', nome: 'Mochi', bonusManual: 0 };
+            const padrao = { spriteKey: 'cat', especie: 'Gatinho de Fones', nome: 'Mochi', bonusManual: 0, humorBonus: 0 };
             if (ehMeuPerfil) localStorage.setItem(chavePet, JSON.stringify(padrao));
             return padrao;
         }
         const parsed = JSON.parse(salvo);
-        if (!parsed.spriteKey) parsed.spriteKey = 'cat';
+        if (!paletasPets[parsed.spriteKey]) parsed.spriteKey = 'cat';
         return parsed;
     }
 
-    function dispararAnimacaoAlimentar() {
-        if (!petStageEl || !petSpriteEl) return;
-        const pet = obterPet();
-        const conjunto = spritesPixel2D[pet.spriteKey] || spritesPixel2D.cat;
-
-        const comida = document.createElement('div');
-        comida.className = 'pet-food-drop';
-        comida.innerHTML = discoComidaSVG;
-        petStageEl.appendChild(comida);
-
-        estaComendo = true;
-        petSpriteEl.classList.remove('sleepy');
-        petSpriteEl.classList.add('eating');
-        petSpriteEl.innerHTML = conjunto.eating;
-        petMoodEl.textContent = 'Nham! Mastigando um disco novo...';
-
-        setTimeout(() => {
-            comida.remove();
-            estaComendo = false;
-            petSpriteEl.classList.remove('eating');
-            atualizarPetMusical();
-        }, 1200);
-    }
-
     function atualizarPetMusical() {
-        if (!petSpriteEl || estaComendo) return;
         const pet = obterPet();
-        const conjunto = spritesPixel2D[pet.spriteKey] || spritesPixel2D.cat;
-
         const todasReviews = JSON.parse(localStorage.getItem('dissonance_reviews')) || [];
         const reviewsDoPerfil = todasReviews.filter(r => r.username === perfilAlvo).length;
         const vinisOuvidos = obterVinis().filter(v => v.listened).length;
         const appsConectados = JSON.parse(localStorage.getItem('dissonance_apps_' + perfilAlvo)) || ['Spotify'];
 
-        const pontosConsistencia = (reviewsDoPerfil * 15) + (vinisOuvidos * 12) + (appsConectados.length * 10) + (pet.bonusManual || 0);
-        const energia = Math.min(100, Math.max(15, pontosConsistencia));
+        const pontos = (reviewsDoPerfil * 15) + (vinisOuvidos * 12) + (appsConectados.length * 10) + (pet.bonusManual || 0);
+        const energia = Math.min(100, Math.max(15, pontos));
+        const humor = Math.min(100, Math.max(25, 50 + (reviewsDoPerfil * 10) + (pet.humorBonus || 0)));
 
-        petNameEl.textContent = pet.nome + ' (' + pet.especie + ')';
-        petEnergyLabel.textContent = energia + '%';
-        petEnergyBar.style.width = energia + '%';
+        if (petNameEl) petNameEl.textContent = pet.nome + ' (' + pet.especie + ')';
+        if (petEnergyLabel) petEnergyLabel.textContent = energia + '%';
+        if (petEnergyBar) petEnergyBar.style.width = energia + '%';
+        if (petMoodLabel) petMoodLabel.textContent = humor + '%';
+        if (petMoodBar) {
+            petMoodBar.style.width = humor + '%';
+            petMoodBar.style.background = '#ff1b9c';
+        }
 
-        if (energia >= 80) {
-            petSpriteEl.classList.remove('sleepy');
-            petSpriteEl.innerHTML = conjunto.idle;
-            petMoodEl.textContent = 'Em sintonia total! Dançando no ritmo da semana.';
-            petEnergyBar.style.background = '#51cf66';
+        if (!petMoodEl || estadoPet.acaoTimer > 0) return;
+
+        if (estadoPet.dormindo) {
+            petMoodEl.textContent = 'Tirando um cochilo e recarregando...';
+            if (petEnergyBar) petEnergyBar.style.background = '#38bdf8';
+        } else if (energia >= 80) {
+            petMoodEl.textContent = 'Super animado! Curtindo sua semana musical.';
+            if (petEnergyBar) petEnergyBar.style.background = '#51cf66';
         } else if (energia >= 45) {
-            petSpriteEl.classList.remove('sleepy');
-            petSpriteEl.innerHTML = conjunto.idle;
-            petMoodEl.textContent = 'Curtindo seus álbuns salvos.';
-            petEnergyBar.style.background = 'var(--btn-pink, #f7bbd7)';
+            petMoodEl.textContent = 'Passeando pela estante de discos.';
+            if (petEnergyBar) petEnergyBar.style.background = 'var(--btn-pink, #f7bbd7)';
         } else {
-            petSpriteEl.classList.add('sleepy');
-            petSpriteEl.innerHTML = conjunto.sleepy;
-            petMoodEl.textContent = 'Com fome de música! Ouça um disco ou poste uma review.';
-            petEnergyBar.style.background = '#ffd43b';
+            petMoodEl.textContent = 'Com fome de musica! Ouca um disco ou alimente ele.';
+            if (petEnergyBar) petEnergyBar.style.background = '#ffd43b';
         }
     }
 
+    if (ehMeuPerfil && btnPetLove) {
+        btnPetLove.addEventListener('click', () => {
+            estadoPet.dormindo = false;
+            if (btnSleepPet) btnSleepPet.textContent = 'Dormir';
+            estadoPet.acao = 'happy';
+            estadoPet.acaoTimer = 75;
+            const pet = obterPet();
+            pet.humorBonus = Math.min(50, (pet.humorBonus || 0) + 10);
+            localStorage.setItem(chavePet, JSON.stringify(pet));
+            if (petMoodEl) petMoodEl.textContent = 'Recebendo carinho! Muito feliz.';
+            spawnParticulas('heart', 5);
+            atualizarPetMusical();
+        });
+    }
+
+    if (ehMeuPerfil && btnFeedPet) {
+        btnFeedPet.addEventListener('click', () => {
+            estadoPet.dormindo = false;
+            if (btnSleepPet) btnSleepPet.textContent = 'Dormir';
+            estadoPet.acao = 'eat';
+            estadoPet.acaoTimer = 85;
+            const pet = obterPet();
+            pet.bonusManual = Math.min(40, (pet.bonusManual || 0) + 10);
+            localStorage.setItem(chavePet, JSON.stringify(pet));
+            if (petMoodEl) petMoodEl.textContent = 'Mastigando um vinil novo! (+10%)';
+            spawnParticulas('food', 4);
+            atualizarPetMusical();
+        });
+    }
+
+    if (ehMeuPerfil && btnSleepPet) {
+        btnSleepPet.addEventListener('click', () => {
+            estadoPet.dormindo = !estadoPet.dormindo;
+            estadoPet.acao = estadoPet.dormindo ? 'sleep' : 'walk';
+            btnSleepPet.textContent = estadoPet.dormindo ? 'Acordar' : 'Dormir';
+            if (estadoPet.dormindo) spawnParticulas('zzz', 2);
+            atualizarPetMusical();
+        });
+    }
     if (ehMeuPerfil && btnConfigPet && petSetupForm) {
         btnConfigPet.addEventListener('click', () => {
             const pet = obterPet();
@@ -863,20 +878,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 spriteKey: spriteKey,
                 especie: especie,
                 nome: nome,
-                bonusManual: petAtual.bonusManual || 0
+                bonusManual: petAtual.bonusManual || 0,
+                humorBonus: petAtual.humorBonus || 0
             }));
 
             petSetupForm.style.display = 'none';
             atualizarPetMusical();
-        });
-    }
-
-    if (ehMeuPerfil && btnFeedPet) {
-        btnFeedPet.addEventListener('click', () => {
-            const pet = obterPet();
-            pet.bonusManual = Math.min(40, (pet.bonusManual || 0) + 10);
-            localStorage.setItem(chavePet, JSON.stringify(pet));
-            dispararAnimacaoAlimentar();
         });
     }
 
@@ -898,6 +905,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderizarVinis();
     carregarMinhasReviews();
     atualizarPetMusical();
+    if (petCtx) loopCanvasPet();
 });
 
 async function buscarCapaOnline(termoBusca) {
