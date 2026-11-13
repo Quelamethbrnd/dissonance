@@ -58,16 +58,22 @@ document.addEventListener('DOMContentLoaded', () => {
             if (filtradas.length === 0) {
                 trendingGrid.innerHTML = '<p>Nenhuma review encontrada para essa busca.</p>';
             } else {
-                filtradas.slice(0, 4).forEach(rev => {
+                filtradas.slice(0, 4).forEach(async rev => {
                     const card = document.createElement('div');
                     card.className = 'album-card';
-                    const capaRev = rev.media_url || 'imgs/Blonde_-_Frank_Ocean.jpeg';
+                    const capaInicial = rev.media_url || 'imgs/Blonde_-_Frank_Ocean.jpeg';
                     card.innerHTML =
-                        '<img src="' + capaRev + '" alt="' + escaparHTML(rev.album_name) + '">' +
+                        '<img src="' + capaInicial + '" alt="' + escaparHTML(rev.album_name) + '">' +
                         '<div class="album-card-title"><a href="album.html?album=' + encodeURIComponent(rev.album_name) + '" class="user-profile-link">' + escaparHTML(rev.album_name) + '</a></div>' +
                         '<div class="album-card-artist">Por ' + escaparHTML(rev.username) + '</div>' +
                         '<div class="album-card-meta"><span>' + escaparHTML(rev.rating) + '</span><span>♥ ' + (rev.likes || 0) + '</span></div>';
                     trendingGrid.appendChild(card);
+
+                    if (!rev.media_url) {
+                        const capaReal = await obterCapaAlbumExplorar(rev.album_name, '');
+                        const imgEl = card.querySelector('img');
+                        if (imgEl && capaReal) imgEl.src = capaReal;
+                    }
                 });
             }
         }
@@ -108,7 +114,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
     }
-
     if (searchInput) {
         searchInput.addEventListener('input', (e) => {
             termoBusca = e.target.value.toLowerCase().trim();
@@ -220,45 +225,46 @@ function extrairCorDominante(urlImagem) {
                 }
                 const toHex = (n) => Math.round(n / total).toString(16).padStart(2, '0');
                 resolve('#' + toHex(r) + toHex(g) + toHex(b));
-                } catch (e) {
+            } catch (e) {
                 resolve('#f7bbd7');
-                }
-                };
-                img.onerror = () => resolve('#f7bbd7');
-                img.src = urlImagem;
-                });
-                }
-                const cacheCapasExplorar = JSON.parse(localStorage.getItem('dissonance_capas_cache')) || {};
+            }
+        };
+        img.onerror = () => resolve('#f7bbd7');
+        img.src = urlImagem;
+    });
+}
 
-                async function obterCapaAlbumExplorar(nomeAlbum, capaAnexada) {
-                    if (capaAnexada && capaAnexada.trim() !== '') return capaAnexada;
+const cacheCapasExplorar = JSON.parse(localStorage.getItem('dissonance_capas_cache')) || {};
 
-                    const chave = nomeAlbum.toLowerCase().trim();
-                    const capasLocais = {
-                        'puberty 2': 'imgs/Mitskipuberty2.jpg',
-                        'blonde': 'imgs/Blonde_-_Frank_Ocean.jpeg',
-                        'in rainbows': 'imgs/Radiohead_-_In_Rainbows.jpg',
-                        'damn.': 'imgs/Kendrick_Lamar_-_Damn.png',
-                        'damn': 'imgs/Kendrick_Lamar_-_Damn.png'
-                    };
+async function obterCapaAlbumExplorar(nomeAlbum, capaAnexada) {
+    if (capaAnexada && capaAnexada.trim() !== '') return capaAnexada;
 
-                    if (capasLocais[chave]) return capasLocais[chave];
-                    if (cacheCapasExplorar[chave]) return cacheCapasExplorar[chave];
+    const chave = nomeAlbum.toLowerCase().trim();
+    const capasLocais = {
+        'puberty 2': 'imgs/Mitskipuberty2.jpg',
+        'blonde': 'imgs/Blonde_-_Frank_Ocean.jpeg',
+        'in rainbows': 'imgs/Radiohead_-_In_Rainbows.jpg',
+        'damn.': 'imgs/Kendrick_Lamar_-_Damn.png',
+        'damn': 'imgs/Kendrick_Lamar_-_Damn.png'
+    };
 
-                    try {
-                        const dominio = ['itunes', 'apple', 'com'].join('.');
-                        const url = 'https://' + dominio + '/search?term=' + encodeURIComponent(nomeAlbum) + '&media=music&entity=album&limit=1';
-                        const resp = await fetch(url);
-                        if (resp.ok) {
-                            const dados = await resp.json();
-                            if (dados.results && dados.results.length > 0) {
-                                const capaOnline = dados.results[0].artworkUrl100.replace('100x100bb', '600x600bb');
-                                cacheCapasExplorar[chave] = capaOnline;
-                                localStorage.setItem('dissonance_capas_cache', JSON.stringify(cacheCapasExplorar));
-                                return capaOnline;
-                            }
-                        }
-                    } catch (e) {}
+    if (capasLocais[chave]) return capasLocais[chave];
+    if (cacheCapasExplorar[chave]) return cacheCapasExplorar[chave];
 
-                    return 'imgs/Blonde_-_Frank_Ocean.jpeg';
-                }
+    try {
+        const dominio = ['itunes', 'apple', 'com'].join('.');
+        const url = 'https://' + dominio + '/search?term=' + encodeURIComponent(nomeAlbum) + '&media=music&entity=album&limit=1';
+        const resp = await fetch(url);
+        if (resp.ok) {
+            const dados = await resp.json();
+            if (dados.results && dados.results.length > 0) {
+                const capaOnline = dados.results.at(0).artworkUrl100.replace('100x100bb', '600x600bb');
+                cacheCapasExplorar[chave] = capaOnline;
+                localStorage.setItem('dissonance_capas_cache', JSON.stringify(cacheCapasExplorar));
+                return capaOnline;
+            }
+        }
+    } catch (e) {}
+
+    return 'imgs/Blonde_-_Frank_Ocean.jpeg';
+}

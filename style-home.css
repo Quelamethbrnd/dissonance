@@ -791,64 +791,46 @@ body {
     from { opacity: 0; transform: scale(0.97); }
     to { opacity: 1; transform: scale(1); }
 }
+
 /* --- MODAL LAST.FM / TRACKING (TEMA CLARO E ESCURO) --- */
-.lastfm-modal-overlay,
-#lastfm-modal,
-.tracking-modal-overlay {
+.lfm-modal-overlay {
     background: rgba(0, 0, 0, 0.82) !important;
 }
 
-.lastfm-modal-card,
-.lastfm-modal-box,
-#lastfm-modal > div,
-.tracking-modal-card {
-    background-color: var(--bg-container, #1c1c1e) !important;
-    color: var(--text-dark, #ffffff) !important;
-    border: 3px solid var(--text-dark, #ffffff) !important;
+.lfm-modal-box {
+    background-color: var(--bg-content, #ffffff) !important;
+    color: var(--text-dark, #000000) !important;
+    border: 3px solid var(--text-dark, #000000) !important;
     border-radius: 12px !important;
-    box-shadow: 6px 6px 0px #000000 !important;
+    box-shadow: 6px 6px 0px var(--text-dark, #000000) !important;
 }
 
-.lastfm-modal-card h2,
-.lastfm-modal-card h3,
-.lastfm-modal-card p,
-.lastfm-modal-card label,
-#lastfm-modal h2,
-#lastfm-modal h3,
-#lastfm-modal p,
-#lastfm-modal label,
-.tracking-modal-card h2,
-.tracking-modal-card h3,
-.tracking-modal-card p,
-.tracking-modal-card label {
-    color: var(--text-dark, #ffffff) !important;
+.lfm-modal-title,
+.lfm-modal-desc,
+.lfm-form-group label {
+    color: var(--text-dark, #000000) !important;
 }
 
-#lastfm-modal input[type="text"],
-.lastfm-modal-card input[type="text"],
-.tracking-modal-card input[type="text"] {
-    background-color: var(--box-gray, #27272a) !important;
-    color: var(--text-dark, #ffffff) !important;
-    border: 2px solid var(--text-dark, #ffffff) !important;
+.lfm-input-wrapper,
+.lfm-close-btn,
+.lfm-btn-cancel {
+    background-color: var(--box-gray, #f4f4f4) !important;
+    color: var(--text-dark, #000000) !important;
+    border-color: var(--text-dark, #000000) !important;
 }
 
-#lastfm-modal button[type="button"],
-.lastfm-modal-card button[type="button"] {
-    background-color: var(--box-gray, #27272a) !important;
-    color: var(--text-dark, #ffffff) !important;
-    border: 2px solid var(--text-dark, #ffffff) !important;
-    border-radius: 6px !important;
-    font-weight: 800 !important;
+.lfm-input-prefix,
+.lfm-input {
+    color: var(--text-dark, #000000) !important;
+    border-color: var(--text-dark, #000000) !important;
 }
 
-#lastfm-modal button[type="submit"],
-.lastfm-modal-card button[type="submit"] {
+.lfm-btn-submit {
     background-color: var(--btn-pink, #f7bbd7) !important;
     color: #000000 !important;
-    border: 2px solid var(--text-dark, #ffffff) !important;
-    border-radius: 6px !important;
-    font-weight: 900 !important;
+    border-color: var(--text-dark, #000000) !important;
 }
+
 /* --- BOLHA DE PENSAMENTO REAL (ESTILO NUVEM / INSTAGRAM NOTES) --- */
 .avatar-note-wrapper {
     position: relative;

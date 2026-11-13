@@ -65,6 +65,14 @@ document.addEventListener('DOMContentLoaded', () => {
             color: var(--btn-pink) !important;
             text-decoration: underline;
         }
+                    #btn-showcase-forum, #btn-showcase-forum:visited,
+        a[href="relatorio.html"][style*="background:#000000"],
+        a[href="relatorio.html"][style*="background:#000000"]:visited {
+            background-color: var(--bg-header, #000000) !important;
+            color: var(--text-pink, #f1c5d9) !important;
+            border-color: var(--text-dark, #000000) !important;
+        }
+
 
     `;
     document.head.appendChild(styleFix);

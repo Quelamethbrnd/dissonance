@@ -81,13 +81,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         },
         "short n' sweet": {
             artist: 'Sabrina Carpenter',
-            cover: 'imgs/Blonde_-_Frank_Ocean.jpeg',
+            cover: 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7',
             producers: ['Jack Antonoff', 'Julian Bunetta', 'John Ryan', 'Ian Kirkpatrick'],
-            history: 'Sexto álbum de estúdio de Sabrina Carpenter, lançado em agosto de 2024. Mistura pop vibrante, country-pop e synth-pop com letras bem-humoradas e produção assinada por Jack Antonoff e Julian Bunetta.',
-            appearances: [
-                { midia: 'Jogo — Fortnite Festival', detalhe: 'Faixas "Espresso" e "Please Please Please" disponíveis como Jam Tracks.' },
-                { midia: 'Série — Emily in Paris (T4)', detalhe: 'Referenciada na trilha promocional da temporada.' }
-            ]
         }
     };
 

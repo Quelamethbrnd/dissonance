@@ -252,16 +252,30 @@ a:hover,
 
 .btn-edit-profile,
 .btn-genius,
-.credit-pill {
+.credit-pill,
+.btn-discover,
+.btn-register,
+.btn-go-login {
     color: #000000 !important;
 }
 
-.btn-logout {
+/* Botões com fundo escuro (Sair, Ver Relatório Completo e Abrir Fórum do Álbum) */
+.btn-logout,
+.btn-logout:visited,
+#btn-showcase-forum,
+#btn-showcase-forum:visited,
+.connections-box a[href="relatorio.html"],
+.connections-box a[href="relatorio.html"]:visited {
     background-color: var(--bg-header, #000000) !important;
     color: var(--text-pink, #f1c5d9) !important;
+    border-color: var(--text-dark, #000000) !important;
 }
 
 .btn-logout:hover,
-.credit-pill:hover {
+.credit-pill:hover,
+#btn-showcase-forum:hover,
+.connections-box a[href="relatorio.html"]:hover {
     color: #ffffff !important;
+    text-decoration: none !important;
 }
+

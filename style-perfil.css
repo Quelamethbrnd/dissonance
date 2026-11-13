@@ -682,7 +682,12 @@
     box-shadow: 3px 3px 0px #000000;
 }
 
-
+#btn-showcase-forum,
+#btn-showcase-forum:visited {
+    background-color: var(--bg-header, #000000) !important;
+    color: var(--text-pink, #f1c5d9) !important;
+    border-color: var(--text-dark, #000000) !important;
+}
 
 /* --- REVIEWS NO PERFIL --- */
 .user-reviews-section h3 {
