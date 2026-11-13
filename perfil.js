@@ -806,39 +806,45 @@ document.addEventListener('DOMContentLoaded', () => {
 
         ctx.restore();
     }
-     // Mapa calibrado de encaixe do fone (dx = esquerda/direita, dy = altura, w = largura)
+        // Mapa calibrado de encaixe do fone (dx = esquerda/direita, dy = altura, w = largura)
     const ajustesFonesPorCoord = {
         // Sentados de frente (encaixe centralizado)
-        '0,0': { dx: 1, dy: -46, w: 20 },   // Raposa Lo-Fi
-        '6,3': { dx: 0, dy: -46, w: 22 },   // Gato Shoegaze
-        '6,5': { dx: 0, dy: -46, w: 22 },   // Gato Punk
-        '6,7': { dx: 0, dy: -46, w: 22 },   // Gato Jazz
-        '7,3': { dx: 0, dy: -47, w: 23 },   // Golden Pop
+        '7,3': { dx: -1, dy: -50, w: 24 },  // Golden Pop
         '7,5': { dx: 0, dy: -47, w: 23 },   // Dálmata Pós-Punk
         '5,7': { dx: 0, dy: -47, w: 23 },   // Collie Alternativo
-        '1,0': { dx: 1, dy: -46, w: 20 },   // Guaxinim Colecionador
+        '1,0': { dx: -3, dy: -53, w: 22 },   // Guaxinim Colecionador
         '1,6': { dx: 0, dy: -46, w: 21 },   // Panda Vermelho City Pop
-        '3,0': { dx: 0, dy: -46, w: 19 },   // Coruja Noturna
+        '3,0': { dx: 3, dy: -49, w: 23 },   // Coruja Noturna
+
+        // Raposas (ajustadas para encaixar exatamente entre as orelhas)
+        '0,0': { dx: -5, dy: -50, w: 20 },  // Raposa Lo-Fi
+        '5,2': { dx: -2, dy: -50, w: 24 },  // Raposa Synthwave
+
+        // Coelhos (posição original perfeita)
+        '7,1': { dx: 0, dy: -46, w: 20 },   // Coelho Dream Pop
+        '3,4': { dx: 0, dy: -46, w: 20 },   // Coelho Folk
+        '7,7': { dx: 0, dy: -46, w: 20 },   // Coelho Indie
+
+        // Gatinhos (posição original perfeita)
+        '6,3': { dx: 0, dy: -46, w: 24 },   // Gato Shoegaze
+        '6,5': { dx: 0, dy: -46, w: 24 },   // Gato Punk
+        '6,7': { dx: 0, dy: -46, w: 24 },   // Gato Jazz
 
         // Cabeça deslocada em perfil (ajustados para não flutuar)
-        '5,2': { dx: -7, dy: -45, w: 17 },  // Raposa Synthwave
-        '2,0': { dx: -5, dy: -45, w: 17 },  // Esquilo R&B
-        '2,4': { dx: -5, dy: -45, w: 17 },  // Esquilo Acústico
-        '1,2': { dx: -8, dy: -44, w: 17 },  // Lobo Rock Clássico
+        '2,0': { dx: -7, dy: -46, w: 13 },  // Esquilo R&B
+        '2,4': { dx: -1, dy: -45, w: 17 },  // Esquilo Acústico
+        '1,2': { dx: -6, dy: -50, w: 19 },  // Lobo Rock Clássico
         '2,2': { dx: -7, dy: -49, w: 16 },  // Cervinho Chamber Pop
-        '7,2': { dx: -6, dy: -46, w: 15 },  // Doninha New Wave
-        '1,4': { dx: -6, dy: -43, w: 17 },  // Guaxinim Cassete
-        '7,1': { dx: -5, dy: -46, w: 17 },  // Coelho Dream Pop
-        '3,4': { dx: -5, dy: -46, w: 17 },  // Coelho Folk
-        '7,7': { dx: -5, dy: -46, w: 17 },  // Coelho Indie
+        '7,2': { dx: -6, dy: -49, w: 15 },  // Doninha New Wave
+        '1,4': { dx: -3, dy: -52, w: 22 },  // Guaxinim Cassete
 
         // Baixinhos (Ouriço, Caracol, Roedores, Sapo)
         '4,0': { dx: -7, dy: -36, w: 16 },  // Ouriço Grunge
-        '6,4': { dx: -9, dy: -39, w: 14 },  // Caracol Slowcore
-        '2,7': { dx: -5, dy: -37, w: 17 },  // Porquinho-da-Índia Groove
-        '4,4': { dx: -6, dy: -37, w: 15 },  // Ratinho Electro
-        '7,4': { dx: -6, dy: -37, w: 15 },  // Camundongo Soul
-        '5,4': { dx: -2, dy: -38, w: 19 },  // Sapo do Vinil
+        '6,4': { dx: -13, dy: -39, w: 12 },  // Caracol Slowcore
+        '2,7': { dx: -3, dy: -42, w: 19 },  // Porquinho-da-Índia Groove
+        '4,4': { dx: -1, dy: -43, w: 15 },  // Ratinho Electro
+        '7,4': { dx: 1, dy: -44, w: 17 },  // Camundongo Soul
+        '5,4': { dx: 1, dy: -40, w: 24 },  // Sapo do Vinil
         '7,6': { dx: 0, dy: -43, w: 17 }    // Morcego Gótico
     };
 
