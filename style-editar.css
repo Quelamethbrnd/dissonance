@@ -301,3 +301,31 @@ body {
     transform: translate(-2px, -2px);
     box-shadow: 6px 6px 0px #000;
 }
+@media (max-width: 680px) {
+    .explore-container,
+    .edit-layout {
+        padding: 15px !important;
+    }
+
+    .albums-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 12px !important;
+    }
+
+    .custom-colors-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .edit-header-row,
+    .avatar-upload-section {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+}
+
+@media (max-width: 400px) {
+    .albums-grid {
+        grid-template-columns: 1fr !important;
+    }
+}

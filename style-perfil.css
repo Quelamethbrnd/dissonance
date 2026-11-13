@@ -1136,3 +1136,53 @@
     cursor: pointer;
     box-shadow: 2px 2px 0px var(--text-dark, #000000);
 }
+@media (max-width: 768px) {
+    .profile-page-content {
+        padding: 15px !important;
+    }
+
+    .profile-middle-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .add-vinyl-form {
+        flex-direction: column;
+    }
+
+    .add-vinyl-form input[type="text"],
+    .btn-upload-vinyl,
+    .btn-add-vinyl {
+        width: 100%;
+    }
+
+    .vinyl-3d-shelf {
+        padding: 14px 10px;
+    }
+
+    /* Ajusta o palco 3D do modal para não cortar o disco no celular */
+    .vinyl-3d-showcase {
+        width: 260px;
+        height: 180px;
+    }
+
+    .showcase-sleeve {
+        width: 165px;
+        height: 165px;
+    }
+
+    .showcase-disc {
+        width: 154px;
+        height: 154px;
+        left: 98px;
+    }
+
+    .showcase-disc-label {
+        width: 54px;
+        height: 54px;
+    }
+
+    .music-note-bubble {
+        max-width: 210px;
+        font-size: 0.74rem;
+    }
+}

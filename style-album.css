@@ -1,0 +1,40 @@
+/* --- RESPONSIVIDADE MOBILE: ÁLBUM --- */
+@media (max-width: 768px) {
+    .album-page-container,
+    .album-detail-layout {
+        padding: 15px !important;
+    }
+
+    .album-hero-card,
+    .album-header-box {
+        flex-direction: column !important;
+        align-items: center !important;
+        text-align: center !important;
+        gap: 16px !important;
+    }
+
+    .album-cover-large,
+    .album-hero-card img {
+        width: 210px !important;
+        height: 210px !important;
+        margin: 0 auto;
+    }
+
+    .album-credits-list,
+    .producers-row,
+    .album-actions-row {
+        justify-content: center !important;
+        flex-wrap: wrap !important;
+    }
+
+    .btn-genius,
+    .btn-add-album-shelf {
+        width: 100%;
+        text-align: center;
+    }
+
+    .tracklist-item {
+        font-size: 0.85rem;
+        padding: 8px 10px;
+    }
+}

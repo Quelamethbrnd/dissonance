@@ -1,0 +1,30 @@
+/* --- RESPONSIVIDADE MOBILE: PRODUTOR --- */
+@media (max-width: 768px) {
+    .producer-container,
+    .producer-layout {
+        padding: 15px !important;
+    }
+
+    .producer-header-card {
+        flex-direction: column !important;
+        align-items: center !important;
+        text-align: center !important;
+        gap: 14px !important;
+    }
+
+    .producer-photo {
+        width: 120px !important;
+        height: 120px !important;
+    }
+
+    .producer-discography-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 12px !important;
+    }
+}
+
+@media (max-width: 400px) {
+    .producer-discography-grid {
+        grid-template-columns: 1fr !important;
+    }
+}
