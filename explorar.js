@@ -228,3 +228,37 @@ function extrairCorDominante(urlImagem) {
                 img.src = urlImagem;
                 });
                 }
+                const cacheCapasExplorar = JSON.parse(localStorage.getItem('dissonance_capas_cache')) || {};
+
+                async function obterCapaAlbumExplorar(nomeAlbum, capaAnexada) {
+                    if (capaAnexada && capaAnexada.trim() !== '') return capaAnexada;
+
+                    const chave = nomeAlbum.toLowerCase().trim();
+                    const capasLocais = {
+                        'puberty 2': 'imgs/Mitskipuberty2.jpg',
+                        'blonde': 'imgs/Blonde_-_Frank_Ocean.jpeg',
+                        'in rainbows': 'imgs/Radiohead_-_In_Rainbows.jpg',
+                        'damn.': 'imgs/Kendrick_Lamar_-_Damn.png',
+                        'damn': 'imgs/Kendrick_Lamar_-_Damn.png'
+                    };
+
+                    if (capasLocais[chave]) return capasLocais[chave];
+                    if (cacheCapasExplorar[chave]) return cacheCapasExplorar[chave];
+
+                    try {
+                        const dominio = ['itunes', 'apple', 'com'].join('.');
+                        const url = 'https://' + dominio + '/search?term=' + encodeURIComponent(nomeAlbum) + '&media=music&entity=album&limit=1';
+                        const resp = await fetch(url);
+                        if (resp.ok) {
+                            const dados = await resp.json();
+                            if (dados.results && dados.results.length > 0) {
+                                const capaOnline = dados.results[0].artworkUrl100.replace('100x100bb', '600x600bb');
+                                cacheCapasExplorar[chave] = capaOnline;
+                                localStorage.setItem('dissonance_capas_cache', JSON.stringify(cacheCapasExplorar));
+                                return capaOnline;
+                            }
+                        }
+                    } catch (e) {}
+
+                    return 'imgs/Blonde_-_Frank_Ocean.jpeg';
+                }

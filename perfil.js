@@ -14,6 +14,133 @@ document.addEventListener('DOMContentLoaded', () => {
         const inicial = perfilAlvo.replace('@', '').charAt(0).toUpperCase() || 'U';
         avatarContainer.textContent = inicial;
     }
+    // --- BOLHA DE PENSAMENTO REAL + MODAL CUSTOMIZADO (FEED) ---
+    function abrirModalEditarNotaFeed(chaveNota, bubbleEl) {
+        const atual = localStorage.getItem(chaveNota) || '';
+        const overlay = document.createElement('div');
+        overlay.className = 'note-modal-overlay';
+
+        overlay.innerHTML =
+            '<div class="note-modal-box">' +
+                '<div class="note-modal-top">' +
+                    '<span class="note-modal-badge">♪ PENSAMENTO / MÚSICA</span>' +
+                    '<button type="button" class="note-modal-close" id="close-note-modal">✕</button>' +
+                '</div>' +
+                '<h3 style="margin:0 0 4px 0; font-size:1.2rem; font-weight:900;">O que está na sua cabeça?</h3>' +
+                '<small style="opacity:0.8;">Compartilhe uma música ou pensamento curto no seu avatar.</small>' +
+                '<input type="text" id="custom-note-input" class="note-modal-input" maxlength="45" placeholder="Ex: Ouvindo NFR! no repeat..." value="' + escapeHTML(atual) + '">' +
+                '<div style="text-align:right; font-size:0.72rem; font-weight:800; opacity:0.7;"><span id="note-char-count">' + atual.length + '</span>/45</div>' +
+                '<div class="note-modal-footer">' +
+                    '<button type="button" class="note-btn-clear" id="clear-note-btn">Remover Nota</button>' +
+                    '<button type="button" class="note-btn-save" id="save-note-btn">Salvar na Bolha ▸</button>' +
+                '</div>' +
+            '</div>';
+
+        document.body.appendChild(overlay);
+
+        const inputEl = overlay.querySelector('#custom-note-input');
+        const countEl = overlay.querySelector('#note-char-count');
+        inputEl.focus();
+        inputEl.setSelectionRange(inputEl.value.length, inputEl.value.length);
+
+        inputEl.addEventListener('input', () => {
+            countEl.textContent = inputEl.value.length;
+        });
+
+        const fechar = () => overlay.remove();
+        overlay.querySelector('#close-note-modal').addEventListener('click', fechar);
+        overlay.addEventListener('click', (e) => { if (e.target === overlay) fechar(); });
+
+        overlay.querySelector('#clear-note-btn').addEventListener('click', () => {
+            localStorage.removeItem(chaveNota);
+            bubbleEl.textContent = '...';
+            fechar();
+        });
+
+        const salvar = () => {
+            const limpa = inputEl.value.trim().slice(0, 45);
+            if (limpa) {
+                localStorage.setItem(chaveNota, limpa);
+                bubbleEl.textContent = '♪ ' + limpa;
+            } else {
+                localStorage.removeItem(chaveNota);
+                bubbleEl.textContent = '+ Deixar nota...';
+            }
+            fechar();
+        };
+
+        overlay.querySelector('#save-note-btn').addEventListener('click', salvar);
+        inputEl.addEventListener('keydown', (e) => { if (e.key === 'Enter') salvar(); });
+    }
+
+    if (avatarContainer) {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'avatar-note-wrapper';
+        avatarContainer.parentNode.insertBefore(wrapper, avatarContainer);
+        wrapper.appendChild(avatarContainer);
+
+        const notasPadraoComunidade = {
+            '@ana_indie': 'viciada no novo do Slowdive...',
+            '@lucas_rock': 'ouvindo In Rainbows na chuva'
+        };
+
+        const chaveNota = 'dissonance_note_' + perfilAlvo;
+        const notaDoBanco = localStorage.getItem(chaveNota);
+        const notaSalva = notaDoBanco !== null
+            ? notaDoBanco
+            : (ehMeuPerfil ? '+ Deixar nota...' : (notasPadraoComunidade[perfilAlvo] || ''));
+
+        if (notaSalva) {
+            const bubble = document.createElement('div');
+            bubble.className = 'music-note-bubble';
+            bubble.textContent = notaSalva.startsWith('+') ? notaSalva : '♪ ' + notaSalva.replace(/^♪\s*/, '');
+
+            const trailLg = document.createElement('span');
+            trailLg.className = 'music-note-trail-lg';
+            const trailSm = document.createElement('span');
+            trailSm.className = 'music-note-trail-sm';
+
+            let expandida = false;
+            const alternarExpansao = () => {
+                expandida = !expandida;
+                if (expandida) {
+                    bubble.style.whiteSpace = 'normal';
+                    bubble.style.maxWidth = '310px';
+                    bubble.style.width = 'max-content';
+                    bubble.style.borderRadius = '16px';
+                    bubble.style.top = 'auto';
+                    bubble.style.bottom = 'calc(100% + 14px)';
+                    bubble.style.textAlign = 'center';
+                    bubble.style.lineHeight = '1.35';
+                    bubble.style.zIndex = '50';
+                } else {
+                    bubble.style.whiteSpace = 'nowrap';
+                    bubble.style.maxWidth = '240px';
+                    bubble.style.width = '';
+                    bubble.style.borderRadius = '999px';
+                    bubble.style.top = '-44px';
+                    bubble.style.bottom = '';
+                    bubble.style.textAlign = '';
+                    bubble.style.lineHeight = '';
+                    bubble.style.zIndex = '15';
+                }
+            };
+
+            if (ehMeuPerfil) {
+                bubble.title = 'Clique para editar ou ler sua nota completa';
+                bubble.addEventListener('click', () => {
+                    abrirModalEditarNotaFeed(chaveNota, bubble);
+                });
+            } else {
+                bubble.title = 'Clique para ler a nota completa';
+                bubble.addEventListener('click', alternarExpansao);
+            }
+
+            wrapper.prepend(trailSm);
+            wrapper.prepend(trailLg);
+            wrapper.prepend(bubble);
+        }
+    }
 
     const greetingSpan = document.querySelector('.nav-user-greeting strong');
     const profileUsername = document.getElementById('profile-username');
