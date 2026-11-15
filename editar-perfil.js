@@ -1,7 +1,104 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const usuarioAntigo = localStorage.getItem('usuarioLogado') || '@ouvinte';
+    let usuarioAtual = localStorage.getItem('usuarioLogado') || '@ouvinte';
 
-    const presets = {
+    const greetingSpan = document.querySelector('.nav-user-greeting strong');
+    if (greetingSpan) greetingSpan.textContent = usuarioAtual;
+
+    const avatarPreview = document.getElementById('avatar-preview');
+    const avatarInput = document.getElementById('avatar-input');
+    const removeAvatarBtn = document.getElementById('btn-remove-avatar');
+    const usernameInput = document.getElementById('edit-username');
+    const unlockUsernameBtn = document.getElementById('btn-unlock-username');
+    const bioInput = document.getElementById('edit-bio');
+    const editForm = document.getElementById('edit-profile-form');
+
+    let avatarBase64 = localStorage.getItem('avatar_' + usuarioAtual) || '';
+
+    function atualizarPreviewAvatar() {
+        if (!avatarPreview) return;
+        if (avatarBase64) {
+            avatarPreview.innerHTML = '<img src="' + avatarBase64 + '" alt="Avatar" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">';
+        } else {
+            avatarPreview.innerHTML = '🎧';
+        }
+    }
+
+    atualizarPreviewAvatar();
+
+    if (usernameInput) {
+        usernameInput.value = usuarioAtual;
+    }
+
+    if (unlockUsernameBtn && usernameInput) {
+        unlockUsernameBtn.addEventListener('click', () => {
+            usernameInput.removeAttribute('readonly');
+            usernameInput.style.backgroundColor = 'var(--bg-content, #ffffff)';
+            usernameInput.style.color = 'var(--text-dark, #000000)';
+            usernameInput.style.cursor = 'text';
+            usernameInput.focus();
+            unlockUsernameBtn.textContent = 'Desbloqueado 🔓';
+        });
+    }
+
+    if (bioInput) {
+        bioInput.value = localStorage.getItem('bio_' + usuarioAtual) || 'Em sintonia com indie, R&B e rock alternativo.';
+    }
+
+    // --- UPLOAD DE AVATAR (PRESERVANDO GIFS ANIMADOS) ---
+    if (avatarInput) {
+        avatarInput.addEventListener('change', (event) => {
+            const file = event.target.files.item(0);
+            if (!file) return;
+
+            if (file.type === 'image/gif') {
+                if (file.size > 3.5 * 1024 * 1024) {
+                    alert('O GIF é muito pesado! Escolha um arquivo de até 3.5MB.');
+                    avatarInput.value = '';
+                    return;
+                }
+                const readerGif = new FileReader();
+                readerGif.onload = (e) => {
+                    avatarBase64 = e.target.result;
+                    atualizarPreviewAvatar();
+                };
+                readerGif.readAsDataURL(file);
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const size = 280;
+                    canvas.width = size;
+                    canvas.height = size;
+                    const ctx = canvas.getContext('2d');
+
+                    const minSide = Math.min(img.width, img.height);
+                    const sx = (img.width - minSide) / 2;
+                    const sy = (img.height - minSide) / 2;
+
+                    ctx.drawImage(img, sx, sy, minSide, minSide, 0, 0, size, size);
+                    avatarBase64 = canvas.toDataURL('image/jpeg', 0.85);
+                    atualizarPreviewAvatar();
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    if (removeAvatarBtn) {
+        removeAvatarBtn.addEventListener('click', () => {
+            avatarBase64 = '';
+            if (avatarInput) avatarInput.value = '';
+            atualizarPreviewAvatar();
+        });
+    }
+
+    // --- PERSONALIZAÇÃO DE TEMA (.btn-preset E <input type="color">) ---
+    const presetsTema = {
         pink: {
             bgHeader: '#000000',
             bgContent: '#ffffff',
@@ -9,211 +106,149 @@ document.addEventListener('DOMContentLoaded', () => {
             textPink: '#f1c5d9',
             btnPink: '#f7bbd7',
             textDark: '#000000',
-            textMuted: '#333333'
+            textMuted: '#4a4a4a'
         },
         dark: {
             bgHeader: '#09090b',
             bgContent: '#18181b',
             boxGray: '#27272a',
             textPink: '#f1c5d9',
-            btnPink: '#f472b6',
+            btnPink: '#f7bbd7',
             textDark: '#ffffff',
-            textMuted: '#d4d4d8'
+            textMuted: '#a1a1aa'
         },
         cyber: {
-            bgHeader: '#020617',
-            bgContent: '#0f172a',
-            boxGray: '#1e293b',
+            bgHeader: '#0f172a',
+            bgContent: '#1e293b',
+            boxGray: '#334155',
             textPink: '#38bdf8',
             btnPink: '#38bdf8',
             textDark: '#f8fafc',
-            textMuted: '#cbd5e1'
+            textMuted: '#94a3b8'
         },
         indie: {
-            bgHeader: '#000000',
-            bgContent: '#ffffff',
-            boxGray: '#f4f4f4',
-            textPink: '#b2f2bb',
+            bgHeader: '#14532d',
+            bgContent: '#f0fdf4',
+            boxGray: '#dcfce7',
+            textPink: '#8ce99a',
             btnPink: '#8ce99a',
-            textDark: '#000000',
-            textMuted: '#333333'
+            textDark: '#052e16',
+            textMuted: '#166534'
         }
     };
 
-    const inputsCor = {
-        bgHeader: document.getElementById('color-bg-header'),
-        bgContent: document.getElementById('color-bg-content'),
-        boxGray: document.getElementById('color-box-gray'),
-        textPink: document.getElementById('color-text-pink'),
-        btnPink: document.getElementById('color-btn-pink'),
-        textDark: document.getElementById('color-text-dark'),
-        textMuted: document.getElementById('color-text-muted')
-    };
+    const inputBgContent = document.getElementById('color-bg-content');
+    const inputBoxGray = document.getElementById('color-box-gray');
+    const inputBtnPink = document.getElementById('color-btn-pink');
+    const inputTextPink = document.getElementById('color-text-pink');
+    const inputTextDark = document.getElementById('color-text-dark');
 
-    function aplicarTemaCustomizado(temaObj) {
+    let temaAtual = JSON.parse(localStorage.getItem('dissonance_custom_theme')) || { ...presetsTema.pink };
+
+    function aplicarTemaNaTela(t) {
         const root = document.documentElement;
-        root.style.setProperty('--bg-header', temaObj.bgHeader);
-        root.style.setProperty('--bg-content', temaObj.bgContent);
-        root.style.setProperty('--box-gray', temaObj.boxGray);
-        root.style.setProperty('--text-pink', temaObj.textPink);
-        root.style.setProperty('--btn-pink', temaObj.btnPink);
-        root.style.setProperty('--text-dark', temaObj.textDark);
-        root.style.setProperty('--text-muted', temaObj.textMuted || temaObj.textDark);
-        document.body.style.backgroundColor = temaObj.boxGray;
+        root.style.setProperty('--bg-header', t.bgHeader);
+        root.style.setProperty('--bg-content', t.bgContent);
+        root.style.setProperty('--box-gray', t.boxGray);
+        root.style.setProperty('--text-pink', t.textPink);
+        root.style.setProperty('--btn-pink', t.btnPink);
+        root.style.setProperty('--text-dark', t.textDark);
+        root.style.setProperty('--text-muted', t.textMuted || t.textDark);
+        document.body.style.backgroundColor = t.boxGray;
+        document.body.style.color = t.textDark;
 
-        Object.keys(inputsCor).forEach(chave => {
-            if (inputsCor[chave] && temaObj[chave]) {
-                inputsCor[chave].value = temaObj[chave];
-            }
-        });
+        if (inputBgContent) inputBgContent.value = t.bgContent;
+        if (inputBoxGray) inputBoxGray.value = t.boxGray;
+        if (inputBtnPink) inputBtnPink.value = t.btnPink;
+        if (inputTextPink) inputTextPink.value = t.textPink;
+        if (inputTextDark) inputTextDark.value = t.textDark;
+
+        localStorage.setItem('dissonance_custom_theme', JSON.stringify(t));
     }
 
-    let temaAtual = JSON.parse(localStorage.getItem('dissonance_custom_theme')) || presets.pink;
-    aplicarTemaCustomizado(temaAtual);
+    aplicarTemaNaTela(temaAtual);
 
     document.querySelectorAll('.btn-preset').forEach(btn => {
         btn.addEventListener('click', () => {
-            const presetKey = btn.dataset.preset;
-            if (presets[presetKey]) {
-                temaAtual = { ...presets[presetKey] };
-                aplicarTemaCustomizado(temaAtual);
+            const key = btn.dataset.preset;
+            if (key && presetsTema[key]) {
+                temaAtual = { ...presetsTema[key] };
+                aplicarTemaNaTela(temaAtual);
             }
         });
     });
 
-    Object.keys(inputsCor).forEach(chave => {
-        if (inputsCor[chave]) {
-            inputsCor[chave].addEventListener('input', (e) => {
-                temaAtual[chave] = e.target.value;
-                aplicarTemaCustomizado(temaAtual);
-            });
-        }
-    });
-
-    const usernameInput = document.getElementById('edit-username');
-    const btnUnlockUsername = document.getElementById('btn-unlock-username');
-    const bioInput = document.getElementById('edit-bio');
-    const greetingSpan = document.querySelector('.nav-user-greeting strong');
-    const avatarPreview = document.getElementById('avatar-preview');
-    const avatarInput = document.getElementById('avatar-input');
-    const btnRemoveAvatar = document.getElementById('btn-remove-avatar');
-
-    if (greetingSpan) greetingSpan.textContent = usuarioAntigo;
-    usernameInput.value = usuarioAntigo;
-    bioInput.value = localStorage.getItem('bio_' + usuarioAntigo) || 'Em sintonia com indie, R&B e rock alternativo.';
-
-    if (btnUnlockUsername) {
-        btnUnlockUsername.addEventListener('click', () => {
-            if (usernameInput.hasAttribute('readonly')) {
-                if (confirm('Tem certeza que deseja desbloquear e alterar seu @username?')) {
-                    usernameInput.removeAttribute('readonly');
-                    usernameInput.style.backgroundColor = 'var(--bg-content)';
-                    usernameInput.style.color = 'var(--text-dark)';
-                    usernameInput.style.cursor = 'text';
-                    usernameInput.focus();
-                    btnUnlockUsername.textContent = 'Desbloqueado 🔓';
-                }
-            }
-        });
-    }
-
-    usernameInput.addEventListener('input', () => {
-        let valor = usernameInput.value.replace(/[^a-zA-Z0-9_@]/g, '');
-        if (!valor.startsWith('@')) {
-            valor = '@' + valor.replace(/@/g, '');
-        }
-        usernameInput.value = valor;
-    });
-
-    let currentAvatarBase64 = localStorage.getItem('avatar_' + usuarioAntigo) || '';
-    if (currentAvatarBase64) {
-        avatarPreview.innerHTML = `<img src="${currentAvatarBase64}" alt="Avatar">`;
-    }
-
-    avatarInput.addEventListener('change', (event) => {
-        const file = event.target.files.item(0);
-        if (!file) return;
-
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const img = new Image();
-            img.onload = () => {
-                const canvas = document.createElement('canvas');
-                const size = 200;
-                canvas.width = size;
-                canvas.height = size;
-                const ctx = canvas.getContext('2d');
-
-                const minSide = Math.min(img.width, img.height);
-                const sx = (img.width - minSide) / 2;
-                const sy = (img.height - minSide) / 2;
-
-                ctx.drawImage(img, sx, sy, minSide, minSide, 0, 0, size, size);
-                currentAvatarBase64 = canvas.toDataURL('image/jpeg', 0.8);
-                avatarPreview.innerHTML = `<img src="${currentAvatarBase64}" alt="Preview">`;
+    [inputBgContent, inputBoxGray, inputBtnPink, inputTextPink, inputTextDark].forEach(inp => {
+        if (!inp) return;
+        inp.addEventListener('input', () => {
+            temaAtual = {
+                bgHeader: temaAtual.bgHeader || '#000000',
+                bgContent: inputBgContent ? inputBgContent.value : temaAtual.bgContent,
+                boxGray: inputBoxGray ? inputBoxGray.value : temaAtual.boxGray,
+                btnPink: inputBtnPink ? inputBtnPink.value : temaAtual.btnPink,
+                textPink: inputTextPink ? inputTextPink.value : temaAtual.textPink,
+                textDark: inputTextDark ? inputTextDark.value : temaAtual.textDark,
+                textMuted: inputTextDark ? inputTextDark.value : temaAtual.textDark
             };
-            img.src = e.target.result;
-        };
-        reader.readAsDataURL(file);
+            aplicarTemaNaTela(temaAtual);
+        });
     });
 
-    btnRemoveAvatar.addEventListener('click', () => {
-        currentAvatarBase64 = '';
-        avatarPreview.innerHTML = '🎧';
-        avatarInput.value = '';
-    });
+    // --- SALVAR ALTERAÇÕES DO PERFIL ---
+    if (editForm) {
+        editForm.addEventListener('submit', (event) => {
+            event.preventDefault();
 
-    const editForm = document.getElementById('edit-profile-form');
-    editForm.addEventListener('submit', (event) => {
-        event.preventDefault();
+            let novoUser = usernameInput ? usernameInput.value.trim() : usuarioAtual;
+            if (!novoUser.startsWith('@')) novoUser = '@' + novoUser;
 
-        let novoUsername = usernameInput.value.trim();
-        if (!novoUsername.startsWith('@')) novoUsername = '@' + novoUsername;
+            try {
+                // Migra dados caso o @username tenha sido alterado
+                if (novoUser !== usuarioAtual) {
+                    const todasReviews = JSON.parse(localStorage.getItem('dissonance_reviews')) || [];
+                    todasReviews.forEach(r => {
+                        if (r.username === usuarioAtual) r.username = novoUser;
+                    });
+                    localStorage.setItem('dissonance_reviews', JSON.stringify(todasReviews));
 
-        if (novoUsername.length < 3 || novoUsername.length > 16) {
-            alert('O nome de usuário deve ter entre 2 e 15 caracteres (além do @).');
-            return;
-        }
+                    const chavesMigrar = ['dissonance_vinyls_', 'dissonance_pet_', 'dissonance_note_', 'dissonance_apps_', 'dissonance_following_'];
+                    chavesMigrar.forEach(prefixo => {
+                        const dado = localStorage.getItem(prefixo + usuarioAtual);
+                        if (dado) {
+                            localStorage.setItem(prefixo + novoUser, dado);
+                            localStorage.removeItem(prefixo + usuarioAtual);
+                        }
+                    });
 
-        const novaBio = bioInput.value.trim();
+                    localStorage.removeItem('avatar_' + usuarioAtual);
+                    localStorage.removeItem('bio_' + usuarioAtual);
+                    localStorage.setItem('usuarioLogado', novoUser);
+                    usuarioAtual = novoUser;
+                }
 
-        try {
-            localStorage.setItem('usuarioLogado', novoUsername);
-            localStorage.setItem('bio_' + novoUsername, novaBio);
-            localStorage.setItem('dissonance_custom_theme', JSON.stringify(temaAtual));
+                if (avatarBase64) {
+                    localStorage.setItem('avatar_' + usuarioAtual, avatarBase64);
+                } else {
+                    localStorage.removeItem('avatar_' + usuarioAtual);
+                }
 
-            if (currentAvatarBase64) {
-                localStorage.setItem('avatar_' + novoUsername, currentAvatarBase64);
-            } else {
-                localStorage.removeItem('avatar_' + novoUsername);
+                if (bioInput) {
+                    localStorage.setItem('bio_' + usuarioAtual, bioInput.value.trim());
+                }
+
+                window.location.href = 'perfil.html';
+            } catch (err) {
+                alert('O GIF escolhido ultrapassou o limite de armazenamento do navegador (5MB). Tente um GIF mais leve.');
             }
-
-            if (novoUsername !== usuarioAntigo) {
-                localStorage.removeItem('avatar_' + usuarioAntigo);
-                localStorage.removeItem('bio_' + usuarioAntigo);
-
-                const todasReviews = JSON.parse(localStorage.getItem('dissonance_reviews')) || [];
-                todasReviews.forEach(r => { if (r.username === usuarioAntigo) r.username = novoUsername; });
-                localStorage.setItem('dissonance_reviews', JSON.stringify(todasReviews));
-
-                const usuarios = JSON.parse(localStorage.getItem('dissonance_users')) || [];
-                usuarios.forEach(u => { if (u.username === usuarioAntigo) u.username = novoUsername; });
-                localStorage.setItem('dissonance_users', JSON.stringify(usuarios));
-            }
-
-            alert('Perfil e tema personalizado salvos com sucesso!');
-            window.location.href = 'perfil.html';
-        } catch (err) {
-            alert('Erro ao salvar: limite de espaço atingido.');
-        }
-    });
+        });
+    }
 
     const logoutBtn = document.querySelector('.btn-logout');
     if (logoutBtn) {
-        logoutBtn.addEventListener('click', (event) => {
-            event.preventDefault();
-            localStorage.removeItem('usuarioLogado');
-            window.location.href = 'index.html';
-        });
-    }
+logoutBtn.addEventListener('click', (event) => {
+event.preventDefault();
+localStorage.removeItem('usuarioLogado');
+window.location.href = 'index.html';
+});
+}
 });

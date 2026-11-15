@@ -14,6 +14,133 @@ document.addEventListener('DOMContentLoaded', () => {
         const inicial = perfilAlvo.replace('@', '').charAt(0).toUpperCase() || 'U';
         avatarContainer.textContent = inicial;
     }
+    // --- BOLHA DE PENSAMENTO REAL + MODAL CUSTOMIZADO (FEED) ---
+    function abrirModalEditarNotaFeed(chaveNota, bubbleEl) {
+        const atual = localStorage.getItem(chaveNota) || '';
+        const overlay = document.createElement('div');
+        overlay.className = 'note-modal-overlay';
+
+        overlay.innerHTML =
+            '<div class="note-modal-box">' +
+                '<div class="note-modal-top">' +
+                    '<span class="note-modal-badge">♪ PENSAMENTO / MÚSICA</span>' +
+                    '<button type="button" class="note-modal-close" id="close-note-modal">✕</button>' +
+                '</div>' +
+                '<h3 style="margin:0 0 4px 0; font-size:1.2rem; font-weight:900;">O que está na sua cabeça?</h3>' +
+                '<small style="opacity:0.8;">Compartilhe uma música ou pensamento curto no seu avatar.</small>' +
+                '<input type="text" id="custom-note-input" class="note-modal-input" maxlength="45" placeholder="Ex: Ouvindo NFR! no repeat..." value="' + escapeHTML(atual) + '">' +
+                '<div style="text-align:right; font-size:0.72rem; font-weight:800; opacity:0.7;"><span id="note-char-count">' + atual.length + '</span>/45</div>' +
+                '<div class="note-modal-footer">' +
+                    '<button type="button" class="note-btn-clear" id="clear-note-btn">Remover Nota</button>' +
+                    '<button type="button" class="note-btn-save" id="save-note-btn">Salvar na Bolha ▸</button>' +
+                '</div>' +
+            '</div>';
+
+        document.body.appendChild(overlay);
+
+        const inputEl = overlay.querySelector('#custom-note-input');
+        const countEl = overlay.querySelector('#note-char-count');
+        inputEl.focus();
+        inputEl.setSelectionRange(inputEl.value.length, inputEl.value.length);
+
+        inputEl.addEventListener('input', () => {
+            countEl.textContent = inputEl.value.length;
+        });
+
+        const fechar = () => overlay.remove();
+        overlay.querySelector('#close-note-modal').addEventListener('click', fechar);
+        overlay.addEventListener('click', (e) => { if (e.target === overlay) fechar(); });
+
+        overlay.querySelector('#clear-note-btn').addEventListener('click', () => {
+            localStorage.removeItem(chaveNota);
+            bubbleEl.textContent = '...';
+            fechar();
+        });
+
+        const salvar = () => {
+            const limpa = inputEl.value.trim().slice(0, 45);
+            if (limpa) {
+                localStorage.setItem(chaveNota, limpa);
+                bubbleEl.textContent = '♪ ' + limpa;
+            } else {
+                localStorage.removeItem(chaveNota);
+                bubbleEl.textContent = '+ Deixar nota...';
+            }
+            fechar();
+        };
+
+        overlay.querySelector('#save-note-btn').addEventListener('click', salvar);
+        inputEl.addEventListener('keydown', (e) => { if (e.key === 'Enter') salvar(); });
+    }
+
+    if (avatarContainer) {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'avatar-note-wrapper';
+        avatarContainer.parentNode.insertBefore(wrapper, avatarContainer);
+        wrapper.appendChild(avatarContainer);
+
+        const notasPadraoComunidade = {
+            '@ana_indie': 'viciada no novo do Slowdive...',
+            '@lucas_rock': 'ouvindo In Rainbows na chuva'
+        };
+
+        const chaveNota = 'dissonance_note_' + perfilAlvo;
+        const notaDoBanco = localStorage.getItem(chaveNota);
+        const notaSalva = notaDoBanco !== null
+            ? notaDoBanco
+            : (ehMeuPerfil ? '+ Deixar nota...' : (notasPadraoComunidade[perfilAlvo] || ''));
+
+        if (notaSalva) {
+            const bubble = document.createElement('div');
+            bubble.className = 'music-note-bubble';
+            bubble.textContent = notaSalva.startsWith('+') ? notaSalva : '♪ ' + notaSalva.replace(/^♪\s*/, '');
+
+            const trailLg = document.createElement('span');
+            trailLg.className = 'music-note-trail-lg';
+            const trailSm = document.createElement('span');
+            trailSm.className = 'music-note-trail-sm';
+
+            let expandida = false;
+            const alternarExpansao = () => {
+                expandida = !expandida;
+                if (expandida) {
+                    bubble.style.whiteSpace = 'normal';
+                    bubble.style.maxWidth = '310px';
+                    bubble.style.width = 'max-content';
+                    bubble.style.borderRadius = '16px';
+                    bubble.style.top = 'auto';
+                    bubble.style.bottom = 'calc(100% + 14px)';
+                    bubble.style.textAlign = 'center';
+                    bubble.style.lineHeight = '1.35';
+                    bubble.style.zIndex = '50';
+                } else {
+                    bubble.style.whiteSpace = 'nowrap';
+                    bubble.style.maxWidth = '240px';
+                    bubble.style.width = '';
+                    bubble.style.borderRadius = '999px';
+                    bubble.style.top = '-44px';
+                    bubble.style.bottom = '';
+                    bubble.style.textAlign = '';
+                    bubble.style.lineHeight = '';
+                    bubble.style.zIndex = '15';
+                }
+            };
+
+            if (ehMeuPerfil) {
+                bubble.title = 'Clique para editar ou ler sua nota completa';
+                bubble.addEventListener('click', () => {
+                    abrirModalEditarNotaFeed(chaveNota, bubble);
+                });
+            } else {
+                bubble.title = 'Clique para ler a nota completa';
+                bubble.addEventListener('click', alternarExpansao);
+            }
+
+            wrapper.prepend(trailSm);
+            wrapper.prepend(trailLg);
+            wrapper.prepend(bubble);
+        }
+    }
 
     const greetingSpan = document.querySelector('.nav-user-greeting strong');
     const profileUsername = document.getElementById('profile-username');
@@ -215,11 +342,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const capa = vinil.coverImage || vinil.spineImage || 'imgs/Blonde_-_Frank_Ocean.jpeg';
         const corDisco = vinil.color || '#f7bbd7';
 
-        showcaseSleeve.style.backgroundImage = 'url("' + capa + '")';
-        showcaseLabel.style.backgroundImage = 'url("' + capa + '")';
-        showcaseDisc.style.backgroundColor = corDisco;
-        showcaseTitle.textContent = vinil.album;
-        showcaseArtist.textContent = vinil.artist;
+        if (showcaseSleeve) showcaseSleeve.style.backgroundImage = 'url("' + capa + '")';
+        if (showcaseLabel) showcaseLabel.style.backgroundImage = 'url("' + capa + '")';
+        if (showcaseDisc) showcaseDisc.style.backgroundColor = corDisco;
+        if (showcaseTitle) showcaseTitle.textContent = vinil.album;
+        if (showcaseArtist) showcaseArtist.textContent = vinil.artist;
 
         if (btnShowcaseForum) {
             btnShowcaseForum.href = 'album.html?album=' + encodeURIComponent(vinil.album) + '&artist=' + encodeURIComponent(vinil.artist);
@@ -243,7 +370,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (e.target === vinylModal) vinylModal.classList.remove('open');
         });
     }
-
     if (btnToggleListened) {
         btnToggleListened.addEventListener('click', () => {
             if (!ehMeuPerfil || vinilSelecionadoId === null) return;
@@ -258,6 +384,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
     if (vinylStack) {
         vinylStack.addEventListener('click', (event) => {
             const removeBtn = event.target.closest('.btn-remove-vinyl');
@@ -427,10 +554,10 @@ document.addEventListener('DOMContentLoaded', () => {
             reviewsList.appendChild(card);
         });
     }
-
     if (sortReviewsSelect) {
         sortReviewsSelect.addEventListener('change', () => carregarMinhasReviews());
     }
+
     if (reviewsList) {
         reviewsList.addEventListener('click', (event) => {
             const card = event.target.closest('.review-card');
@@ -507,8 +634,22 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
-    // --- MOTOR CANVAS 2D PIXEL ART COM ACESSORIOS E CENARIOS ---
-    const petCanvas = document.getElementById('pet-canvas');
+    const petStage = document.getElementById('pet-visual-stage');
+    let petCanvas = document.getElementById('pet-canvas');
+    if (!petCanvas && petStage) {
+        const oldActor = document.getElementById('pet-svg-actor') || document.getElementById('pet-gif-actor');
+        if (oldActor) oldActor.remove();
+        const oldFloor = document.getElementById('pet-stage-floor');
+        if (oldFloor) oldFloor.remove();
+
+        petCanvas = document.createElement('canvas');
+        petCanvas.id = 'pet-canvas';
+        petCanvas.width = 240;
+        petCanvas.height = 115;
+        petCanvas.className = 'pet-canvas';
+        petStage.prepend(petCanvas);
+    }
+
     const petCtx = petCanvas ? petCanvas.getContext('2d') : null;
     const chavePet = 'dissonance_pet_' + perfilAlvo;
     const petNameEl = document.getElementById('pet-name-display');
@@ -529,36 +670,15 @@ document.addEventListener('DOMContentLoaded', () => {
         if (actionsRow) actionsRow.style.display = 'none';
     }
 
-    const paletasPets = {
-        cat: { body: '#ffffff', shade: '#e2e8f0', ear: '#f7bbd7', eye: '#111111', collar: '#ff1b9c' },
-        dog: { body: '#d97706', shade: '#b45309', ear: '#78350f', eye: '#111111', collar: '#38bdf8' },
-        frog: { body: '#51cf66', shade: '#2b8a3e', ear: '#8ce99a', eye: '#111111', collar: '#f7bbd7' },
-        bunny: { body: '#fdf2f8', shade: '#fbcfe8', ear: '#f472b6', eye: '#db2777', collar: '#8ce99a' },
-        fox: { body: '#ea580c', shade: '#c2410c', ear: '#111111', eye: '#111111', collar: '#ffffff' }
-    };
-
-    const mapaSprite16 = [
-        '..E........E....',
-        '.EBE......EBE...',
-        '.EBBE....EBBE...',
-        '.BBBBBBBBBBBB...',
-        'BBBBBBBBBBBBBB..',
-        'BBWBBBBBBBBWBB..',
-        'BBWBBBBBBBBWBB..',
-        'BBBBBBPPBBBBBB..',
-        '.BBBBBBBBBBBB...',
-        '..CCCCCCCCCC....',
-        '..BBBBBBBBBB..T.',
-        '.BBBBBBBBBBBBTT.',
-        '.BBBBBBBBBBBBT..',
-        '..BBBBBBBBBB....',
-        '..BB..BB..BB....',
-        '..SS..SS..SS....'
-    ];
+    // --- CARREGAMENTO DA SPRITESHEET (8x8) ---
+    const spriteSheetPets = new Image();
+    spriteSheetPets.src = 'imgs/pets-sheet.png';
+    let spriteSheetCarregada = false;
+    spriteSheetPets.onload = () => { spriteSheetCarregada = true; };
 
     const particulasPet = [];
     const estadoPet = {
-        x: 70,
+        x: 90,
         dir: 1,
         frame: 0,
         timer: 0,
@@ -571,134 +691,239 @@ document.addEventListener('DOMContentLoaded', () => {
         for (let i = 0; i < qtd; i++) {
             particulasPet.push({
                 tipo: tipo,
-                x: estadoPet.x + 14 + (Math.random() * 24 - 12),
-                y: 42 + (Math.random() * 10 - 5),
+                x: estadoPet.x + 20 + (Math.random() * 24 - 12),
+                y: 44 + (Math.random() * 10 - 5),
                 vx: (Math.random() - 0.5) * 0.8,
                 vy: -0.7 - Math.random() * 0.6,
                 vida: 65
             });
         }
     }
-    function desenharCenarioEspecie(ctx, especieKey, frame) {
+
+    // --- CENÁRIO: QUARTINHO MUSICAL PIXEL ART POR ESPÉCIE ---
+    function desenharQuartinhoMusical(ctx, w, h, especieGrupo, frame) {
         ctx.save();
-        if (especieKey === 'dog') {
-            const bx = 178, by = 76;
+
+        // Parede e rodapé do quarto
+        ctx.fillStyle = 'rgba(247, 187, 215, 0.14)';
+        ctx.fillRect(0, 0, w, 98);
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(0, 96, w, 2);
+
+        // Piso de madeira / estúdio
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.12)';
+        ctx.fillRect(0, 98, w, h - 98);
+
+        // Janela com céu noturno e estrelas (lado esquerdo)
+        ctx.fillStyle = '#1e1b4b';
+        ctx.fillRect(14, 14, 38, 34);
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(14, 14, 38, 34);
+        ctx.fillStyle = '#fde047';
+        ctx.fillRect(21, 21, 3, 3);
+        ctx.fillRect(40, 26, 2, 2);
+        if (frame % 2 === 0) ctx.fillRect(32, 19, 2, 2);
+        // Cruz da janela
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(32, 14, 2, 34);
+        ctx.fillRect(14, 30, 38, 2);
+
+        // Prateleira de vinis na parede (centro)
+        ctx.fillStyle = '#78350f';
+        ctx.fillRect(68, 36, 74, 4);
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(68, 40, 74, 2);
+        const coresCapas = ['#ff1b9c', '#38bdf8', '#facc15', '#4ade80', '#a855f7'];
+        for (let i = 0; i < 5; i++) {
+            ctx.fillStyle = coresCapas[i];
+            ctx.fillRect(72 + i * 13, 22, 11, 14);
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 1.5;
+            ctx.strokeRect(72 + i * 13, 22, 11, 14);
+        }
+
+        // Equipamento musical no canto direito (muda conforme a espécie)
+        if (especieGrupo === 'cachorro') {
+            // Mesa de DJ + Pickups com LEDs piscando
             ctx.fillStyle = '#1e293b';
-            ctx.fillRect(bx, by, 48, 26);
+            ctx.fillRect(166, 72, 62, 24);
             ctx.strokeStyle = '#000000';
             ctx.lineWidth = 2;
-            ctx.strokeRect(bx, by, 48, 26);
+            ctx.strokeRect(166, 72, 62, 24);
+            // Pratos giratórios
             ctx.fillStyle = '#000000';
-            ctx.fillRect(bx + 4, by - 4, 16, 4);
-            ctx.fillRect(bx + 28, by - 4, 16, 4);
+            ctx.fillRect(172, 68, 20, 4);
+            ctx.fillRect(202, 68, 20, 4);
             ctx.fillStyle = (frame % 2 === 0) ? '#38bdf8' : '#ff1b9c';
-            ctx.fillRect(bx + 9, by - 4, 4, 2);
-            ctx.fillRect(bx + 33, by - 4, 4, 2);
-            ctx.fillStyle = '#51cf66';
-            ctx.fillRect(bx + 22, by + 6, 4, 4);
-            ctx.fillStyle = '#ffd43b';
-            ctx.fillRect(bx + 22, by + 14, 4, 4);
-        } else if (especieKey === 'frog') {
-            const vx = 182, vy = 84;
-            ctx.fillStyle = '#f7bbd7';
-            ctx.fillRect(vx, vy, 40, 18);
-            ctx.strokeStyle = '#000000';
-            ctx.lineWidth = 2;
-            ctx.strokeRect(vx, vy, 40, 18);
-            ctx.fillStyle = '#2b2d42';
-            ctx.fillRect(vx + 2, vy - 12, 36, 12);
-            ctx.fillStyle = '#000000';
-            ctx.fillRect(vx + 6, vy - 3, 22, 3);
-            ctx.fillStyle = (frame % 2 === 0) ? '#ffffff' : '#51cf66';
-            ctx.fillRect(vx + 15, vy - 3, 4, 3);
-        } else if (especieKey === 'bunny') {
-            const gx = 194, gy = 64;
-            ctx.fillStyle = '#d9387a';
-            ctx.fillRect(gx, gy + 20, 18, 18);
-            ctx.strokeStyle = '#000000';
-            ctx.lineWidth = 2;
-            ctx.strokeRect(gx, gy + 20, 18, 18);
-            ctx.fillStyle = '#f8f9fa';
-            ctx.fillRect(gx + 4, gy + 24, 10, 10);
-            ctx.fillStyle = '#78350f';
-            ctx.fillRect(gx + 7, gy, 4, 22);
-        } else if (especieKey === 'fox') {
-            const cx = 192, cy = 86;
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(cx, cy, 16, 16);
-            ctx.strokeStyle = '#000000';
-            ctx.lineWidth = 2;
-            ctx.strokeRect(cx, cy, 16, 16);
-            ctx.fillRect(cx + 16, cy + 4, 4, 8);
-            ctx.fillStyle = 'rgba(120, 120, 120, 0.75)';
-            const shift = (frame % 2 === 0) ? 0 : 3;
-            ctx.fillRect(cx + 4, cy - 8 - shift, 3, 5);
-            ctx.fillRect(cx + 10, cy - 11 + shift, 3, 5);
-        }
-        ctx.restore();
-    }
-    function desenharAcessorioPet(ctx, especieKey, px, bobY) {
-        if (especieKey === 'cat' || especieKey === 'fox') {
-            ctx.fillStyle = '#111111';
-            ctx.fillRect(2 * px, 1 * px + bobY, 10 * px, px);
-            ctx.fillStyle = (especieKey === 'cat') ? '#ff1b9c' : '#38bdf8';
-            ctx.fillRect(0 * px, 4 * px + bobY, 2 * px, 4 * px);
-            ctx.fillRect(12 * px, 4 * px + bobY, 2 * px, 4 * px);
-            ctx.fillStyle = '#111111';
-            ctx.fillRect(0 * px, 5 * px + bobY, px, 2 * px);
-            ctx.fillRect(13 * px, 5 * px + bobY, px, 2 * px);
-        } else if (especieKey === 'dog') {
-            ctx.fillStyle = '#111111';
-            ctx.fillRect(1 * px, 5 * px + bobY, 12 * px, 2 * px);
+            ctx.fillRect(180, 68, 4, 2);
+            ctx.fillRect(210, 68, 4, 2);
+            // Equalizador no painel
+            ctx.fillStyle = '#4ade80';
+            ctx.fillRect(174, 80, 4, (frame % 2 === 0) ? 8 : 4);
+            ctx.fillStyle = '#ff1b9c';
+            ctx.fillRect(182, 78, 4, (frame % 2 === 0) ? 5 : 10);
             ctx.fillStyle = '#38bdf8';
-            ctx.fillRect(2 * px, 5 * px + bobY, 2 * px, px);
-            ctx.fillRect(8 * px, 5 * px + bobY, 2 * px, px);
-        } else if (especieKey === 'bunny') {
-            ctx.fillStyle = '#d9387a';
-            ctx.fillRect(2 * px, 2 * px + bobY, 10 * px, 2 * px);
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(2 * px, 3 * px + bobY, 10 * px, px);
-        } else if (especieKey === 'frog') {
+            ctx.fillRect(190, 81, 4, (frame % 2 === 0) ? 7 : 3);
+        } else if (especieGrupo === 'gato' || especieGrupo === 'raposa') {
+            // Vitrola retrô com disco girando + Caixa de som
+            ctx.fillStyle = '#d97706';
+            ctx.fillRect(174, 78, 48, 18);
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(174, 78, 48, 18);
+            // Disco de vinil em cima
             ctx.fillStyle = '#111111';
-            ctx.fillRect(2 * px, 2 * px + bobY, 10 * px, px);
-            ctx.fillStyle = '#ffd43b';
-            ctx.fillRect(0 * px, 5 * px + bobY, 2 * px, 3 * px);
-            ctx.fillRect(12 * px, 5 * px + bobY, 2 * px, 3 * px);
-        }
-    }
-    function desenharPixelPet(ctx, x, y, paleta, especieKey, dir, passo, acao) {
-        const px = 3;
-        ctx.save();
-        if (dir === -1) {
-            ctx.translate(x + 16 * px, y);
-            ctx.scale(-1, 1);
+            ctx.fillRect(180, 72, 28, 6);
+            ctx.fillStyle = '#ff1b9c';
+            ctx.fillRect(191 + (frame % 2), 72, 6, 3);
+            // Braço da agulha
+            ctx.fillStyle = '#e2e8f0';
+            ctx.fillRect(210, 68, 3, 10);
         } else {
-            ctx.translate(x, y);
+            // Amplificador / Caixa de Som Hi-Fi pulsando
+            ctx.fillStyle = '#27272a';
+            ctx.fillRect(182, 58, 38, 38);
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(182, 58, 38, 38);
+            // Woofer inferior pulsando no beat
+            const pulso = (frame % 2 === 0) ? 0 : 2;
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(191 - pulso / 2, 74 - pulso / 2, 20 + pulso, 18 + pulso);
+            ctx.fillStyle = '#f7bbd7';
+            ctx.fillRect(198, 80, 6, 6);
+            // Tweeter superior
+            ctx.fillStyle = '#38bdf8';
+            ctx.fillRect(197, 63, 8, 6);
         }
 
-        const bobY = (acao === 'sleep') ? 4 : (passo % 2 === 0 ? 0 : -2);
+        // Notas musicais flutuando perto do som
+        ctx.fillStyle = '#ff1b9c';
+        const notaY = (frame % 2 === 0) ? 48 : 44;
+        ctx.fillRect(195, notaY, 3, 8);
+        ctx.fillRect(192, notaY + 6, 5, 4);
 
-        for (let r = 0; r < 16; r++) {
-            for (let c = 0; c < 16; c++) {
-                const ch = mapaSprite16[r][c];
-                if (ch === '.') continue;
-
-                let cor = paleta.body;
-                if (ch === 'E') cor = paleta.ear;
-                else if (ch === 'S' || ch === 'T') cor = paleta.shade;
-                else if (ch === 'C') cor = paleta.collar;
-                else if (ch === 'P') cor = (acao === 'eat') ? '#ff1b9c' : paleta.ear;
-                else if (ch === 'W') cor = (acao === 'sleep') ? paleta.shade : paleta.eye;
-
-                ctx.fillStyle = cor;
-                const offsetPata = (r >= 14 && passo % 2 === 1 && acao !== 'sleep') ? -2 : 0;
-                ctx.fillRect(c * px, r * px + bobY + offsetPata, px, px);
-            }
-        }
-
-        desenharAcessorioPet(ctx, especieKey, px, bobY);
         ctx.restore();
     }
+        // Mapa calibrado de encaixe do fone (dx = esquerda/direita, dy = altura, w = largura)
+    const ajustesFonesPorCoord = {
+        // Sentados de frente (encaixe centralizado)
+        '7,3': { dx: -1, dy: -50, w: 24 },  // Golden Pop
+        '7,5': { dx: 0, dy: -47, w: 23 },   // Dálmata Pós-Punk
+        '5,7': { dx: 0, dy: -47, w: 23 },   // Collie Alternativo
+        '1,0': { dx: -3, dy: -53, w: 22 },   // Guaxinim Colecionador
+        '1,6': { dx: 0, dy: -46, w: 21 },   // Panda Vermelho City Pop
+        '3,0': { dx: 3, dy: -49, w: 23 },   // Coruja Noturna
+
+        // Raposas (ajustadas para encaixar exatamente entre as orelhas)
+        '0,0': { dx: -5, dy: -50, w: 20 },  // Raposa Lo-Fi
+        '5,2': { dx: -2, dy: -50, w: 24 },  // Raposa Synthwave
+
+        // Coelhos (posição original perfeita)
+        '7,1': { dx: 0, dy: -46, w: 20 },   // Coelho Dream Pop
+        '3,4': { dx: 0, dy: -46, w: 20 },   // Coelho Folk
+        '7,7': { dx: 0, dy: -46, w: 20 },   // Coelho Indie
+
+        // Gatinhos (posição original perfeita)
+        '6,3': { dx: 0, dy: -46, w: 24 },   // Gato Shoegaze
+        '6,5': { dx: 0, dy: -46, w: 24 },   // Gato Punk
+        '6,7': { dx: 0, dy: -46, w: 24 },   // Gato Jazz
+
+        // Cabeça deslocada em perfil (ajustados para não flutuar)
+        '2,0': { dx: -7, dy: -46, w: 13 },  // Esquilo R&B
+        '2,4': { dx: -1, dy: -45, w: 17 },  // Esquilo Acústico
+        '1,2': { dx: -6, dy: -50, w: 19 },  // Lobo Rock Clássico
+        '2,2': { dx: -7, dy: -49, w: 16 },  // Cervinho Chamber Pop
+        '7,2': { dx: -6, dy: -49, w: 15 },  // Doninha New Wave
+        '1,4': { dx: -3, dy: -52, w: 22 },  // Guaxinim Cassete
+
+        // Baixinhos (Ouriço, Caracol, Roedores, Sapo)
+        '4,0': { dx: -7, dy: -36, w: 16 },  // Ouriço Grunge
+        '6,4': { dx: -13, dy: -39, w: 12 },  // Caracol Slowcore
+        '2,7': { dx: -3, dy: -42, w: 19 },  // Porquinho-da-Índia Groove
+        '4,4': { dx: -1, dy: -43, w: 15 },  // Ratinho Electro
+        '7,4': { dx: 1, dy: -44, w: 17 },  // Camundongo Soul
+        '5,4': { dx: 1, dy: -40, w: 24 },  // Sapo do Vinil
+        '7,6': { dx: 0, dy: -43, w: 17 }    // Morcego Gótico
+    };
+
+
+    function desenharPetDaSpritesheet(ctx, x, y, coordStr, dir, passo, acao, especieGrupo) {
+        if (!spriteSheetCarregada) return;
+
+        const coordLimpa = (coordStr || '6,3').trim();
+        const partes = coordLimpa.split(',');
+        const col = parseInt(partes[0], 10) || 0;
+        const row = parseInt(partes[1], 10) || 0;
+
+        const tileSize = spriteSheetPets.width / 8;
+        const baseSize = 54;
+
+        let scaleX = 1;
+        let scaleY = 1;
+        let offsetY = 0;
+        let rotacao = 0;
+
+        if (acao === 'sleep') {
+            const resp = (passo % 2 === 0) ? 1.03 : 0.97;
+            scaleX = resp;
+            scaleY = 0.86;
+            offsetY = 6;
+            rotacao = (dir === 1) ? 0.14 : -0.14;
+        } else if (acao === 'happy' || acao === 'eat') {
+            const pulo = (passo % 2 === 0) ? -9 : 0;
+            offsetY = pulo;
+            scaleX = (pulo < 0) ? 0.92 : 1.08;
+            scaleY = (pulo < 0) ? 1.10 : 0.92;
+        } else {
+            const noAr = (passo % 2 === 1);
+            offsetY = noAr ? -4 : 0;
+            scaleX = noAr ? 0.96 : 1.04;
+            scaleY = noAr ? 1.04 : 0.96;
+            rotacao = noAr ? (dir * 0.06) : (-dir * 0.04);
+        }
+
+        ctx.save();
+        ctx.imageSmoothingEnabled = false;
+
+        const centroX = x + baseSize / 2;
+        const baseChaoY = y + baseSize + offsetY;
+
+        ctx.translate(centroX, baseChaoY);
+        ctx.rotate(rotacao);
+        ctx.scale(-dir * scaleX, scaleY);
+
+        // Desenha o bichinho da spritesheet
+        ctx.drawImage(
+            spriteSheetPets,
+            col * tileSize, row * tileSize, tileSize, tileSize,
+            -baseSize / 2, -baseSize, baseSize, baseSize
+        );
+
+        // Aplica o fone na posição e largura exatas da cabeça daquele animal
+        const ajuste = ajustesFonesPorCoord[coordLimpa] || { dx: 0, dy: -46, w: 22 };
+        const meiaLargura = Math.round(ajuste.w / 2);
+        const corFone = (especieGrupo === 'cachorro') ? '#38bdf8' : '#ff1b9c';
+
+        // Arco superior do fone
+        ctx.fillStyle = '#111111';
+        ctx.fillRect(ajuste.dx - meiaLargura, ajuste.dy, ajuste.w, 3);
+        ctx.fillRect(ajuste.dx - meiaLargura - 2, ajuste.dy + 3, 3, 6);
+        ctx.fillRect(ajuste.dx + meiaLargura - 1, ajuste.dy + 3, 3, 6);
+
+        // Almofadas laterais
+        ctx.fillStyle = corFone;
+        ctx.fillRect(ajuste.dx - meiaLargura - 4, ajuste.dy + 8, 5, 8);
+        ctx.fillRect(ajuste.dx + meiaLargura - 1, ajuste.dy + 8, 5, 8);
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(ajuste.dx - meiaLargura - 4, ajuste.dy + 8, 5, 8);
+        ctx.strokeRect(ajuste.dx + meiaLargura - 1, ajuste.dy + 8, 5, 8);
+
+        ctx.restore();
+    }
+
 
     function desenharParticula(ctx, p) {
         ctx.save();
@@ -728,13 +953,12 @@ document.addEventListener('DOMContentLoaded', () => {
         petCtx.clearRect(0, 0, petCanvas.width, petCanvas.height);
 
         const petAtual = obterPet();
-        const especieKey = petAtual.spriteKey || 'cat';
-        const paleta = paletasPets[especieKey] || paletasPets.cat;
+        const grupoAtual = typeof descobrirEspeciePelaCoord === 'function'
+            ? descobrirEspeciePelaCoord(petAtual.spriteKey)
+            : 'gato';
 
-        petCtx.fillStyle = 'rgba(0, 0, 0, 0.15)';
-        petCtx.fillRect(12, 102, petCanvas.width - 24, 4);
-
-        desenharCenarioEspecie(petCtx, especieKey, estadoPet.frame);
+        // 1. Desenha o quartinho musical no fundo
+        desenharQuartinhoMusical(petCtx, petCanvas.width, petCanvas.height, grupoAtual, estadoPet.frame);
 
         estadoPet.timer++;
         if (estadoPet.acaoTimer > 0) {
@@ -745,11 +969,12 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        const limiteDireito = (especieKey === 'cat') ? petCanvas.width - 62 : 126;
+        // Limita o movimento para o pet não passar por cima da mesa de DJ/vitrola
+        const limiteDireito = 112;
         if (!estadoPet.dormindo && estadoPet.acao !== 'eat') {
             estadoPet.x += estadoPet.dir * 0.65;
             if (estadoPet.x > limiteDireito) estadoPet.dir = -1;
-            if (estadoPet.x < 14) estadoPet.dir = 1;
+            if (estadoPet.x < 12) estadoPet.dir = 1;
         }
 
         if (estadoPet.timer % 16 === 0) {
@@ -759,9 +984,11 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
+        // 2. Desenha o bichinho com fones de ouvido na frente
         const acaoRender = estadoPet.dormindo ? 'sleep' : estadoPet.acao;
-        desenharPixelPet(petCtx, estadoPet.x, 54, paleta, especieKey, estadoPet.dir, estadoPet.frame, acaoRender);
+        desenharPetDaSpritesheet(petCtx, estadoPet.x, 46, petAtual.spriteKey, estadoPet.dir, estadoPet.frame, acaoRender, grupoAtual);
 
+        // 3. Desenha partículas de carinho, comida ou sono
         for (let i = particulasPet.length - 1; i >= 0; i--) {
             const p = particulasPet[i];
             p.x += p.vx;
@@ -773,17 +1000,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
         requestAnimationFrame(loopCanvasPet);
     }
+
+
     function obterPet() {
         const salvo = localStorage.getItem(chavePet);
         if (!salvo) {
-            const padrao = { spriteKey: 'cat', especie: 'Gatinho de Fones', nome: 'Mochi', bonusManual: 0, humorBonus: 0 };
+            const padrao = { spriteKey: '6,3', especie: 'Gatinho Cinza', nome: 'Mochi', bonusManual: 0, humorBonus: 0 };
             if (ehMeuPerfil) localStorage.setItem(chavePet, JSON.stringify(padrao));
             return padrao;
         }
         const parsed = JSON.parse(salvo);
-        if (!paletasPets[parsed.spriteKey]) parsed.spriteKey = 'cat';
+        if (!parsed.spriteKey || !parsed.spriteKey.includes(',')) parsed.spriteKey = '6,3';
         return parsed;
     }
+
 
     function atualizarPetMusical() {
         const pet = obterPet();
@@ -821,7 +1051,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (petEnergyBar) petEnergyBar.style.background = '#ffd43b';
         }
     }
-
     if (ehMeuPerfil && btnPetLove) {
         btnPetLove.addEventListener('click', () => {
             estadoPet.dormindo = false;
@@ -861,16 +1090,97 @@ document.addEventListener('DOMContentLoaded', () => {
             atualizarPetMusical();
         });
     }
+
+    // --- CATALOGO DE ESPECIES E VARIACOES (27 PETS CIRCULADOS) ---
+    const catalogoPetsVariacoes = {
+        gato: [
+            { coord: '6,3', nome: 'Gato Shoegaze (Cinza)' },
+            { coord: '6,5', nome: 'Gato Punk (Laranja)' },
+            { coord: '6,7', nome: 'Gato Jazz (Rajado)' }
+        ],
+        cachorro: [
+            { coord: '7,3', nome: 'Golden Pop' },
+            { coord: '7,5', nome: 'Dálmata Pós-Punk' },
+            { coord: '5,7', nome: 'Collie Alternativo' }
+        ],
+        coelho: [
+            { coord: '7,1', nome: 'Coelho Dream Pop (Bege)' },
+            { coord: '3,4', nome: 'Coelho Folk (Marrom)' },
+            { coord: '7,7', nome: 'Coelho Indie (Cinza)' }
+        ],
+        raposa: [
+            { coord: '0,0', nome: 'Raposa Lo-Fi' },
+            { coord: '5,2', nome: 'Raposa Synthwave' }
+        ],
+        guaxinim: [
+            { coord: '1,0', nome: 'Guaxinim Colecionador' },
+            { coord: '1,4', nome: 'Guaxinim Cassete' }
+        ],
+        esquilo: [
+            { coord: '2,0', nome: 'Esquilo R&B (Cinza)' },
+            { coord: '2,4', nome: 'Esquilo Acústico (Marrom)' }
+        ],
+        roedor: [
+            { coord: '2,7', nome: 'Porquinho-da-Índia Groove' },
+            { coord: '4,4', nome: 'Ratinho Electro (Cinza)' },
+            { coord: '7,4', nome: 'Camundongo Soul (Marrom)' }
+        ],
+        silvestre: [
+            { coord: '4,0', nome: 'Ouriço Grunge' },
+            { coord: '1,6', nome: 'Panda Vermelho City Pop' },
+            { coord: '1,2', nome: 'Lobo Rock Clássico' },
+            { coord: '2,2', nome: 'Cervinho Chamber Pop' },
+            { coord: '7,2', nome: 'Doninha New Wave' },
+            { coord: '3,0', nome: 'Coruja Noturna (Ambient)' },
+            { coord: '5,4', nome: 'Sapo do Vinil' },
+            { coord: '6,4', nome: 'Caracol Slowcore' },
+            { coord: '7,6', nome: 'Morcego Gótico' }
+        ]
+    };
+
+
+    const speciesSelect = document.getElementById('pet-species-select');
+    const variantSelect = document.getElementById('pet-variant-select');
+
+    function carregarVariacoesDaEspecie(especieKey, coordSelecionada = '') {
+        if (!variantSelect) return;
+        const lista = catalogoPetsVariacoes[especieKey] || catalogoPetsVariacoes.gato;
+        variantSelect.innerHTML = lista.map(item =>
+            '<option value="' + item.coord + '|' + item.nome + '"' +
+            (item.coord === coordSelecionada ? ' selected' : '') + '>' +
+            item.nome + '</option>'
+        ).join('');
+    }
+
+    function descobrirEspeciePelaCoord(coord) {
+        for (const [key, lista] of Object.entries(catalogoPetsVariacoes)) {
+            if (lista.some(item => item.coord === coord)) return key;
+        }
+        return 'gato';
+    }
+
+    if (speciesSelect) {
+        speciesSelect.addEventListener('change', () => {
+            carregarVariacoesDaEspecie(speciesSelect.value);
+        });
+    }
+
     if (ehMeuPerfil && btnConfigPet && petSetupForm) {
         btnConfigPet.addEventListener('click', () => {
             const pet = obterPet();
             document.getElementById('pet-name-input').value = pet.nome;
+
+            const especieEncontrada = descobrirEspeciePelaCoord(pet.spriteKey);
+            if (speciesSelect) speciesSelect.value = especieEncontrada;
+            carregarVariacoesDaEspecie(especieEncontrada, pet.spriteKey);
+
             petSetupForm.style.display = petSetupForm.style.display === 'none' ? 'block' : 'none';
         });
 
         petSetupForm.addEventListener('submit', (e) => {
             e.preventDefault();
-            const [spriteKey, especie] = document.getElementById('pet-species-select').value.split('|');
+            const valorVariacao = variantSelect ? variantSelect.value : '6,3|Gatinho Cinza';
+            const [spriteKey, especie] = valorVariacao.split('|');
             const nome = document.getElementById('pet-name-input').value.trim() || 'Mochi';
             const petAtual = obterPet();
 
