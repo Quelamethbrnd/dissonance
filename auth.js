@@ -2,22 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const registerForm = document.querySelector('.register-form');
     const loginForm = document.querySelector('.login-form');
 
-    async function garantirPerfilNoSupabase(username) {
-        if (typeof dbObterPerfil !== 'function' || typeof dbSalvarPerfil !== 'function') return;
-        try {
-            const perfilExistente = await dbObterPerfil(username);
-            if (!perfilExistente) {
-                await dbSalvarPerfil({
-                    username: username,
-                    bio: 'Em sintonia com indie, R&B e rock alternativo.'
-                });
-            }
-        } catch (err) {
-            console.error('Erro ao registrar perfil no Supabase:', err);
-        }
-    }
-
-    // --- CADASTRO ---
+    // --- CADASTRO (SUPABASE + LOCALSTORAGE) ---
     if (registerForm) {
         registerForm.addEventListener('submit', async (event) => {
             event.preventDefault();
@@ -32,34 +17,58 @@ document.addEventListener('DOMContentLoaded', () => {
                 username = '@' + username;
             }
 
-            const usuarios = JSON.parse(localStorage.getItem('dissonance_users')) || [];
-
-            if (usuarios.some(u => u.email.toLowerCase() === email)) {
-                alert('Este e-mail já está cadastrado!');
-                return;
-            }
-
-            if (usuarios.some(u => u.username.toLowerCase() === username.toLowerCase())) {
-                alert('Este nome de usuário (@username) já está em uso!');
-                return;
-            }
-
             if (submitBtn) {
                 submitBtn.disabled = true;
-                submitBtn.textContent = 'Criando conta...';
+                submitBtn.textContent = 'Verificando...';
             }
 
-            usuarios.push({ fullName, username, email, password });
-            localStorage.setItem('dissonance_users', JSON.stringify(usuarios));
+            try {
+                // Verifica duplicidade no Supabase
+                if (typeof dbBuscarContaPorEmailOuUser === 'function') {
+                    const emailExiste = await dbBuscarContaPorEmailOuUser(email);
+                    if (emailExiste && emailExiste.email) {
+                        alert('Este e-mail já está cadastrado!');
+                        return;
+                    }
+                    const userExiste = await dbBuscarContaPorEmailOuUser(username);
+                    if (userExiste) {
+                        alert('Este nome de usuário (@username) já está em uso!');
+                        return;
+                    }
+                }
 
-            await garantirPerfilNoSupabase(username);
+                // Salva no Supabase
+                if (typeof dbCadastrarConta === 'function') {
+                    await dbCadastrarConta({
+                        full_name: fullName,
+                        username: username,
+                        email: email,
+                        password: password
+                    });
+                }
 
-            alert('Cadastro realizado com sucesso! Agora faça seu login.');
-            window.location.href = 'login.html';
+                // Mantém cópia local
+                const usuarios = JSON.parse(localStorage.getItem('dissonance_users')) || [];
+                if (!usuarios.some(u => u.username.toLowerCase() === username.toLowerCase())) {
+                    usuarios.push({ fullName, username, email, password });
+                    localStorage.setItem('dissonance_users', JSON.stringify(usuarios));
+                }
+
+                alert('Cadastro realizado com sucesso! Agora faça seu login.');
+                window.location.href = 'login.html';
+            } catch (err) {
+                console.error('Erro ao cadastrar:', err);
+                alert('Erro ao criar conta no banco de dados. Verifique sua conexão.');
+            } finally {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Cadastrar ▸';
+                }
+            }
         });
     }
 
-    // --- LOGIN ---
+    // --- LOGIN (SUPABASE + FALLBACK LOCALSTORAGE) ---
     if (loginForm) {
         loginForm.addEventListener('submit', async (event) => {
             event.preventDefault();
@@ -68,23 +77,55 @@ document.addEventListener('DOMContentLoaded', () => {
             const email = document.getElementById('email').value.trim().toLowerCase();
             const password = document.getElementById('password').value;
 
-            const usuarios = JSON.parse(localStorage.getItem('dissonance_users')) || [];
-            const usuarioValido = usuarios.find(u => u.email.toLowerCase() === email && u.password === password);
-
-            if (!usuarioValido) {
-                alert('E-mail ou senha incorretos! Se ainda não tem conta, clique em Cadastre-se.');
-                return;
-            }
-
             if (submitBtn) {
                 submitBtn.disabled = true;
                 submitBtn.textContent = 'Entrando...';
             }
 
-            localStorage.setItem('usuarioLogado', usuarioValido.username);
-            await garantirPerfilNoSupabase(usuarioValido.username);
+            try {
+                let usuarioValido = null;
 
-            window.location.href = 'home.html';
+                // 1. Tenta autenticar direto no Supabase
+                if (typeof dbBuscarContaPorEmailOuUser === 'function') {
+                    const contaBanco = await dbBuscarContaPorEmailOuUser(email);
+                    if (contaBanco && contaBanco.password === password) {
+                        usuarioValido = contaBanco;
+                    }
+                }
+
+                // 2. Fallback: se a conta só existia localmente antes dessa atualização, migra ela para o Supabase
+                if (!usuarioValido) {
+                    const usuariosLocais = JSON.parse(localStorage.getItem('dissonance_users')) || [];
+                    const localMatch = usuariosLocais.find(u => u.email.toLowerCase() === email && u.password === password);
+                    if (localMatch) {
+                        usuarioValido = localMatch;
+                        if (typeof dbCadastrarConta === 'function') {
+                            await dbCadastrarConta({
+                                full_name: localMatch.fullName || '',
+                                username: localMatch.username,
+                                email: localMatch.email,
+                                password: localMatch.password
+                            });
+                        }
+                    }
+                }
+
+                if (!usuarioValido) {
+                    alert('E-mail ou senha incorretos! Se ainda não tem conta, clique em Cadastre-se.');
+                    return;
+                }
+
+                localStorage.setItem('usuarioLogado', usuarioValido.username);
+                window.location.href = 'home.html';
+            } catch (err) {
+                console.error('Erro ao fazer login:', err);
+                alert('Erro ao conectar com o servidor. Tente novamente.');
+            } finally {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Entrar ▸';
+                }
+            }
         });
 
         // --- RECUPERAÇÃO / REDEFINIÇÃO DE SENHA ("ESQUECEU A SENHA?") ---
@@ -152,36 +193,41 @@ document.addEventListener('DOMContentLoaded', () => {
         const identifierInput = overlay.querySelector('#forgot-identifier');
         const msg1 = overlay.querySelector('#forgot-msg-1');
         const msg2 = overlay.querySelector('#forgot-msg-2');
-        let indiceUsuarioEncontrado = -1;
+        let contaEncontrada = null;
 
         identifierInput.focus();
 
-        step1Form.addEventListener('submit', (e) => {
+        step1Form.addEventListener('submit', async (e) => {
             e.preventDefault();
             const busca = identifierInput.value.trim().toLowerCase();
             const buscaComArroba = busca.startsWith('@') ? busca : '@' + busca;
 
-            const usuarios = JSON.parse(localStorage.getItem('dissonance_users')) || [];
-            indiceUsuarioEncontrado = usuarios.findIndex(u =>
-                u.email.toLowerCase() === busca || u.username.toLowerCase() === buscaComArroba
-            );
+            if (typeof dbBuscarContaPorEmailOuUser === 'function') {
+                contaEncontrada = await dbBuscarContaPorEmailOuUser(busca);
+            }
 
-            if (indiceUsuarioEncontrado === -1) {
+            if (!contaEncontrada) {
+                const usuarios = JSON.parse(localStorage.getItem('dissonance_users')) || [];
+                contaEncontrada = usuarios.find(u =>
+                    u.email.toLowerCase() === busca || u.username.toLowerCase() === buscaComArroba
+                );
+            }
+
+            if (!contaEncontrada) {
                 msg1.textContent = 'Nenhuma conta encontrada com esse e-mail ou usuário.';
                 msg1.style.display = 'block';
                 return;
             }
 
             msg1.style.display = 'none';
-            const userObj = usuarios[indiceUsuarioEncontrado];
-            overlay.querySelector('#forgot-user-found').textContent = 'Conta localizada: ' + userObj.username + ' (' + userObj.email + ')';
+            overlay.querySelector('#forgot-user-found').textContent = 'Conta localizada: ' + contaEncontrada.username + (contaEncontrada.email ? ' (' + contaEncontrada.email + ')' : '');
             overlay.querySelector('#forgot-subtitle').textContent = 'Crie uma nova senha para acessar sua conta.';
             step1Form.style.display = 'none';
             step2Form.style.display = 'flex';
             overlay.querySelector('#forgot-new-pass').focus();
         });
 
-        step2Form.addEventListener('submit', (e) => {
+        step2Form.addEventListener('submit', async (e) => {
             e.preventDefault();
             const novaSenha = overlay.querySelector('#forgot-new-pass').value;
             const confirmaSenha = overlay.querySelector('#forgot-confirm-pass').value;
@@ -192,13 +238,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            const usuarios = JSON.parse(localStorage.getItem('dissonance_users')) || [];
-            if (indiceUsuarioEncontrado !== -1 && usuarios[indiceUsuarioEncontrado]) {
-                usuarios[indiceUsuarioEncontrado].password = novaSenha;
-                localStorage.setItem('dissonance_users', JSON.stringify(usuarios));
+            if (contaEncontrada) {
+                if (typeof dbAtualizarSenhaConta === 'function') {
+                    await dbAtualizarSenhaConta(contaEncontrada.username, novaSenha);
+                }
+
+                const usuarios = JSON.parse(localStorage.getItem('dissonance_users')) || [];
+                const idx = usuarios.findIndex(u => u.username.toLowerCase() === contaEncontrada.username.toLowerCase());
+                if (idx !== -1) {
+                    usuarios[idx].password = novaSenha;
+                    localStorage.setItem('dissonance_users', JSON.stringify(usuarios));
+                }
 
                 const loginEmailInput = document.getElementById('email');
-                if (loginEmailInput) loginEmailInput.value = usuarios[indiceUsuarioEncontrado].email;
+                if (loginEmailInput && contaEncontrada.email) loginEmailInput.value = contaEncontrada.email;
 
                 alert('Senha redefinida com sucesso! Você já pode entrar com a nova senha.');
                 fechar();

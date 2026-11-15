@@ -210,3 +210,49 @@ async function dbCriarAparicao({ album_name, titulo_midia, detalhe, autor }) {
     if (error) throw error;
     return data;
 }
+// ==========================================
+// 7. AUTENTICAÇÃO E CONTA (auth.js)
+// ==========================================
+async function dbCadastrarConta({ full_name, username, email, password }) {
+    const { data, error } = await db
+        .from('perfis')
+        .upsert({
+            username,
+            full_name,
+            email,
+            password,
+            bio: 'Em sintonia com indie, R&B e rock alternativo.',
+            atualizado_em: new Date().toISOString()
+        }, { onConflict: 'username' })
+        .select()
+        .single();
+
+    if (error) throw error;
+    return data;
+}
+
+async function dbBuscarContaPorEmailOuUser(identificador) {
+    const limpo = identificador.trim().toLowerCase();
+    const comArroba = limpo.startsWith('@') ? limpo : '@' + limpo;
+
+    const { data, error } = await db
+        .from('perfis')
+        .select('*')
+        .or(`email.ilike.${limpo},username.ilike.${comArroba}`)
+        .maybeSingle();
+
+    if (error) {
+        console.error('Erro ao buscar conta:', error);
+        return null;
+    }
+    return data;
+}
+
+async function dbAtualizarSenhaConta(username, novaSenha) {
+    const { error } = await db
+        .from('perfis')
+        .update({ password: novaSenha, atualizado_em: new Date().toISOString() })
+        .eq('username', username);
+
+    if (error) throw error;
+}
