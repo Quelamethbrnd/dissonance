@@ -380,3 +380,275 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     renderizarForum();
 });
+// album.js
+document.addEventListener('DOMContentLoaded', async () => {
+    const usuarioAtual = localStorage.getItem('usuarioLogado') || '@ouvinte';
+    const greetingSpan = document.querySelector('.nav-user-greeting strong');
+    if (greetingSpan) greetingSpan.textContent = usuarioAtual;
+
+    const params = new URLSearchParams(window.location.search);
+    const albumQuery = params.get('album') || 'Blonde';
+
+    const titleEl = document.getElementById('album-title');
+    const artistEl = document.getElementById('album-artist');
+    const coverEl = document.getElementById('album-cover');
+    const avgRatingEl = document.getElementById('album-avg-rating');
+    const creditsEl = document.getElementById('album-credits-list');
+    const tracklistEl = document.getElementById('album-tracklist');
+    const historyEl = document.getElementById('album-history-text');
+    const geniusBtn = document.getElementById('btn-genius-link');
+
+    if (titleEl) titleEl.textContent = albumQuery;
+    if (geniusBtn) {
+        geniusBtn.href = 'https://genius.com/search?q=' + encodeURIComponent(albumQuery);
+    }
+
+    function escapeHTML(str) {
+        const div = document.createElement('div');
+        div.textContent = str || '';
+        return div.innerHTML;
+    }
+
+    // 1. Busca metadados reais, capa HD e faixas com prévia de 30s via API pública do iTunes
+    let audioAtual = null;
+    let botaoTocandoAtual = null;
+
+    async function carregarMetadadosAlbum() {
+        try {
+            const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(albumQuery)}&entity=album&limit=1`);
+            const data = await res.json();
+            const albumInfo = data.results?.[0];
+
+            if (albumInfo) {
+                if (titleEl) titleEl.textContent = albumInfo.collectionName;
+                if (artistEl) artistEl.textContent = albumInfo.artistName;
+                if (coverEl && albumInfo.artworkUrl100) {
+                    coverEl.src = albumInfo.artworkUrl100.replace('100x100bb', '600x600bb');
+                }
+                if (geniusBtn) {
+                    geniusBtn.href = `https://genius.com/search?q=${encodeURIComponent(albumInfo.artistName + ' ' + albumInfo.collectionName)}`;
+                }
+
+                const ano = albumInfo.releaseDate ? new Date(albumInfo.releaseDate).getFullYear() : '';
+                if (historyEl) {
+                    historyEl.textContent = `"${albumInfo.collectionName}" é um lançamento de ${albumInfo.artistName}${ano ? ' (' + ano + ')' : ''}, catalogado no gênero ${albumInfo.primaryGenreName || 'Alternativo'} sob o selo ${albumInfo.copyright || 'Independente'}.`;
+                }
+
+                if (creditsEl) {
+                    creditsEl.innerHTML =
+                        `<a href="explorar.html?q=${encodeURIComponent(albumInfo.artistName)}" class="credit-pill">${escapeHTML(albumInfo.artistName)} (Principal)</a>` +
+                        `<span class="credit-pill">${escapeHTML(albumInfo.primaryGenreName || 'Música')}</span>`;
+                }
+
+                // Busca as faixas do álbum
+                const tracksRes = await fetch(`https://itunes.apple.com/lookup?id=${albumInfo.collectionId}&entity=song`);
+                const tracksData = await tracksRes.json();
+                const faixas = (tracksData.results || []).filter(item => item.wrapperType === 'track');
+
+                if (tracklistEl && faixas.length > 0) {
+                    tracklistEl.innerHTML = '';
+                    faixas.forEach((faixa, idx) => {
+                        const row = document.createElement('div');
+                        row.className = 'track-item';
+                        const temPreview = Boolean(faixa.previewUrl);
+
+                        row.innerHTML =
+                            `<span><strong>${idx + 1}.</strong> ${escapeHTML(faixa.trackName)}</span>` +
+                            (temPreview ? `<button type="button" class="btn-play-preview" title="Ouvir prévia de 30s">▶</button>` : '');
+
+                        if (temPreview) {
+                            const btnPlay = row.querySelector('.btn-play-preview');
+                            btnPlay.addEventListener('click', () => {
+                                if (audioAtual && botaoTocandoAtual === btnPlay) {
+                                    audioAtual.pause();
+                                    btnPlay.textContent = '▶';
+                                    btnPlay.classList.remove('playing');
+                                    audioAtual = null;
+                                    botaoTocandoAtual = null;
+                                    return;
+                                }
+                                if (audioAtual) {
+                                    audioAtual.pause();
+                                    if (botaoTocandoAtual) {
+                                        botaoTocandoAtual.textContent = '▶';
+                                        botaoTocandoAtual.classList.remove('playing');
+                                    }
+                                }
+                                audioAtual = new Audio(faixa.previewUrl);
+                                botaoTocandoAtual = btnPlay;
+                                btnPlay.textContent = '❚❚';
+                                btnPlay.classList.add('playing');
+                                audioAtual.play();
+                                audioAtual.onended = () => {
+                                    btnPlay.textContent = '▶';
+                                    btnPlay.classList.remove('playing');
+                                };
+                            });
+                        }
+                        tracklistEl.appendChild(row);
+                    });
+                }
+            } else {
+                if (artistEl) artistEl.textContent = 'Artista Independente';
+                if (historyEl) historyEl.textContent = `Página comunitária dedicada à obra "${albumQuery}". Compartilhe curiosidades, aparições e análises abaixo.`;
+                if (tracklistEl) tracklistEl.innerHTML = '<small>Tracklist indisponível para esta busca.</small>';
+            }
+        } catch (err) {
+            console.error('Erro ao buscar metadados:', err);
+        }
+    }
+
+    // 2. Aparições em Filmes, Séries e Jogos (Supabase)
+    const btnToggleMedia = document.getElementById('btn-toggle-media-form');
+    const addAppearanceForm = document.getElementById('add-appearance-form');
+    const appearancesList = document.getElementById('album-appearances-list');
+
+    if (btnToggleMedia && addAppearanceForm) {
+        btnToggleMedia.addEventListener('click', () => {
+            addAppearanceForm.style.display = addAppearanceForm.style.display === 'none' ? 'block' : 'none';
+        });
+    }
+
+    async function carregarAparicoes() {
+        if (!appearancesList || typeof dbListarAparicoes !== 'function') return;
+        const lista = await dbListarAparicoes(albumQuery);
+        appearancesList.innerHTML = '';
+
+        if (lista.length === 0) {
+            appearancesList.innerHTML = '<small style="opacity:0.75;">Nenhuma aparição catalogada ainda. Seja o primeiro a adicionar!</small>';
+            return;
+        }
+
+        lista.forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'media-badge';
+            div.innerHTML =
+                `<div><strong>${escapeHTML(item.titulo_midia)}</strong><br>` +
+                `<small>${escapeHTML(item.detalhe)} — <em>por ${escapeHTML(item.autor)}</em></small></div>`;
+            appearancesList.appendChild(div);
+        });
+    }
+
+    if (addAppearanceForm) {
+        addAppearanceForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const titulo = document.getElementById('media-title-input').value.trim();
+            const detalhe = document.getElementById('media-detail-input').value.trim();
+            if (!titulo || !detalhe) return;
+
+            await dbCriarAparicao({
+                album_name: albumQuery,
+                titulo_midia: titulo,
+                detalhe,
+                autor: usuarioAtual
+            });
+            addAppearanceForm.reset();
+            addAppearanceForm.style.display = 'none';
+            await carregarAparicoes();
+        });
+    }
+
+    // 3. Fórum de Discussão & Cálculo da Média Geral (Supabase)
+    const forumForm = document.getElementById('forum-post-form');
+    const forumList = document.getElementById('album-forum-list');
+    let topicosCache = [];
+
+    function contarEstrelas(str) {
+        return (str.match(/★/g) || []).length || 5;
+    }
+
+    async function carregarForum() {
+        if (!forumList || typeof dbListarTopicosForum !== 'function') return;
+        topicosCache = await dbListarTopicosForum(albumQuery);
+
+        // Também busca reviews do feed principal sobre este álbum para compor a nota média
+        const reviewsFeed = typeof dbListarReviews === 'function' ? await dbListarReviews() : [];
+        const reviewsDoAlbum = reviewsFeed.filter(r => r.album_name.toLowerCase() === albumQuery.toLowerCase());
+
+        const todasNotas = [
+            ...topicosCache.map(t => contarEstrelas(t.rating)),
+            ...reviewsDoAlbum.map(r => contarEstrelas(r.rating))
+        ];
+
+        if (avgRatingEl && todasNotas.length > 0) {
+            const media = (todasNotas.reduce((a, b) => a + b, 0) / todasNotas.length).toFixed(1);
+            const cheias = Math.round(Number(media));
+            const estrelasStr = '★'.repeat(cheias) + '☆'.repeat(5 - cheias);
+            avgRatingEl.textContent = `${estrelasStr} (${media})`;
+        }
+
+        forumList.innerHTML = '';
+        if (topicosCache.length === 0 && reviewsDoAlbum.length === 0) {
+            forumList.innerHTML = '<p style="opacity:0.75;">Nenhuma discussão ou review para este álbum ainda.</p>';
+            return;
+        }
+
+        topicosCache.forEach(topico => {
+            const card = document.createElement('article');
+            card.className = 'forum-thread-card';
+            const replies = topico.replies || [];
+
+            const repliesHTML = replies.map(rep =>
+                `<div class="forum-reply-item"><strong>${escapeHTML(rep.author)}:</strong> ${escapeHTML(rep.text)}</div>`
+            ).join('');
+
+            card.innerHTML =
+                `<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">` +
+                    `<strong>${escapeHTML(topico.topic)}</strong>` +
+                    `<span>${escapeHTML(topico.rating)}</span>` +
+                `</div>` +
+                `<small style="opacity:0.75; display:block; margin-bottom:8px;">Publicado por <a href="perfil.html?user=${encodeURIComponent(topico.username)}"><strong>${escapeHTML(topico.username)}</strong></a></small>` +
+                `<p style="margin:0 0 10px 0; line-height:1.45;">${escapeHTML(topico.comment)}</p>` +
+                `<div class="forum-replies">${repliesHTML}` +
+                    `<form class="forum-reply-form" data-id="${topico.id}" style="display:flex; gap:6px; margin-top:8px;">` +
+                        `<input type="text" placeholder="Responder neste tópico..." required style="flex:1; padding:6px 8px; border:2px solid #000; border-radius:6px; font-size:0.85rem;">` +
+                        `<button type="submit" style="padding:6px 12px; background:#000; color:#fff; border:none; border-radius:6px; font-weight:700; cursor:pointer; font-size:0.82rem;">Responder</button>` +
+                    `</form>` +
+                `</div>`;
+
+            forumList.appendChild(card);
+        });
+    }
+
+    if (forumForm) {
+        forumForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const rating = document.getElementById('forum-rating').value;
+            const topic = document.getElementById('forum-topic').value.trim();
+            const comment = document.getElementById('forum-comment').value.trim();
+            if (!topic || !comment) return;
+
+            await dbCriarTopicoForum({
+                album_name: albumQuery,
+                username: usuarioAtual,
+                rating,
+                topic,
+                comment
+            });
+            forumForm.reset();
+            await carregarForum();
+        });
+    }
+
+    if (forumList) {
+        forumList.addEventListener('submit', async (e) => {
+            const replyForm = e.target.closest('.forum-reply-form');
+            if (!replyForm) return;
+            e.preventDefault();
+
+            const topicoId = Number(replyForm.dataset.id);
+            const input = replyForm.querySelector('input');
+            const text = input.value.trim();
+            if (!text) return;
+
+            const topico = topicosCache.find(t => Number(t.id) === topicoId);
+            if (topico) {
+                const novasReplies = [...(topico.replies || []), { author: usuarioAtual, text }];
+                await dbResponderTopicoForum(topicoId, novasReplies);
+                await carregarForum();
+            }
+        });
+    }
+
+    await Promise.all([carregarMetadadosAlbum(), carregarAparicoes(), carregarForum()]);
+});

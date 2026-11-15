@@ -2,11 +2,27 @@ document.addEventListener('DOMContentLoaded', () => {
     const registerForm = document.querySelector('.register-form');
     const loginForm = document.querySelector('.login-form');
 
-    // --- CADASTRO LOCAL ---
+    async function garantirPerfilNoSupabase(username) {
+        if (typeof dbObterPerfil !== 'function' || typeof dbSalvarPerfil !== 'function') return;
+        try {
+            const perfilExistente = await dbObterPerfil(username);
+            if (!perfilExistente) {
+                await dbSalvarPerfil({
+                    username: username,
+                    bio: 'Em sintonia com indie, R&B e rock alternativo.'
+                });
+            }
+        } catch (err) {
+            console.error('Erro ao registrar perfil no Supabase:', err);
+        }
+    }
+
+    // --- CADASTRO ---
     if (registerForm) {
-        registerForm.addEventListener('submit', (event) => {
+        registerForm.addEventListener('submit', async (event) => {
             event.preventDefault();
 
+            const submitBtn = registerForm.querySelector('button[type="submit"]');
             const fullName = document.getElementById('fullname').value.trim();
             let username = document.getElementById('username').value.trim();
             const email = document.getElementById('email').value.trim().toLowerCase();
@@ -28,19 +44,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Criando conta...';
+            }
+
             usuarios.push({ fullName, username, email, password });
             localStorage.setItem('dissonance_users', JSON.stringify(usuarios));
+
+            await garantirPerfilNoSupabase(username);
 
             alert('Cadastro realizado com sucesso! Agora faça seu login.');
             window.location.href = 'login.html';
         });
     }
 
-    // --- LOGIN LOCAL ---
+    // --- LOGIN ---
     if (loginForm) {
-        loginForm.addEventListener('submit', (event) => {
+        loginForm.addEventListener('submit', async (event) => {
             event.preventDefault();
 
+            const submitBtn = loginForm.querySelector('button[type="submit"]');
             const email = document.getElementById('email').value.trim().toLowerCase();
             const password = document.getElementById('password').value;
 
@@ -52,7 +76,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Entrando...';
+            }
+
             localStorage.setItem('usuarioLogado', usuarioValido.username);
+            await garantirPerfilNoSupabase(usuarioValido.username);
+
             window.location.href = 'home.html';
         });
 

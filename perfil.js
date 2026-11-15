@@ -6,17 +6,22 @@ document.addEventListener('DOMContentLoaded', () => {
     const perfilAlvo = (userParam && userParam.trim() !== '') ? userParam.trim() : usuarioAtual;
     const ehMeuPerfil = (perfilAlvo === usuarioAtual);
 
-    const savedAvatar = localStorage.getItem('avatar_' + perfilAlvo);
-    const avatarContainer = document.querySelector('.profile-avatar-large');
-    if (savedAvatar && avatarContainer) {
-        avatarContainer.innerHTML = '<img src="' + savedAvatar + '" alt="Avatar" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">';
-    } else if (avatarContainer && !ehMeuPerfil) {
-        const inicial = perfilAlvo.replace('@', '').charAt(0).toUpperCase() || 'U';
-        avatarContainer.textContent = inicial;
+    function escapeHTML(str) {
+        const div = document.createElement('div');
+        div.textContent = str || '';
+        return div.innerHTML;
     }
-    // --- BOLHA DE PENSAMENTO REAL + MODAL CUSTOMIZADO (FEED) ---
+
+    let perfilDb = null;
+    const avatarContainer = document.querySelector('.profile-avatar-large');
+    const bioText = document.getElementById('profile-bio-text');
+
+    // --- BOLHA DE PENSAMENTO REAL + MODAL CUSTOMIZADO ---
     function abrirModalEditarNotaFeed(chaveNota, bubbleEl) {
-        const atual = localStorage.getItem(chaveNota) || '';
+        const atual = (perfilDb?.nota_musical !== undefined && perfilDb?.nota_musical !== null)
+            ? perfilDb.nota_musical
+            : (localStorage.getItem(chaveNota) || '');
+
         const overlay = document.createElement('div');
         overlay.className = 'note-modal-overlay';
 
@@ -51,22 +56,31 @@ document.addEventListener('DOMContentLoaded', () => {
         overlay.querySelector('#close-note-modal').addEventListener('click', fechar);
         overlay.addEventListener('click', (e) => { if (e.target === overlay) fechar(); });
 
-        overlay.querySelector('#clear-note-btn').addEventListener('click', () => {
+        overlay.querySelector('#clear-note-btn').addEventListener('click', async () => {
             localStorage.removeItem(chaveNota);
-            bubbleEl.textContent = '...';
+            if (perfilDb) perfilDb.nota_musical = '';
+            bubbleEl.textContent = '+ Deixar nota...';
             fechar();
+            if (typeof dbSalvarPerfil === 'function') {
+                await dbSalvarPerfil({ username: usuarioAtual, nota_musical: '' });
+            }
         });
 
-        const salvar = () => {
+        const salvar = async () => {
             const limpa = inputEl.value.trim().slice(0, 45);
             if (limpa) {
                 localStorage.setItem(chaveNota, limpa);
+                if (perfilDb) perfilDb.nota_musical = limpa;
                 bubbleEl.textContent = '♪ ' + limpa;
             } else {
                 localStorage.removeItem(chaveNota);
+                if (perfilDb) perfilDb.nota_musical = '';
                 bubbleEl.textContent = '+ Deixar nota...';
             }
             fechar();
+            if (typeof dbSalvarPerfil === 'function') {
+                await dbSalvarPerfil({ username: usuarioAtual, nota_musical: limpa });
+            }
         };
 
         overlay.querySelector('#save-note-btn').addEventListener('click', salvar);
@@ -85,9 +99,9 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         const chaveNota = 'dissonance_note_' + perfilAlvo;
-        const notaDoBanco = localStorage.getItem(chaveNota);
-        const notaSalva = notaDoBanco !== null
-            ? notaDoBanco
+        const notaLocal = localStorage.getItem(chaveNota);
+        const notaSalva = (notaLocal && notaLocal.trim() !== '')
+            ? notaLocal
             : (ehMeuPerfil ? '+ Deixar nota...' : (notasPadraoComunidade[perfilAlvo] || ''));
 
         if (notaSalva) {
@@ -147,13 +161,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (greetingSpan) greetingSpan.textContent = usuarioAtual;
     if (profileUsername) profileUsername.textContent = perfilAlvo;
 
-    const biosPadrao = {
-        '@ana_indie': 'Apaixonada por indie rock, shoegaze e vinis coloridos.',
-        '@lucas_rock': 'Colecionador de classicos do rock alternativo e grunge.'
-    };
-    const bioText = document.getElementById('profile-bio-text');
-    const savedBio = localStorage.getItem('bio_' + perfilAlvo) || biosPadrao[perfilAlvo];
-    if (savedBio && bioText) bioText.textContent = savedBio;
     function obterSeguidos() {
         return JSON.parse(localStorage.getItem('dissonance_following_' + usuarioAtual)) || [];
     }
@@ -208,6 +215,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         editProfileBtn.replaceWith(followBtn);
     }
+
+    // --- 2. ESTANTE DE VINIS 3D (SUPABASE + CACHE INSTANTÂNEO) ---
     const vinylStack = document.getElementById('vinyl-stack');
     const addVinylForm = document.getElementById('add-vinyl-form');
     const statVinyls = document.getElementById('stat-vinyls');
@@ -226,32 +235,60 @@ document.addEventListener('DOMContentLoaded', () => {
         { id: 104, album: 'DAMN.', artist: 'Kendrick Lamar', color: '#82c91e', coverImage: 'imgs/Kendrick_Lamar_-_Damn.png', listened: false }
     ];
 
-    function obterVinis() {
+    let listaVinisCache = JSON.parse(localStorage.getItem('dissonance_vinyls_' + perfilAlvo)) ||
+        (ehMeuPerfil ? [...vinisIniciais] : vinisIniciais.slice(0, 2));
+
+    async function sincronizarVinisDoBanco() {
+        if (typeof dbListarVinis === 'function') {
+            const doBanco = await dbListarVinis(perfilAlvo);
+            if (doBanco && doBanco.length > 0) {
+                listaVinisCache = doBanco.map(v => ({
+                    id: v.id,
+                    album: v.album_name,
+                    artist: v.artista,
+                    color: v.cor_lombada || '#f7bbd7',
+                    coverImage: v.capa_url || 'imgs/Blonde_-_Frank_Ocean.jpeg',
+                    listened: Boolean(v.ouvido)
+                }));
+                localStorage.setItem('dissonance_vinyls_' + perfilAlvo, JSON.stringify(listaVinisCache));
+                return listaVinisCache;
+            }
+        }
+
         const chave = 'dissonance_vinyls_' + perfilAlvo;
         const salvos = localStorage.getItem(chave);
-        if (!salvos) {
-            if (ehMeuPerfil) {
-                localStorage.setItem(chave, JSON.stringify(vinisIniciais));
-                return vinisIniciais;
+        if (!salvos && ehMeuPerfil) {
+            localStorage.setItem(chave, JSON.stringify(listaVinisCache));
+            if (typeof dbAdicionarVinil === 'function') {
+                for (const v of vinisIniciais) {
+                    await dbAdicionarVinil({
+                        username: usuarioAtual,
+                        album_name: v.album,
+                        artista: v.artist,
+                        capa_url: v.coverImage,
+                        cor_lombada: v.color
+                    });
+                }
+                return await sincronizarVinisDoBanco();
             }
-            return vinisIniciais.slice(0, 2);
         }
-        return JSON.parse(salvos);
+        return listaVinisCache;
     }
 
-    function salvarVinis(lista) {
-        if (!ehMeuPerfil) return;
-        localStorage.setItem('dissonance_vinyls_' + usuarioAtual, JSON.stringify(lista));
+    function obterVinis() {
+        return listaVinisCache;
     }
 
     function obterCorTextoContraste(hexColor) {
-        const hex = hexColor.replace('#', '');
+        const hex = (hexColor || '#f7bbd7').replace('#', '');
+        if (hex.length < 6) return '#000000';
         const r = parseInt(hex.substring(0, 2), 16);
         const g = parseInt(hex.substring(2, 4), 16);
         const b = parseInt(hex.substring(4, 6), 16);
         const luminancia = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
         return luminancia > 0.55 ? '#000000' : '#ffffff';
     }
+
     if (vinylCoverInput && ehMeuPerfil) {
         vinylCoverInput.addEventListener('change', (event) => {
             const file = event.target.files.item(0);
@@ -325,6 +362,7 @@ document.addEventListener('DOMContentLoaded', () => {
             vinylStack.appendChild(item3D);
         });
     }
+
     const vinylModal = document.getElementById('vinyl-display-modal');
     const closeVinylModalBtn = document.getElementById('btn-close-vinyl-modal');
     const showcaseSleeve = document.getElementById('showcase-sleeve');
@@ -370,36 +408,46 @@ document.addEventListener('DOMContentLoaded', () => {
             if (e.target === vinylModal) vinylModal.classList.remove('open');
         });
     }
+
     if (btnToggleListened) {
-        btnToggleListened.addEventListener('click', () => {
+        btnToggleListened.addEventListener('click', async () => {
             if (!ehMeuPerfil || vinilSelecionadoId === null) return;
-            const lista = obterVinis();
-            const item = lista.find(v => v.id === vinilSelecionadoId);
+            const item = listaVinisCache.find(v => v.id === vinilSelecionadoId);
             if (item) {
+                const estadoAnterior = item.listened;
                 item.listened = !item.listened;
-                salvarVinis(lista);
+                localStorage.setItem('dissonance_vinyls_' + usuarioAtual, JSON.stringify(listaVinisCache));
                 renderizarVinis();
                 atualizarPetMusical();
                 btnToggleListened.textContent = item.listened ? 'Ouvido (Desmarcar)' : 'Marcar como Ouvido';
+
+                if (typeof dbAlternarVinilOuvido === 'function') {
+                    await dbAlternarVinilOuvido(item.id, estadoAnterior);
+                }
             }
         });
     }
 
     if (vinylStack) {
-        vinylStack.addEventListener('click', (event) => {
+        vinylStack.addEventListener('click', async (event) => {
             const removeBtn = event.target.closest('.btn-remove-vinyl');
             if (removeBtn && ehMeuPerfil) {
                 event.stopPropagation();
                 const idRemover = Number(removeBtn.dataset.id);
-                salvarVinis(obterVinis().filter(v => v.id !== idRemover));
+                listaVinisCache = listaVinisCache.filter(v => v.id !== idRemover);
+                localStorage.setItem('dissonance_vinyls_' + usuarioAtual, JSON.stringify(listaVinisCache));
                 renderizarVinis();
                 atualizarPetMusical();
+
+                if (typeof db !== 'undefined') {
+                    await db.from('estante_vinis').delete().eq('id', idRemover);
+                }
                 return;
             }
             const item3D = event.target.closest('.vinyl-3d-item');
             if (item3D) {
                 const idClicado = Number(item3D.dataset.id);
-                const vinilEncontrado = obterVinis().find(v => v.id === idClicado);
+                const vinilEncontrado = listaVinisCache.find(v => v.id === idClicado);
                 abrirDisplayVinil(vinilEncontrado);
             }
         });
@@ -424,16 +472,34 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             try {
-                const lista = obterVinis();
-                lista.unshift({
-                    id: Date.now(),
-                    album: album,
-                    artist: artist,
-                    color: color,
-                    coverImage: capaFinal,
-                    listened: false
-                });
-                salvarVinis(lista);
+                if (typeof dbAdicionarVinil === 'function') {
+                    const novoVinilDb = await dbAdicionarVinil({
+                        username: usuarioAtual,
+                        album_name: album,
+                        artista: artist,
+                        capa_url: capaFinal,
+                        cor_lombada: color
+                    });
+                    listaVinisCache.unshift({
+                        id: novoVinilDb.id,
+                        album: novoVinilDb.album_name,
+                        artist: novoVinilDb.artista,
+                        color: novoVinilDb.cor_lombada,
+                        coverImage: novoVinilDb.capa_url,
+                        listened: false
+                    });
+                } else {
+                    listaVinisCache.unshift({
+                        id: Date.now(),
+                        album: album,
+                        artist: artist,
+                        color: color,
+                        coverImage: capaFinal,
+                        listened: false
+                    });
+                }
+
+                localStorage.setItem('dissonance_vinyls_' + usuarioAtual, JSON.stringify(listaVinisCache));
                 addVinylForm.reset();
                 document.getElementById('vinyl-spine-color').value = '#f7bbd7';
                 capaQuadradaBase64 = '';
@@ -444,14 +510,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 renderizarVinis();
                 atualizarPetMusical();
             } catch (err) {
-                alert('Limite de armazenamento atingido.');
+                console.error('Erro ao salvar vinil:', err);
+                alert('Erro ao adicionar vinil na estante.');
             }
         });
     }
+
+    // --- 3. REVIEWS DO USUÁRIO (SUPABASE + CACHE INSTANTÂNEO) ---
     const reviewsList = document.getElementById('user-reviews-list');
     const statReviews = document.getElementById('stat-reviews');
     const statLikes = document.getElementById('stat-likes');
     const sortReviewsSelect = document.getElementById('perfil-sort-reviews');
+    let todasReviewsCache = JSON.parse(localStorage.getItem('dissonance_reviews')) || [];
+    const avataresCache = {};
 
     function contarEstrelas(ratingStr) {
         if (!ratingStr) return 0;
@@ -460,7 +531,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function montarAvatarHTML(username) {
-        const foto = localStorage.getItem('avatar_' + username);
+        const foto = avataresCache[username] || localStorage.getItem('avatar_' + username);
         if (foto) {
             return '<img src="' + foto + '" alt="' + escapeHTML(username) + '" class="review-avatar">';
         }
@@ -468,20 +539,32 @@ document.addEventListener('DOMContentLoaded', () => {
         return '<div class="review-avatar">' + inicial + '</div>';
     }
 
-    function carregarMinhasReviews(idAberto = null) {
-        const todas = JSON.parse(localStorage.getItem('dissonance_reviews')) || [];
-        let doPerfil = todas.filter(r => r.username === perfilAlvo);
+    async function carregarMinhasReviews(idAberto = null, buscarDoBanco = true) {
+        if (buscarDoBanco && typeof dbListarReviews === 'function') {
+            todasReviewsCache = await dbListarReviews();
+            localStorage.setItem('dissonance_reviews', JSON.stringify(todasReviewsCache));
+        }
+
+        const avatarAtual = perfilDb?.avatar_url || localStorage.getItem('avatar_' + perfilAlvo);
+        if (avatarAtual) avataresCache[perfilAlvo] = avatarAtual;
+
+        let doPerfil = todasReviewsCache.filter(r => r.username === perfilAlvo);
 
         if (statReviews) statReviews.textContent = doPerfil.length;
-        const totalCurtidas = doPerfil.reduce((soma, item) => soma + (item.likes || 0), 0);
+        const totalCurtidas = doPerfil.reduce((soma, item) => {
+            const qtd = Array.isArray(item.liked_by) ? item.liked_by.length : (item.likes || 0);
+            return soma + qtd;
+        }, 0);
         if (statLikes) statLikes.textContent = totalCurtidas;
 
         const criterio = sortReviewsSelect ? sortReviewsSelect.value : 'recentes';
         doPerfil = [...doPerfil].sort((a, b) => {
+            const likesA = Array.isArray(a.liked_by) ? a.liked_by.length : (a.likes || 0);
+            const likesB = Array.isArray(b.liked_by) ? b.liked_by.length : (b.likes || 0);
             if (criterio === 'antigas') return a.id - b.id;
             if (criterio === 'maior-nota') return contarEstrelas(b.rating) - contarEstrelas(a.rating) || (b.id - a.id);
             if (criterio === 'menor-nota') return contarEstrelas(a.rating) - contarEstrelas(b.rating) || (b.id - a.id);
-            if (criterio === 'mais-curtidas') return (b.likes || 0) - (a.likes || 0) || (b.id - a.id);
+            if (criterio === 'mais-curtidas') return likesB - likesA || (b.id - a.id);
             return b.id - a.id;
         });
 
@@ -492,7 +575,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         reviewsList.innerHTML = '';
         doPerfil.forEach(review => {
-            const comentarios = review.commentsList || [];
+            const comentarios = review.comentarios || review.commentsList || [];
+            const likedBy = Array.isArray(review.liked_by) ? review.liked_by : (review.likedBy || []);
+            const likesCount = likedBy.length;
+
             const card = document.createElement('article');
             card.classList.add('review-card');
             card.dataset.id = review.id;
@@ -514,9 +600,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             const openClass = (idAberto === review.id) ? 'open' : '';
-            const jaCurtiu = (review.likedBy || []).includes(usuarioAtual);
+            const jaCurtiu = likedBy.includes(usuarioAtual);
             const estiloLike = jaCurtiu ? 'style="background-color: var(--btn-pink); color: #000000;"' : '';
-            const textoLike = jaCurtiu ? 'Curtido (' + (review.likes || 0) + ')' : 'Curtir (' + (review.likes || 0) + ')';
+            const textoLike = jaCurtiu ? 'Curtido (' + likesCount + ')' : 'Curtir (' + likesCount + ')';
 
             const avatarHTML = montarAvatarHTML(review.username);
             const anexoHTML = review.media_url
@@ -554,12 +640,13 @@ document.addEventListener('DOMContentLoaded', () => {
             reviewsList.appendChild(card);
         });
     }
+
     if (sortReviewsSelect) {
-        sortReviewsSelect.addEventListener('change', () => carregarMinhasReviews());
+        sortReviewsSelect.addEventListener('change', () => carregarMinhasReviews(null, false));
     }
 
     if (reviewsList) {
-        reviewsList.addEventListener('click', (event) => {
+        reviewsList.addEventListener('click', async (event) => {
             const card = event.target.closest('.review-card');
             if (!card) return;
             const reviewId = Number(card.dataset.id);
@@ -567,29 +654,31 @@ document.addEventListener('DOMContentLoaded', () => {
             const deleteBtn = event.target.closest('.btn-delete-review');
             if (deleteBtn && ehMeuPerfil) {
                 if (!confirm('Tem certeza que deseja apagar esta review?')) return;
-                let todas = JSON.parse(localStorage.getItem('dissonance_reviews')) || [];
-                todas = todas.filter(r => r.id !== reviewId);
-                localStorage.setItem('dissonance_reviews', JSON.stringify(todas));
-                carregarMinhasReviews();
+                todasReviewsCache = todasReviewsCache.filter(r => r.id !== reviewId);
+                localStorage.setItem('dissonance_reviews', JSON.stringify(todasReviewsCache));
+                await carregarMinhasReviews(null, false);
                 atualizarPetMusical();
+                if (typeof db !== 'undefined') {
+                    await db.from('reviews').delete().eq('id', reviewId);
+                }
                 return;
             }
 
             const likeBtn = event.target.closest('.btn-like-perfil');
             if (likeBtn) {
-                const todas = JSON.parse(localStorage.getItem('dissonance_reviews')) || [];
-                const item = todas.find(r => r.id === reviewId);
+                const item = todasReviewsCache.find(r => r.id === reviewId);
                 if (item) {
-                    if (!item.likedBy) item.likedBy = [];
-                    if (item.likedBy.includes(usuarioAtual)) {
-                        item.likedBy = item.likedBy.filter(u => u !== usuarioAtual);
-                        item.likes = Math.max(0, (item.likes || 1) - 1);
+                    if (!Array.isArray(item.liked_by)) item.liked_by = [];
+                    if (item.liked_by.includes(usuarioAtual)) {
+                        item.liked_by = item.liked_by.filter(u => u !== usuarioAtual);
                     } else {
-                        item.likedBy.push(usuarioAtual);
-                        item.likes = (item.likes || 0) + 1;
+                        item.liked_by.push(usuarioAtual);
                     }
-                    localStorage.setItem('dissonance_reviews', JSON.stringify(todas));
-                    carregarMinhasReviews();
+                    localStorage.setItem('dissonance_reviews', JSON.stringify(todasReviewsCache));
+                    await carregarMinhasReviews(null, false);
+                    if (typeof dbAtualizarLikes === 'function') {
+                        await dbAtualizarLikes(reviewId, item.liked_by);
+                    }
                 }
                 return;
             }
@@ -603,17 +692,19 @@ document.addEventListener('DOMContentLoaded', () => {
             const delCommentBtn = event.target.closest('.btn-del-comment');
             if (delCommentBtn) {
                 const cid = Number(delCommentBtn.dataset.cid);
-                const todas = JSON.parse(localStorage.getItem('dissonance_reviews')) || [];
-                const item = todas.find(r => r.id === reviewId);
-                if (item && item.commentsList) {
-                    item.commentsList = item.commentsList.filter(c => c.id !== cid);
-                    localStorage.setItem('dissonance_reviews', JSON.stringify(todas));
-                    carregarMinhasReviews(reviewId);
+                const item = todasReviewsCache.find(r => r.id === reviewId);
+                if (item && item.comentarios) {
+                    item.comentarios = item.comentarios.filter(c => c.id !== cid);
+                    localStorage.setItem('dissonance_reviews', JSON.stringify(todasReviewsCache));
+                    await carregarMinhasReviews(reviewId, false);
+                    if (typeof dbRemoverComentario === 'function') {
+                        await dbRemoverComentario(cid);
+                    }
                 }
             }
         });
 
-        reviewsList.addEventListener('submit', (event) => {
+        reviewsList.addEventListener('submit', async (event) => {
             const form = event.target.closest('.perfil-comment-form');
             if (!form) return;
             event.preventDefault();
@@ -624,16 +715,26 @@ document.addEventListener('DOMContentLoaded', () => {
             const text = input.value.trim();
             if (!text) return;
 
-            const todas = JSON.parse(localStorage.getItem('dissonance_reviews')) || [];
-            const item = todas.find(r => r.id === reviewId);
-            if (item) {
-                if (!item.commentsList) item.commentsList = [];
-                item.commentsList.push({ id: Date.now(), author: usuarioAtual, text: text });
-                localStorage.setItem('dissonance_reviews', JSON.stringify(todas));
-                carregarMinhasReviews(reviewId);
+            input.disabled = true;
+            try {
+                if (typeof dbAdicionarComentario === 'function') {
+                    const novoCom = await dbAdicionarComentario(reviewId, usuarioAtual, text);
+                    const item = todasReviewsCache.find(r => r.id === reviewId);
+                    if (item) {
+                        if (!item.comentarios) item.comentarios = [];
+                        item.comentarios.push(novoCom);
+                    }
+                    localStorage.setItem('dissonance_reviews', JSON.stringify(todasReviewsCache));
+                }
+                await carregarMinhasReviews(reviewId, false);
+            } catch (err) {
+                console.error('Erro ao comentar:', err);
+                input.disabled = false;
             }
         });
     }
+
+    // --- 4. COMPANHEIRO MUSICAL (PIXEL ART 8x8 + PREVIEW INSTANTÂNEO + SUPABASE) ---
     const petStage = document.getElementById('pet-visual-stage');
     let petCanvas = document.getElementById('pet-canvas');
     if (!petCanvas && petStage) {
@@ -664,13 +765,43 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnSleepPet = document.getElementById('btn-sleep-pet');
     const petSetupForm = document.getElementById('pet-setup-form');
 
+    let petDadosAtual = JSON.parse(localStorage.getItem(chavePet)) || {
+        spriteKey: '6,3',
+        especie: 'Gatinho Cinza',
+        nome: 'Mochi',
+        bonusManual: 0,
+        humorBonus: 0
+    };
+    if (!petDadosAtual.spriteKey || !petDadosAtual.spriteKey.includes(',')) {
+        petDadosAtual.spriteKey = '6,3';
+    }
+
+    function obterPet() {
+        return petDadosAtual;
+    }
+
+    async function salvarPetNoBanco(novoPetObj) {
+        petDadosAtual = novoPetObj;
+        if (!ehMeuPerfil) return;
+        localStorage.setItem(chavePet, JSON.stringify(petDadosAtual));
+        if (typeof dbSalvarPerfil === 'function') {
+            try {
+                await dbSalvarPerfil({
+                    username: usuarioAtual,
+                    pet_json: petDadosAtual
+                });
+            } catch (err) {
+                console.error('Erro ao salvar Pet no Supabase:', err);
+            }
+        }
+    }
+
     if (!ehMeuPerfil) {
         if (btnConfigPet) btnConfigPet.style.display = 'none';
         const actionsRow = document.getElementById('pet-actions-row');
         if (actionsRow) actionsRow.style.display = 'none';
     }
 
-    // --- CARREGAMENTO DA SPRITESHEET (8x8) ---
     const spriteSheetPets = new Image();
     spriteSheetPets.src = 'imgs/pets-sheet.png';
     let spriteSheetCarregada = false;
@@ -700,21 +831,17 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- CENÁRIO: QUARTINHO MUSICAL PIXEL ART POR ESPÉCIE ---
     function desenharQuartinhoMusical(ctx, w, h, especieGrupo, frame) {
         ctx.save();
 
-        // Parede e rodapé do quarto
         ctx.fillStyle = 'rgba(247, 187, 215, 0.14)';
         ctx.fillRect(0, 0, w, 98);
         ctx.fillStyle = '#000000';
         ctx.fillRect(0, 96, w, 2);
 
-        // Piso de madeira / estúdio
         ctx.fillStyle = 'rgba(0, 0, 0, 0.12)';
         ctx.fillRect(0, 98, w, h - 98);
 
-        // Janela com céu noturno e estrelas (lado esquerdo)
         ctx.fillStyle = '#1e1b4b';
         ctx.fillRect(14, 14, 38, 34);
         ctx.strokeStyle = '#000000';
@@ -724,12 +851,10 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx.fillRect(21, 21, 3, 3);
         ctx.fillRect(40, 26, 2, 2);
         if (frame % 2 === 0) ctx.fillRect(32, 19, 2, 2);
-        // Cruz da janela
         ctx.fillStyle = '#000000';
         ctx.fillRect(32, 14, 2, 34);
         ctx.fillRect(14, 30, 38, 2);
 
-        // Prateleira de vinis na parede (centro)
         ctx.fillStyle = '#78350f';
         ctx.fillRect(68, 36, 74, 4);
         ctx.fillStyle = '#000000';
@@ -743,22 +868,18 @@ document.addEventListener('DOMContentLoaded', () => {
             ctx.strokeRect(72 + i * 13, 22, 11, 14);
         }
 
-        // Equipamento musical no canto direito (muda conforme a espécie)
         if (especieGrupo === 'cachorro') {
-            // Mesa de DJ + Pickups com LEDs piscando
             ctx.fillStyle = '#1e293b';
             ctx.fillRect(166, 72, 62, 24);
             ctx.strokeStyle = '#000000';
             ctx.lineWidth = 2;
             ctx.strokeRect(166, 72, 62, 24);
-            // Pratos giratórios
             ctx.fillStyle = '#000000';
             ctx.fillRect(172, 68, 20, 4);
             ctx.fillRect(202, 68, 20, 4);
             ctx.fillStyle = (frame % 2 === 0) ? '#38bdf8' : '#ff1b9c';
             ctx.fillRect(180, 68, 4, 2);
             ctx.fillRect(210, 68, 4, 2);
-            // Equalizador no painel
             ctx.fillStyle = '#4ade80';
             ctx.fillRect(174, 80, 4, (frame % 2 === 0) ? 8 : 4);
             ctx.fillStyle = '#ff1b9c';
@@ -766,39 +887,32 @@ document.addEventListener('DOMContentLoaded', () => {
             ctx.fillStyle = '#38bdf8';
             ctx.fillRect(190, 81, 4, (frame % 2 === 0) ? 7 : 3);
         } else if (especieGrupo === 'gato' || especieGrupo === 'raposa') {
-            // Vitrola retrô com disco girando + Caixa de som
             ctx.fillStyle = '#d97706';
             ctx.fillRect(174, 78, 48, 18);
             ctx.strokeStyle = '#000000';
             ctx.lineWidth = 2;
             ctx.strokeRect(174, 78, 48, 18);
-            // Disco de vinil em cima
             ctx.fillStyle = '#111111';
             ctx.fillRect(180, 72, 28, 6);
             ctx.fillStyle = '#ff1b9c';
             ctx.fillRect(191 + (frame % 2), 72, 6, 3);
-            // Braço da agulha
             ctx.fillStyle = '#e2e8f0';
             ctx.fillRect(210, 68, 3, 10);
         } else {
-            // Amplificador / Caixa de Som Hi-Fi pulsando
             ctx.fillStyle = '#27272a';
             ctx.fillRect(182, 58, 38, 38);
             ctx.strokeStyle = '#000000';
             ctx.lineWidth = 2;
             ctx.strokeRect(182, 58, 38, 38);
-            // Woofer inferior pulsando no beat
             const pulso = (frame % 2 === 0) ? 0 : 2;
             ctx.fillStyle = '#000000';
             ctx.fillRect(191 - pulso / 2, 74 - pulso / 2, 20 + pulso, 18 + pulso);
             ctx.fillStyle = '#f7bbd7';
             ctx.fillRect(198, 80, 6, 6);
-            // Tweeter superior
             ctx.fillStyle = '#38bdf8';
             ctx.fillRect(197, 63, 8, 6);
         }
 
-        // Notas musicais flutuando perto do som
         ctx.fillStyle = '#ff1b9c';
         const notaY = (frame % 2 === 0) ? 48 : 44;
         ctx.fillRect(195, notaY, 3, 8);
@@ -806,48 +920,36 @@ document.addEventListener('DOMContentLoaded', () => {
 
         ctx.restore();
     }
-        // Mapa calibrado de encaixe do fone (dx = esquerda/direita, dy = altura, w = largura)
+
     const ajustesFonesPorCoord = {
-        // Sentados de frente (encaixe centralizado)
-        '7,3': { dx: -1, dy: -50, w: 24 },  // Golden Pop
-        '7,5': { dx: 0, dy: -47, w: 23 },   // Dálmata Pós-Punk
-        '5,7': { dx: 0, dy: -47, w: 23 },   // Collie Alternativo
-        '1,0': { dx: -3, dy: -53, w: 22 },   // Guaxinim Colecionador
-        '1,6': { dx: 0, dy: -46, w: 21 },   // Panda Vermelho City Pop
-        '3,0': { dx: 3, dy: -49, w: 23 },   // Coruja Noturna
-
-        // Raposas (ajustadas para encaixar exatamente entre as orelhas)
-        '0,0': { dx: -5, dy: -50, w: 20 },  // Raposa Lo-Fi
-        '5,2': { dx: -2, dy: -50, w: 24 },  // Raposa Synthwave
-
-        // Coelhos (posição original perfeita)
-        '7,1': { dx: 0, dy: -46, w: 20 },   // Coelho Dream Pop
-        '3,4': { dx: 0, dy: -46, w: 20 },   // Coelho Folk
-        '7,7': { dx: 0, dy: -46, w: 20 },   // Coelho Indie
-
-        // Gatinhos (posição original perfeita)
-        '6,3': { dx: 0, dy: -46, w: 24 },   // Gato Shoegaze
-        '6,5': { dx: 0, dy: -46, w: 24 },   // Gato Punk
-        '6,7': { dx: 0, dy: -46, w: 24 },   // Gato Jazz
-
-        // Cabeça deslocada em perfil (ajustados para não flutuar)
-        '2,0': { dx: -7, dy: -46, w: 13 },  // Esquilo R&B
-        '2,4': { dx: -1, dy: -45, w: 17 },  // Esquilo Acústico
-        '1,2': { dx: -6, dy: -50, w: 19 },  // Lobo Rock Clássico
-        '2,2': { dx: -7, dy: -49, w: 16 },  // Cervinho Chamber Pop
-        '7,2': { dx: -6, dy: -49, w: 15 },  // Doninha New Wave
-        '1,4': { dx: -3, dy: -52, w: 22 },  // Guaxinim Cassete
-
-        // Baixinhos (Ouriço, Caracol, Roedores, Sapo)
-        '4,0': { dx: -7, dy: -36, w: 16 },  // Ouriço Grunge
-        '6,4': { dx: -13, dy: -39, w: 12 },  // Caracol Slowcore
-        '2,7': { dx: -3, dy: -42, w: 19 },  // Porquinho-da-Índia Groove
-        '4,4': { dx: -1, dy: -43, w: 15 },  // Ratinho Electro
-        '7,4': { dx: 1, dy: -44, w: 17 },  // Camundongo Soul
-        '5,4': { dx: 1, dy: -40, w: 24 },  // Sapo do Vinil
-        '7,6': { dx: 0, dy: -43, w: 17 }    // Morcego Gótico
+        '7,3': { dx: -1, dy: -50, w: 24 },
+        '7,5': { dx: 0, dy: -47, w: 23 },
+        '5,7': { dx: 0, dy: -47, w: 23 },
+        '1,0': { dx: -3, dy: -53, w: 22 },
+        '1,6': { dx: 0, dy: -46, w: 21 },
+        '3,0': { dx: 3, dy: -49, w: 23 },
+        '0,0': { dx: -5, dy: -50, w: 20 },
+        '5,2': { dx: -2, dy: -50, w: 24 },
+        '7,1': { dx: 0, dy: -46, w: 20 },
+        '3,4': { dx: 0, dy: -46, w: 20 },
+        '7,7': { dx: 0, dy: -46, w: 20 },
+        '6,3': { dx: 0, dy: -46, w: 24 },
+        '6,5': { dx: 0, dy: -46, w: 24 },
+        '6,7': { dx: 0, dy: -46, w: 24 },
+        '2,0': { dx: -7, dy: -46, w: 13 },
+        '2,4': { dx: -1, dy: -45, w: 17 },
+        '1,2': { dx: -6, dy: -50, w: 19 },
+        '2,2': { dx: -7, dy: -49, w: 16 },
+        '7,2': { dx: -6, dy: -49, w: 15 },
+        '1,4': { dx: -3, dy: -52, w: 22 },
+        '4,0': { dx: -7, dy: -36, w: 16 },
+        '6,4': { dx: -13, dy: -39, w: 12 },
+        '2,7': { dx: -3, dy: -42, w: 19 },
+        '4,4': { dx: -1, dy: -43, w: 15 },
+        '7,4': { dx: 1, dy: -44, w: 17 },
+        '5,4': { dx: 1, dy: -40, w: 24 },
+        '7,6': { dx: 0, dy: -43, w: 17 }
     };
-
 
     function desenharPetDaSpritesheet(ctx, x, y, coordStr, dir, passo, acao, especieGrupo) {
         if (!spriteSheetCarregada) return;
@@ -894,25 +996,21 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx.rotate(rotacao);
         ctx.scale(-dir * scaleX, scaleY);
 
-        // Desenha o bichinho da spritesheet
         ctx.drawImage(
             spriteSheetPets,
             col * tileSize, row * tileSize, tileSize, tileSize,
             -baseSize / 2, -baseSize, baseSize, baseSize
         );
 
-        // Aplica o fone na posição e largura exatas da cabeça daquele animal
         const ajuste = ajustesFonesPorCoord[coordLimpa] || { dx: 0, dy: -46, w: 22 };
         const meiaLargura = Math.round(ajuste.w / 2);
         const corFone = (especieGrupo === 'cachorro') ? '#38bdf8' : '#ff1b9c';
 
-        // Arco superior do fone
         ctx.fillStyle = '#111111';
         ctx.fillRect(ajuste.dx - meiaLargura, ajuste.dy, ajuste.w, 3);
         ctx.fillRect(ajuste.dx - meiaLargura - 2, ajuste.dy + 3, 3, 6);
         ctx.fillRect(ajuste.dx + meiaLargura - 1, ajuste.dy + 3, 3, 6);
 
-        // Almofadas laterais
         ctx.fillStyle = corFone;
         ctx.fillRect(ajuste.dx - meiaLargura - 4, ajuste.dy + 8, 5, 8);
         ctx.fillRect(ajuste.dx + meiaLargura - 1, ajuste.dy + 8, 5, 8);
@@ -923,7 +1021,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         ctx.restore();
     }
-
 
     function desenharParticula(ctx, p) {
         ctx.save();
@@ -953,11 +1050,8 @@ document.addEventListener('DOMContentLoaded', () => {
         petCtx.clearRect(0, 0, petCanvas.width, petCanvas.height);
 
         const petAtual = obterPet();
-        const grupoAtual = typeof descobrirEspeciePelaCoord === 'function'
-            ? descobrirEspeciePelaCoord(petAtual.spriteKey)
-            : 'gato';
+        const grupoAtual = descobrirEspeciePelaCoord(petAtual.spriteKey);
 
-        // 1. Desenha o quartinho musical no fundo
         desenharQuartinhoMusical(petCtx, petCanvas.width, petCanvas.height, grupoAtual, estadoPet.frame);
 
         estadoPet.timer++;
@@ -969,7 +1063,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        // Limita o movimento para o pet não passar por cima da mesa de DJ/vitrola
         const limiteDireito = 112;
         if (!estadoPet.dormindo && estadoPet.acao !== 'eat') {
             estadoPet.x += estadoPet.dir * 0.65;
@@ -984,11 +1077,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        // 2. Desenha o bichinho com fones de ouvido na frente
         const acaoRender = estadoPet.dormindo ? 'sleep' : estadoPet.acao;
         desenharPetDaSpritesheet(petCtx, estadoPet.x, 46, petAtual.spriteKey, estadoPet.dir, estadoPet.frame, acaoRender, grupoAtual);
 
-        // 3. Desenha partículas de carinho, comida ou sono
         for (let i = particulasPet.length - 1; i >= 0; i--) {
             const p = particulasPet[i];
             p.x += p.vx;
@@ -1001,24 +1092,9 @@ document.addEventListener('DOMContentLoaded', () => {
         requestAnimationFrame(loopCanvasPet);
     }
 
-
-    function obterPet() {
-        const salvo = localStorage.getItem(chavePet);
-        if (!salvo) {
-            const padrao = { spriteKey: '6,3', especie: 'Gatinho Cinza', nome: 'Mochi', bonusManual: 0, humorBonus: 0 };
-            if (ehMeuPerfil) localStorage.setItem(chavePet, JSON.stringify(padrao));
-            return padrao;
-        }
-        const parsed = JSON.parse(salvo);
-        if (!parsed.spriteKey || !parsed.spriteKey.includes(',')) parsed.spriteKey = '6,3';
-        return parsed;
-    }
-
-
     function atualizarPetMusical() {
         const pet = obterPet();
-        const todasReviews = JSON.parse(localStorage.getItem('dissonance_reviews')) || [];
-        const reviewsDoPerfil = todasReviews.filter(r => r.username === perfilAlvo).length;
+        const reviewsDoPerfil = todasReviewsCache.filter(r => r.username === perfilAlvo).length;
         const vinisOuvidos = obterVinis().filter(v => v.listened).length;
         const appsConectados = JSON.parse(localStorage.getItem('dissonance_apps_' + perfilAlvo)) || ['Spotify'];
 
@@ -1051,33 +1127,34 @@ document.addEventListener('DOMContentLoaded', () => {
             if (petEnergyBar) petEnergyBar.style.background = '#ffd43b';
         }
     }
+
     if (ehMeuPerfil && btnPetLove) {
-        btnPetLove.addEventListener('click', () => {
+        btnPetLove.addEventListener('click', async () => {
             estadoPet.dormindo = false;
             if (btnSleepPet) btnSleepPet.textContent = 'Dormir';
             estadoPet.acao = 'happy';
             estadoPet.acaoTimer = 75;
             const pet = obterPet();
             pet.humorBonus = Math.min(50, (pet.humorBonus || 0) + 10);
-            localStorage.setItem(chavePet, JSON.stringify(pet));
             if (petMoodEl) petMoodEl.textContent = 'Recebendo carinho! Muito feliz.';
             spawnParticulas('heart', 5);
             atualizarPetMusical();
+            await salvarPetNoBanco(pet);
         });
     }
 
     if (ehMeuPerfil && btnFeedPet) {
-        btnFeedPet.addEventListener('click', () => {
+        btnFeedPet.addEventListener('click', async () => {
             estadoPet.dormindo = false;
             if (btnSleepPet) btnSleepPet.textContent = 'Dormir';
             estadoPet.acao = 'eat';
             estadoPet.acaoTimer = 85;
             const pet = obterPet();
             pet.bonusManual = Math.min(40, (pet.bonusManual || 0) + 10);
-            localStorage.setItem(chavePet, JSON.stringify(pet));
             if (petMoodEl) petMoodEl.textContent = 'Mastigando um vinil novo! (+10%)';
             spawnParticulas('food', 4);
             atualizarPetMusical();
+            await salvarPetNoBanco(pet);
         });
     }
 
@@ -1091,7 +1168,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- CATALOGO DE ESPECIES E VARIACOES (27 PETS CIRCULADOS) ---
     const catalogoPetsVariacoes = {
         gato: [
             { coord: '6,3', nome: 'Gato Shoegaze (Cinza)' },
@@ -1138,9 +1214,10 @@ document.addEventListener('DOMContentLoaded', () => {
         ]
     };
 
-
     const speciesSelect = document.getElementById('pet-species-select');
     const variantSelect = document.getElementById('pet-variant-select');
+    const petNameInput = document.getElementById('pet-name-input');
+    let petSnapshotAntesEditar = null;
 
     function carregarVariacoesDaEspecie(especieKey, coordSelecionada = '') {
         if (!variantSelect) return;
@@ -1159,40 +1236,79 @@ document.addEventListener('DOMContentLoaded', () => {
         return 'gato';
     }
 
+    function aplicarPreviewPetSelecionado() {
+        if (!variantSelect || !variantSelect.value) return;
+        const [spriteKey, especie] = variantSelect.value.split('|');
+        const nomeAtual = (petNameInput && petNameInput.value.trim()) ? petNameInput.value.trim() : petDadosAtual.nome;
+
+        petDadosAtual = {
+            ...petDadosAtual,
+            spriteKey: spriteKey,
+            especie: especie,
+            nome: nomeAtual
+        };
+        atualizarPetMusical();
+    }
+
     if (speciesSelect) {
         speciesSelect.addEventListener('change', () => {
             carregarVariacoesDaEspecie(speciesSelect.value);
+            aplicarPreviewPetSelecionado();
+        });
+    }
+
+    if (variantSelect) {
+        variantSelect.addEventListener('change', () => {
+            aplicarPreviewPetSelecionado();
+        });
+    }
+
+    if (petNameInput) {
+        petNameInput.addEventListener('input', () => {
+            aplicarPreviewPetSelecionado();
         });
     }
 
     if (ehMeuPerfil && btnConfigPet && petSetupForm) {
         btnConfigPet.addEventListener('click', () => {
-            const pet = obterPet();
-            document.getElementById('pet-name-input').value = pet.nome;
+            const estaAbrindo = petSetupForm.style.display === 'none' || petSetupForm.style.display === '';
 
-            const especieEncontrada = descobrirEspeciePelaCoord(pet.spriteKey);
-            if (speciesSelect) speciesSelect.value = especieEncontrada;
-            carregarVariacoesDaEspecie(especieEncontrada, pet.spriteKey);
+            if (estaAbrindo) {
+                petSnapshotAntesEditar = { ...obterPet() };
+                if (petNameInput) petNameInput.value = petSnapshotAntesEditar.nome;
 
-            petSetupForm.style.display = petSetupForm.style.display === 'none' ? 'block' : 'none';
+                const especieEncontrada = descobrirEspeciePelaCoord(petSnapshotAntesEditar.spriteKey);
+                if (speciesSelect) speciesSelect.value = especieEncontrada;
+                carregarVariacoesDaEspecie(especieEncontrada, petSnapshotAntesEditar.spriteKey);
+
+                petSetupForm.style.display = 'block';
+            } else {
+                if (petSnapshotAntesEditar) {
+                    petDadosAtual = { ...petSnapshotAntesEditar };
+                    atualizarPetMusical();
+                }
+                petSetupForm.style.display = 'none';
+            }
         });
 
-        petSetupForm.addEventListener('submit', (e) => {
+        petSetupForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const valorVariacao = variantSelect ? variantSelect.value : '6,3|Gatinho Cinza';
             const [spriteKey, especie] = valorVariacao.split('|');
-            const nome = document.getElementById('pet-name-input').value.trim() || 'Mochi';
+            const nome = (petNameInput ? petNameInput.value.trim() : '') || 'Mochi';
             const petAtual = obterPet();
 
-            localStorage.setItem(chavePet, JSON.stringify({
+            const petDefinitivo = {
                 spriteKey: spriteKey,
                 especie: especie,
                 nome: nome,
                 bonusManual: petAtual.bonusManual || 0,
                 humorBonus: petAtual.humorBonus || 0
-            }));
+            };
 
+            petSnapshotAntesEditar = null;
             petSetupForm.style.display = 'none';
+            await salvarPetNoBanco(petDefinitivo);
             atualizarPetMusical();
         });
     }
@@ -1206,16 +1322,61 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    function escapeHTML(str) {
-        const div = document.createElement('div');
-        div.textContent = str;
-        return div.innerHTML;
+    // --- 5. RENDERIZAÇÃO INSTANTÂNEA + SINCRONIZAÇÃO PARALELA COM O SUPABASE ---
+    function aplicarDadosPerfilNaTela(dados) {
+        const avatarUrl = dados?.avatar_url || localStorage.getItem('avatar_' + perfilAlvo);
+        if (avatarContainer) {
+            if (avatarUrl) {
+                avatarContainer.innerHTML = '<img src="' + avatarUrl + '" alt="Avatar" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">';
+            } else if (!ehMeuPerfil) {
+                avatarContainer.textContent = perfilAlvo.replace('@', '').charAt(0).toUpperCase() || 'U';
+            }
+        }
+
+        const biosPadrao = {
+            '@ana_indie': 'Apaixonada por indie rock, shoegaze e vinis coloridos.',
+            '@lucas_rock': 'Colecionador de classicos do rock alternativo e grunge.'
+        };
+        const bioFinal = dados?.bio || localStorage.getItem('bio_' + perfilAlvo) || biosPadrao[perfilAlvo];
+        if (bioFinal && bioText) bioText.textContent = bioFinal;
+
+        if (dados?.pet_json && dados.pet_json.spriteKey) {
+            petDadosAtual = dados.pet_json;
+            localStorage.setItem(chavePet, JSON.stringify(petDadosAtual));
+        }
     }
 
+    // Pinta imediatamente na tela sem esperar rede
+    aplicarDadosPerfilNaTela(null);
     renderizarVinis();
-    carregarMinhasReviews();
+    carregarMinhasReviews(null, false);
     atualizarPetMusical();
     if (petCtx) loopCanvasPet();
+
+    // Sincroniza em paralelo com o Supabase em segundo plano
+    Promise.all([
+        typeof dbObterPerfil === 'function' ? dbObterPerfil(perfilAlvo) : null,
+        sincronizarVinisDoBanco(),
+        carregarMinhasReviews(null, true)
+    ]).then(([perfilRemoto]) => {
+        if (perfilRemoto) {
+            perfilDb = perfilRemoto;
+            if (perfilRemoto.avatar_url) localStorage.setItem('avatar_' + perfilAlvo, perfilRemoto.avatar_url);
+            if (perfilRemoto.bio) localStorage.setItem('bio_' + perfilAlvo, perfilRemoto.bio);
+            if (perfilRemoto.nota_musical !== undefined) {
+                localStorage.setItem('dissonance_note_' + perfilAlvo, perfilRemoto.nota_musical);
+                const bubble = document.querySelector('.music-note-bubble');
+                if (bubble) {
+                    bubble.textContent = perfilRemoto.nota_musical
+                        ? '♪ ' + perfilRemoto.nota_musical.replace(/^♪\s*/, '')
+                        : (ehMeuPerfil ? '+ Deixar nota...' : '');
+                }
+            }
+            aplicarDadosPerfilNaTela(perfilRemoto);
+        }
+        renderizarVinis();
+        atualizarPetMusical();
+    }).catch(err => console.error('Erro na sincronização em segundo plano do perfil:', err));
 });
 
 async function buscarCapaOnline(termoBusca) {

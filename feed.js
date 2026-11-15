@@ -1,12 +1,35 @@
 document.addEventListener('DOMContentLoaded', async () => {
     const usuarioAtual = localStorage.getItem('usuarioLogado') || '@ouvinte';
 
-    const savedAvatar = localStorage.getItem('avatar_' + usuarioAtual);
+    const greetingSpan = document.querySelector('.nav-user-greeting strong');
+    const profileHeading = document.querySelector('.profile-summary h3');
+    const bioParagraph = document.querySelector('.user-bio');
     const avatarContainer = document.querySelector('.avatar-circle');
-    if (savedAvatar && avatarContainer) {
-        avatarContainer.innerHTML = '<img src="' + savedAvatar + '" alt="Avatar" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">';
+
+    if (greetingSpan) greetingSpan.textContent = usuarioAtual;
+    if (profileHeading) profileHeading.textContent = usuarioAtual;
+
+    // Carrega perfil (bio, avatar e Last.fm) do Supabase com fallback para localStorage
+    let perfilAtual = null;
+    if (typeof dbObterPerfil === 'function') {
+        perfilAtual = await dbObterPerfil(usuarioAtual);
     }
-        // --- BOLHA DE PENSAMENTO REAL + MODAL CUSTOMIZADO (FEED) ---
+
+    const avatarAtivo = perfilAtual?.avatar_url || localStorage.getItem('avatar_' + usuarioAtual);
+    if (avatarAtivo && avatarContainer) {
+        avatarContainer.innerHTML = '<img src="' + avatarAtivo + '" alt="Avatar" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">';
+    }
+
+    const bioAtiva = perfilAtual?.bio || localStorage.getItem('bio_' + usuarioAtual);
+    if (bioAtiva && bioParagraph) {
+        bioParagraph.textContent = bioAtiva;
+    }
+
+    if (perfilAtual?.lastfm_user) {
+        localStorage.setItem('dissonance_lastfm_user_' + usuarioAtual, perfilAtual.lastfm_user);
+    }
+
+    // --- BOLHA DE PENSAMENTO REAL + MODAL CUSTOMIZADO (FEED) ---
     function abrirModalEditarNotaFeed(chaveNota, bubbleEl) {
         const atual = localStorage.getItem(chaveNota) || '';
         const overlay = document.createElement('div');
@@ -91,16 +114,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         wrapper.prepend(bubble);
     }
 
-    const greetingSpan = document.querySelector('.nav-user-greeting strong');
-    const profileHeading = document.querySelector('.profile-summary h3');
-    const bioParagraph = document.querySelector('.user-bio');
-
-    if (greetingSpan) greetingSpan.textContent = usuarioAtual;
-    if (profileHeading) profileHeading.textContent = usuarioAtual;
-
-    const savedBio = localStorage.getItem('bio_' + usuarioAtual);
-    if (savedBio && bioParagraph) bioParagraph.textContent = savedBio;
-
     const reviewForm = document.querySelector('.review-form');
     const feedList = document.querySelector('.feed-list');
     const platformButtons = document.querySelectorAll('.btn-platform');
@@ -108,6 +121,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const reviewCoverInput = document.getElementById('review-cover-input');
     const reviewUploadLabel = document.getElementById('review-upload-label');
     let midiaAnexoBase64 = '';
+    let cacheReviews = [];
 
     if (reviewCoverInput) {
         reviewCoverInput.addEventListener('change', event => {
@@ -148,49 +162,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
-    const reviewsPadrao = [
-        {
-            id: 1,
-            username: '@ana_indie',
-            album_name: 'Puberty 2',
-            rating: '★★★★★',
-            comment: 'A produção desse álbum é impecável. A transição entre faixas calmas e explosivas nunca perde a força.',
-            media_url: '',
-            likes: 14,
-            likedBy: [],
-            commentsList: [
-                { id: 101, author: '@lucas_rock', text: 'Your Best American Girl é uma obra-prima!' }
-            ]
-        },
-        {
-            id: 2,
-            username: '@lucas_rock',
-            album_name: 'In Rainbows',
-            rating: '★★★★★',
-            comment: 'Ouvindo no repeat hoje. Weird Fishes continua sendo uma das melhores músicas já feitas.',
-            media_url: '',
-            likes: 29,
-            likedBy: [],
-            commentsList: []
-        }
-    ];
-
-    function obterReviews() {
-        const salvas = localStorage.getItem('dissonance_reviews');
-        if (!salvas) {
-            localStorage.setItem('dissonance_reviews', JSON.stringify(reviewsPadrao));
-            return reviewsPadrao;
-        }
-        return JSON.parse(salvas);
-    }
-
-    function salvarReviews(lista) {
-        localStorage.setItem('dissonance_reviews', JSON.stringify(lista));
-    }
-
     function montarAvatarHTML(username) {
         const link = 'perfil.html?user=' + encodeURIComponent(username);
-        const foto = localStorage.getItem('avatar_' + username);
+        const foto = (username === usuarioAtual && avatarAtivo)
+            ? avatarAtivo
+            : localStorage.getItem('avatar_' + username);
+
         if (foto) {
             return '<a href="' + link + '"><img src="' + foto + '" alt="' + escapeHTML(username) + '" class="review-avatar"></a>';
         }
@@ -198,14 +175,29 @@ document.addEventListener('DOMContentLoaded', async () => {
         return '<a href="' + link + '" style="text-decoration:none;"><div class="review-avatar">' + inicial + '</div></a>';
     }
 
-    function carregarReviews(idAberto = null) {
+    async function carregarReviews(idAberto = null, usarCache = false) {
         if (!feedList) return;
-        const lista = obterReviews();
+
+        if (!usarCache && typeof dbListarReviews === 'function') {
+            cacheReviews = await dbListarReviews();
+        }
+
         const cardsAntigos = feedList.querySelectorAll('.review-card');
         cardsAntigos.forEach(card => card.remove());
 
-        lista.forEach(review => {
-            const comentarios = review.commentsList || [];
+        if (cacheReviews.length === 0) {
+            const vazio = document.createElement('article');
+            vazio.classList.add('review-card');
+            vazio.innerHTML = '<div class="review-body"><p class="review-text">Nenhuma avaliação publicada ainda. Seja o primeiro a compartilhar um álbum!</p></div>';
+            feedList.appendChild(vazio);
+            return;
+        }
+
+        cacheReviews.forEach(review => {
+            const comentarios = review.comentarios || [];
+            const likedBy = review.liked_by || [];
+            const totalLikes = likedBy.length;
+
             const newCard = document.createElement('article');
             newCard.classList.add('review-card');
             newCard.dataset.id = review.id;
@@ -229,11 +221,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                 comentariosHTML = '<small style="opacity:0.7;">Nenhum comentário ainda. Seja o primeiro!</small>';
             }
 
-            const isOpenClass = idAberto === review.id ? 'open' : '';
-            const jaCurtiu = (review.likedBy || []).includes(usuarioAtual);
+            const isOpenClass = Number(idAberto) === Number(review.id) ? 'open' : '';
+            const jaCurtiu = likedBy.includes(usuarioAtual);
             const classeLike = jaCurtiu ? 'action-btn btn-like liked' : 'action-btn btn-like';
             const estiloLike = jaCurtiu ? 'style="color:#d9387a;"' : '';
-            const textoLike = jaCurtiu ? '♥ Curtido (' + review.likes + ')' : '♡ Curtir (' + review.likes + ')';
+            const textoLike = jaCurtiu ? '♥ Curtido (' + totalLikes + ')' : '♡ Curtir (' + totalLikes + ')';
 
             const avatarHTML = montarAvatarHTML(review.username);
             const anexoHTML = review.media_url
@@ -267,12 +259,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     if (reviewForm) {
-        reviewForm.addEventListener('submit', event => {
+        reviewForm.addEventListener('submit', async event => {
             event.preventDefault();
 
             const albumInput = reviewForm.querySelector('input');
             const ratingSelect = reviewForm.querySelector('select');
             const commentTextarea = reviewForm.querySelector('textarea');
+            const submitBtn = reviewForm.querySelector('button[type="submit"]');
 
             if (!albumInput || !ratingSelect || !commentTextarea) return;
 
@@ -284,53 +277,58 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             if (!albumName || !commentText) return;
 
-            const lista = obterReviews();
-            lista.unshift({
-                id: Date.now(),
-                username: usuarioAtual,
-                album_name: albumName,
-                rating: ratingStars,
-                comment: commentText,
-                media_url: midiaAnexoBase64,
-                likes: 0,
-                likedBy: [],
-                commentsList: []
-            });
-
-            salvarReviews(lista);
-            reviewForm.reset();
-            midiaAnexoBase64 = '';
-            if (reviewUploadLabel) {
-                reviewUploadLabel.textContent = ' Upload de Imagem/GIF';
-                reviewUploadLabel.classList.remove('has-image');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Publicando...';
             }
-            carregarReviews();
+
+            try {
+                await dbCriarReview({
+                    username: usuarioAtual,
+                    album_name: albumName,
+                    rating: ratingStars,
+                    comment: commentText,
+                    media_url: midiaAnexoBase64
+                });
+
+                reviewForm.reset();
+                midiaAnexoBase64 = '';
+                if (reviewUploadLabel) {
+                    reviewUploadLabel.textContent = ' Upload de Imagem/GIF';
+                    reviewUploadLabel.classList.remove('has-image');
+                }
+                await carregarReviews();
+            } catch (erro) {
+                alert('Erro ao publicar avaliação no banco de dados.');
+                console.error(erro);
+            } finally {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Publicar Review';
+                }
+            }
         });
     }
 
     if (feedList) {
-        feedList.addEventListener('click', event => {
+        feedList.addEventListener('click', async event => {
             const card = event.target.closest('.review-card');
             if (!card) return;
             const reviewId = Number(card.dataset.id);
 
             const likeBtn = event.target.closest('.btn-like');
             if (likeBtn) {
-                const lista = obterReviews();
-                const item = lista.find(r => r.id === reviewId);
+                const item = cacheReviews.find(r => Number(r.id) === reviewId);
                 if (item) {
-                    if (!item.likedBy) item.likedBy = [];
-
-                    if (item.likedBy.includes(usuarioAtual)) {
-                        item.likedBy = item.likedBy.filter(u => u !== usuarioAtual);
-                        item.likes = Math.max(0, (item.likes || 1) - 1);
+                    let likedBy = item.liked_by || [];
+                    if (likedBy.includes(usuarioAtual)) {
+                        likedBy = likedBy.filter(u => u !== usuarioAtual);
                     } else {
-                        item.likedBy.push(usuarioAtual);
-                        item.likes = (item.likes || 0) + 1;
+                        likedBy = [...likedBy, usuarioAtual];
                     }
-
-                    salvarReviews(lista);
-                    carregarReviews();
+                    item.liked_by = likedBy;
+                    carregarReviews(null, true);
+                    await dbAtualizarLikes(reviewId, likedBy);
                 }
                 return;
             }
@@ -349,18 +347,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (delCommentBtn) {
                 const commentItem = delCommentBtn.closest('.comment-item');
                 const commentId = Number(commentItem.dataset.commentId);
-                const lista = obterReviews();
-                const review = lista.find(r => r.id === reviewId);
-
-                if (review && review.commentsList) {
-                    review.commentsList = review.commentsList.filter(c => c.id !== commentId);
-                    salvarReviews(lista);
-                    carregarReviews(reviewId);
-                }
+                await dbRemoverComentario(commentId);
+                await carregarReviews(reviewId);
             }
         });
 
-        feedList.addEventListener('submit', event => {
+        feedList.addEventListener('submit', async event => {
             const commentForm = event.target.closest('.comment-form');
             if (!commentForm) return;
             event.preventDefault();
@@ -371,17 +363,14 @@ document.addEventListener('DOMContentLoaded', async () => {
             const text = input.value.trim();
 
             if (!text) return;
-            const lista = obterReviews();
-            const review = lista.find(r => r.id === reviewId);
-            if (review) {
-                if (!review.commentsList) review.commentsList = [];
-                review.commentsList.push({
-                    id: Date.now(),
-                    author: usuarioAtual,
-                    text: text
-                });
-                salvarReviews(lista);
-                carregarReviews(reviewId);
+            input.disabled = true;
+
+            try {
+                await dbAdicionarComentario(reviewId, usuarioAtual, text);
+                await carregarReviews(reviewId);
+            } catch (erro) {
+                console.error('Erro ao enviar comentário:', erro);
+                input.disabled = false;
             }
         });
     }
@@ -406,7 +395,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                             <label for="lfm-username-input">Usuário do Last.fm</label>
                             <div class="lfm-input-wrapper">
                                 <span class="lfm-input-prefix">last.fm/user/</span>
-                                <input type="text" id="lfm-username-input" class="lfm-input" placeholder="ex: markvvl" autocomplete="off" required>
+                                <input type="text" id="lfm-username-input" class="lfm-input" placeholder="ex: user123" autocomplete="off" required>
                             </div>
                         </div>
 
@@ -473,7 +462,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     const chaveConexoes = 'dissonance_apps_' + usuarioAtual;
     const chaveUserLastFm = 'dissonance_lastfm_user_' + usuarioAtual;
 
-    // Captura retorno OAuth do Spotify se acabou de fazer login
     if (typeof processarRetornoSpotify === 'function') {
         await processarRetornoSpotify(usuarioAtual);
     }
@@ -483,7 +471,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     let appsConectados = salvas.filter(app => appsPermitidos.includes(app));
     let lastfmUser = localStorage.getItem(chaveUserLastFm);
 
-    // Garante que o Spotify só apareça conectado se realmente houver um token válido
+    if (lastfmUser && !appsConectados.includes('Last.fm')) {
+        appsConectados.push('Last.fm');
+    }
+
     if (appsConectados.includes('Spotify') && !localStorage.getItem('dissonance_spotify_token_' + usuarioAtual)) {
         appsConectados = appsConectados.filter(app => app !== 'Spotify');
     }
@@ -497,7 +488,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         let faixa = null;
         let origem = '';
 
-        // 1. Prioriza o Spotify se estiver conectado e tocando ao vivo
         const tokenSpotify = localStorage.getItem('dissonance_spotify_token_' + usuarioAtual);
         if (appsConectados.includes('Spotify') && tokenSpotify && typeof obterOuvindoAgoraSpotify === 'function') {
             try {
@@ -509,7 +499,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             } catch (e) { /* segue para o Last.fm */ }
         }
 
-        // 2. Busca no Last.fm se conectado
         if (!faixa && appsConectados.includes('Last.fm') && lastfmUser) {
             try {
                 faixa = typeof obterOuvindoAgoraLastFm === 'function'
@@ -547,7 +536,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     function iniciarMonitoramentoNowPlaying() {
         sincronizarNowPlayingGeral();
         if (intervaloNowPlaying) clearInterval(intervaloNowPlaying);
-        intervaloNowPlaying = setInterval(sincronizarNowPlayingGeral, 8000); // Checa a cada 8 segundos
+        intervaloNowPlaying = setInterval(sincronizarNowPlayingGeral, 100);
     }
 
     function pararMonitoramentoNowPlaying() {
@@ -615,6 +604,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                         localStorage.removeItem(chaveUserLastFm);
                         lastfmUser = null;
                         localStorage.setItem(chaveConexoes, JSON.stringify(appsConectados));
+                        if (typeof dbSalvarPerfil === 'function') {
+                            await dbSalvarPerfil({ username: usuarioAtual, lastfm_user: '' });
+                        }
                         ultimaFaixaExibida = '';
                         sincronizarNowPlayingGeral();
                     }
@@ -626,6 +618,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                 lastfmUser = dadosConectados.usuario;
                 localStorage.setItem(chaveUserLastFm, lastfmUser);
+                if (typeof dbSalvarPerfil === 'function') {
+                    await dbSalvarPerfil({ username: usuarioAtual, lastfm_user: lastfmUser });
+                }
 
                 button.classList.add('connected');
                 button.textContent = '✓ Last.fm (@' + lastfmUser + ')';
@@ -666,6 +661,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         return div.innerHTML;
     }
 
-    carregarReviews();
+    await carregarReviews();
     iniciarMonitoramentoNowPlaying();
 });

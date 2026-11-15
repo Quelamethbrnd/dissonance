@@ -12,6 +12,12 @@ document.addEventListener('DOMContentLoaded', () => {
     let termoBusca = '';
     let resultadosOnline = [];
     let timerBusca = null;
+    let buscaAbortController = null;
+    const cacheBuscasItunes = {};
+
+    // Inicializa com o cache local imediatamente (sem esperar rede)
+    let vinisNaEstante = JSON.parse(localStorage.getItem('dissonance_vinyls_' + usuarioAtual)) || [];
+    let reviewsComunidade = JSON.parse(localStorage.getItem('dissonance_reviews')) || [];
 
     const catalogoBase = [
         { album: 'Puberty 2', artist: 'Mitski', genre: 'Alternative', cover: 'imgs/Mitskipuberty2.jpg', color: '#2b2d42' },
@@ -22,13 +28,33 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function escaparHTML(str) {
         const div = document.createElement('div');
-        div.textContent = str;
+        div.textContent = str || '';
         return div.innerHTML;
     }
 
+    async function sincronizarDadosBanco() {
+        const [vinisRes, reviewsRes] = await Promise.all([
+            typeof dbListarVinis === 'function'
+                ? dbListarVinis(usuarioAtual)
+                : JSON.parse(localStorage.getItem('dissonance_vinyls_' + usuarioAtual)) || [],
+            typeof dbListarReviews === 'function'
+                ? dbListarReviews()
+                : JSON.parse(localStorage.getItem('dissonance_reviews')) || []
+        ]);
+
+        if (Array.isArray(vinisRes)) {
+            vinisNaEstante = vinisRes;
+            localStorage.setItem('dissonance_vinyls_' + usuarioAtual, JSON.stringify(vinisNaEstante));
+        }
+
+        if (Array.isArray(reviewsRes)) {
+            reviewsComunidade = reviewsRes;
+            localStorage.setItem('dissonance_reviews', JSON.stringify(reviewsComunidade));
+        }
+    }
+
     function jaEstaNaEstante(albumNome) {
-        const vinis = JSON.parse(localStorage.getItem('dissonance_vinyls_' + usuarioAtual)) || [];
-        return vinis.some(v => v.album.toLowerCase() === albumNome.toLowerCase());
+        return vinisNaEstante.some(v => (v.album_name || v.album || '').toLowerCase() === albumNome.toLowerCase());
     }
 
     function atualizarBotoesGenero(listaAtual) {
@@ -46,13 +72,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function renderizarExplorar() {
-        const reviews = JSON.parse(localStorage.getItem('dissonance_reviews')) || [];
-
         if (trendingGrid) {
             trendingGrid.innerHTML = '';
-            const filtradas = reviews.filter(r =>
-                r.album_name.toLowerCase().includes(termoBusca) ||
-                r.username.toLowerCase().includes(termoBusca)
+            const filtradas = reviewsComunidade.filter(r =>
+                (r.album_name || '').toLowerCase().includes(termoBusca) ||
+                (r.username || '').toLowerCase().includes(termoBusca)
             );
 
             if (filtradas.length === 0) {
@@ -62,11 +86,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     const card = document.createElement('div');
                     card.className = 'album-card';
                     const capaInicial = rev.media_url || 'imgs/Blonde_-_Frank_Ocean.jpeg';
+                    const totalLikes = Array.isArray(rev.liked_by) ? rev.liked_by.length : (rev.likes || 0);
+
                     card.innerHTML =
                         '<img src="' + capaInicial + '" alt="' + escaparHTML(rev.album_name) + '">' +
                         '<div class="album-card-title"><a href="album.html?album=' + encodeURIComponent(rev.album_name) + '" class="user-profile-link">' + escaparHTML(rev.album_name) + '</a></div>' +
                         '<div class="album-card-artist">Por ' + escaparHTML(rev.username) + '</div>' +
-                        '<div class="album-card-meta"><span>' + escaparHTML(rev.rating) + '</span><span>♥ ' + (rev.likes || 0) + '</span></div>';
+                        '<div class="album-card-meta"><span>' + escaparHTML(rev.rating) + '</span><span>♥ ' + totalLikes + '</span></div>';
                     trendingGrid.appendChild(card);
 
                     if (!rev.media_url) {
@@ -114,6 +140,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
     }
+
     if (searchInput) {
         searchInput.addEventListener('input', (e) => {
             termoBusca = e.target.value.toLowerCase().trim();
@@ -126,16 +153,34 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
+            // Se já pesquisou esse termo antes na sessão, exibe na hora sem esperar rede
+            if (cacheBuscasItunes[termoBusca]) {
+                resultadosOnline = cacheBuscasItunes[termoBusca];
+                renderizarExplorar();
+                return;
+            }
+
+            // Renderiza o filtro local imediatamente enquanto busca online em 220ms
+            renderizarExplorar();
+
             timerBusca = setTimeout(async () => {
-                const dados = await buscarAlbunsItunes(termoBusca);
-                resultadosOnline = dados.map(d => ({
+                if (buscaAbortController) buscaAbortController.abort();
+                buscaAbortController = new AbortController();
+
+                const dados = await buscarAlbunsItunes(termoBusca, buscaAbortController.signal);
+                if (!dados) return;
+
+                const formatados = dados.map(d => ({
                     album: d.collectionName,
                     artist: d.artistName,
                     genre: d.primaryGenreName || 'Música',
                     cover: d.artworkUrl100 ? d.artworkUrl100.replace('100x100bb', '600x600bb') : 'imgs/Blonde_-_Frank_Ocean.jpeg'
                 }));
+
+                cacheBuscasItunes[termoBusca] = formatados;
+                resultadosOnline = formatados;
                 renderizarExplorar();
-            }, 400);
+            }, 220);
         });
     }
 
@@ -151,31 +196,49 @@ document.addEventListener('DOMContentLoaded', () => {
     if (catalogGrid) {
         catalogGrid.addEventListener('click', async (e) => {
             const btn = e.target.closest('.btn-save-shelf');
-            if (!btn) return;
+            if (!btn || btn.disabled) return;
 
             const albumNome = btn.dataset.album;
             const artistaNome = btn.dataset.artist || 'Artista';
             const capaUrl = btn.dataset.cover || 'imgs/Blonde_-_Frank_Ocean.jpeg';
 
-            const chave = 'dissonance_vinyls_' + usuarioAtual;
-            let lista = JSON.parse(localStorage.getItem(chave)) || [];
+            btn.disabled = true;
+            btn.textContent = 'Salvando...';
 
-            if (btn.classList.contains('saved')) {
-                lista = lista.filter(v => v.album.toLowerCase() !== albumNome.toLowerCase());
-            } else {
-                const corAuto = await extrairCorDominante(capaUrl);
-                lista.unshift({
-                    id: Date.now(),
-                    album: albumNome,
-                    artist: artistaNome,
-                    color: corAuto,
-                    coverImage: capaUrl,
-                    listened: false
-                });
+            try {
+                if (typeof db !== 'undefined' && typeof dbAdicionarVinil === 'function') {
+                    const existente = vinisNaEstante.find(v => (v.album_name || v.album || '').toLowerCase() === albumNome.toLowerCase());
+                    if (existente) {
+                        await db.from('estante_vinis').delete().eq('id', existente.id);
+                    } else {
+                        const corAuto = await extrairCorDominante(capaUrl);
+                        await dbAdicionarVinil({
+                            username: usuarioAtual,
+                            album_name: albumNome,
+                            artista: artistaNome,
+                            capa_url: capaUrl,
+                            cor_lombada: corAuto
+                        });
+                    }
+                    vinisNaEstante = await dbListarVinis(usuarioAtual);
+                    localStorage.setItem('dissonance_vinyls_' + usuarioAtual, JSON.stringify(vinisNaEstante));
+                } else {
+                    const chave = 'dissonance_vinyls_' + usuarioAtual;
+                    let lista = JSON.parse(localStorage.getItem(chave)) || [];
+                    if (btn.classList.contains('saved')) {
+                        lista = lista.filter(v => (v.album || v.album_name || '').toLowerCase() !== albumNome.toLowerCase());
+                    } else {
+                        const corAuto = await extrairCorDominante(capaUrl);
+                        lista.unshift({ id: Date.now(), album: albumNome, artist: artistaNome, color: corAuto, coverImage: capaUrl, listened: false });
+                    }
+                    localStorage.setItem(chave, JSON.stringify(lista));
+                    vinisNaEstante = lista;
+                }
+            } catch (err) {
+                console.error('Erro ao atualizar estante no Supabase:', err);
+            } finally {
+                renderizarExplorar();
             }
-
-            localStorage.setItem(chave, JSON.stringify(lista));
-            renderizarExplorar();
         });
     }
 
@@ -188,19 +251,35 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // 1. Pinta na hora com o cache local (zero espera)
     renderizarExplorar();
+
+    // 2. Sincroniza do Supabase em paralelo em segundo plano e atualiza
+    sincronizarDadosBanco()
+        .then(() => renderizarExplorar())
+        .catch(err => console.error('Erro ao sincronizar Explorar:', err));
+
+    // 3. Mantém as reviews em alta atualizadas automaticamente a cada 15 segundos
+    setInterval(() => {
+        if (document.hidden) return;
+        sincronizarDadosBanco()
+            .then(() => renderizarExplorar())
+            .catch(() => {});
+    }, 15000);
 });
 
-async function buscarAlbunsItunes(termo) {
+async function buscarAlbunsItunes(termo, signal) {
     try {
         const dominio = ['itunes', 'apple', 'com'].join('.');
         const caminho = '/search?term=' + encodeURIComponent(termo) + '&media=music&entity=album&limit=12';
-        const resp = await fetch('https://' + dominio + caminho);
+        const resp = await fetch('https://' + dominio + caminho, { signal });
         if (resp.ok) {
             const dados = await resp.json();
             return dados.results || [];
         }
-    } catch (e) {}
+    } catch (e) {
+        if (e.name === 'AbortError') return null;
+    }
     return [];
 }
 

@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     let usuarioAtual = localStorage.getItem('usuarioLogado') || '@ouvinte';
 
     const greetingSpan = document.querySelector('.nav-user-greeting strong');
@@ -12,7 +12,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const bioInput = document.getElementById('edit-bio');
     const editForm = document.getElementById('edit-profile-form');
 
-    let avatarBase64 = localStorage.getItem('avatar_' + usuarioAtual) || '';
+    // Carrega dados do perfil do Supabase (com fallback para localStorage)
+    let perfilDb = null;
+    if (typeof dbObterPerfil === 'function') {
+        perfilDb = await dbObterPerfil(usuarioAtual);
+    }
+
+    let avatarBase64 = perfilDb?.avatar_url ?? localStorage.getItem('avatar_' + usuarioAtual) ?? '';
 
     function atualizarPreviewAvatar() {
         if (!avatarPreview) return;
@@ -41,7 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (bioInput) {
-        bioInput.value = localStorage.getItem('bio_' + usuarioAtual) || 'Em sintonia com indie, R&B e rock alternativo.';
+        bioInput.value = perfilDb?.bio || localStorage.getItem('bio_' + usuarioAtual) || 'Em sintonia com indie, R&B e rock alternativo.';
     }
 
     // --- UPLOAD DE AVATAR (PRESERVANDO GIFS ANIMADOS) ---
@@ -194,36 +200,57 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // --- SALVAR ALTERAÇÕES DO PERFIL ---
+    // --- SALVAR ALTERAÇÕES DO PERFIL (LOCALSTORAGE + SUPABASE) ---
     if (editForm) {
-        editForm.addEventListener('submit', (event) => {
+        editForm.addEventListener('submit', async (event) => {
             event.preventDefault();
 
+            const submitBtn = editForm.querySelector('button[type="submit"]');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Salvando...';
+            }
+
+            const usuarioAntigo = usuarioAtual;
             let novoUser = usernameInput ? usernameInput.value.trim() : usuarioAtual;
             if (!novoUser.startsWith('@')) novoUser = '@' + novoUser;
 
+            const novaBio = bioInput ? bioInput.value.trim() : '';
+
             try {
                 // Migra dados caso o @username tenha sido alterado
-                if (novoUser !== usuarioAtual) {
+                if (novoUser !== usuarioAntigo) {
                     const todasReviews = JSON.parse(localStorage.getItem('dissonance_reviews')) || [];
                     todasReviews.forEach(r => {
-                        if (r.username === usuarioAtual) r.username = novoUser;
+                        if (r.username === usuarioAntigo) r.username = novoUser;
                     });
                     localStorage.setItem('dissonance_reviews', JSON.stringify(todasReviews));
 
-                    const chavesMigrar = ['dissonance_vinyls_', 'dissonance_pet_', 'dissonance_note_', 'dissonance_apps_', 'dissonance_following_'];
+                    const chavesMigrar = ['dissonance_vinyls_', 'dissonance_pet_', 'dissonance_note_', 'dissonance_apps_', 'dissonance_following_', 'dissonance_lastfm_user_'];
                     chavesMigrar.forEach(prefixo => {
-                        const dado = localStorage.getItem(prefixo + usuarioAtual);
+                        const dado = localStorage.getItem(prefixo + usuarioAntigo);
                         if (dado) {
                             localStorage.setItem(prefixo + novoUser, dado);
-                            localStorage.removeItem(prefixo + usuarioAtual);
+                            localStorage.removeItem(prefixo + usuarioAntigo);
                         }
                     });
 
-                    localStorage.removeItem('avatar_' + usuarioAtual);
-                    localStorage.removeItem('bio_' + usuarioAtual);
+                    localStorage.removeItem('avatar_' + usuarioAntigo);
+                    localStorage.removeItem('bio_' + usuarioAntigo);
                     localStorage.setItem('usuarioLogado', novoUser);
                     usuarioAtual = novoUser;
+
+                    // Migra registros no Supabase para o novo @username
+                    if (typeof db !== 'undefined') {
+                        await Promise.all([
+                            db.from('reviews').update({ username: novoUser }).eq('username', usuarioAntigo),
+                            db.from('comentarios').update({ author: novoUser }).eq('author', usuarioAntigo),
+                            db.from('estante_vinis').update({ username: novoUser }).eq('username', usuarioAntigo),
+                            db.from('albuns_salvos').update({ username: novoUser }).eq('username', usuarioAntigo),
+                            db.from('album_forum').update({ username: novoUser }).eq('username', usuarioAntigo),
+                            db.from('perfis').delete().eq('username', usuarioAntigo)
+                        ]);
+                    }
                 }
 
                 if (avatarBase64) {
@@ -233,22 +260,37 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 if (bioInput) {
-                    localStorage.setItem('bio_' + usuarioAtual, bioInput.value.trim());
+                    localStorage.setItem('bio_' + usuarioAtual, novaBio);
+                }
+
+                // Salva no Supabase antes de redirecionar
+                if (typeof dbSalvarPerfil === 'function') {
+                    await dbSalvarPerfil({
+                        username: usuarioAtual,
+                        bio: novaBio,
+                        avatar_url: avatarBase64 || '',
+                        lastfm_user: localStorage.getItem('dissonance_lastfm_user_' + usuarioAtual) || perfilDb?.lastfm_user || ''
+                    });
                 }
 
                 window.location.href = 'perfil.html';
             } catch (err) {
-                alert('O GIF escolhido ultrapassou o limite de armazenamento do navegador (5MB). Tente um GIF mais leve.');
+                console.error('Erro ao salvar perfil:', err);
+                alert('Erro ao salvar alterações (verifique se o arquivo de imagem/GIF não é muito pesado).');
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Salvar Alterações';
+                }
             }
         });
     }
 
     const logoutBtn = document.querySelector('.btn-logout');
     if (logoutBtn) {
-logoutBtn.addEventListener('click', (event) => {
-event.preventDefault();
-localStorage.removeItem('usuarioLogado');
-window.location.href = 'index.html';
-});
-}
+        logoutBtn.addEventListener('click', (event) => {
+            event.preventDefault();
+            localStorage.removeItem('usuarioLogado');
+            window.location.href = 'index.html';
+        });
+    }
 });
