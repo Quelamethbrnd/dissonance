@@ -123,3 +123,42 @@
     font-size: 0.75rem;
     opacity: 0.75;
 }
+/* --- CORREÇÃO DEFINITIVA DO ALINHAMENTO DA NAVBAR --- */
+.app-container {
+    max-width: 980px !important;
+}
+
+.navbar {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 14px 28px !important;
+    gap: 24px !important;
+}
+
+.nav-user-greeting {
+    flex-shrink: 0 !important;
+    padding-right: 16px !important;
+}
+
+.nav-links {
+    display: flex !important;
+    align-items: center !important;
+    gap: 16px !important;
+    flex-wrap: wrap !important;
+    justify-content: flex-end !important;
+}
+
+@media (max-width: 860px) {
+    .navbar {
+        flex-direction: column !important;
+        gap: 12px !important;
+        text-align: center !important;
+    }
+    .nav-user-greeting {
+        padding-right: 0 !important;
+    }
+    .nav-links {
+        justify-content: center !important;
+    }
+}
