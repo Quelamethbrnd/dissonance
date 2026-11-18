@@ -1427,3 +1427,19 @@ function extrairCorDominante(urlImagem) {
         img.src = urlImagem;
     });
 }
+
+function enviarNotificacao(destinatario, tipo, autor, texto, link = 'home.html') {
+    if (!destinatario || destinatario === autor) return;
+    const chave = 'dissonance_notifs_' + destinatario;
+    const atuais = JSON.parse(localStorage.getItem(chave)) || [];
+    atuais.unshift({
+        id: Date.now(),
+        type: tipo,
+        from: autor,
+        text: texto,
+        time: 'Agora mesmo',
+        read: false,
+        link: link
+    });
+    localStorage.setItem(chave, JSON.stringify(atuais.slice(0, 50)));
+}
