@@ -666,10 +666,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 function enviarNotificacao(destinatario, tipo, autor, texto, link = 'home.html') {
-    if (!destinatario) return;
-    // Se quiser testar curtindo o próprio post, remova a linha abaixo temporariamente:
-    if (destinatario === autor) return; 
-
+    if (!destinatario || destinatario === autor) return;
     const chave = 'dissonance_notifs_' + destinatario;
     const atuais = JSON.parse(localStorage.getItem(chave)) || [];
     atuais.unshift({
@@ -683,4 +680,3 @@ function enviarNotificacao(destinatario, tipo, autor, texto, link = 'home.html')
     });
     localStorage.setItem(chave, JSON.stringify(atuais.slice(0, 50)));
 }
-
