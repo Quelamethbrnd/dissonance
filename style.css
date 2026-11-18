@@ -279,3 +279,24 @@ a:hover,
     text-decoration: none !important;
 }
 
+/* --- ESPAÇAMENTO DA BARRA DE NAVEGAÇÃO (.navbar) --- */
+.navbar {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    gap: 20px !important;
+    flex-wrap: wrap !important;
+    padding: 12px 24px !important;
+}
+
+.nav-user-greeting {
+    white-space: nowrap;
+    margin-right: auto;
+}
+
+.nav-links {
+    display: flex !important;
+    align-items: center !important;
+    gap: 14px !important;
+    flex-wrap: wrap !important;
+}
