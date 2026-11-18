@@ -324,7 +324,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                     if (likedBy.includes(usuarioAtual)) {
                         likedBy = likedBy.filter(u => u !== usuarioAtual);
                     } else {
-                        likedBy = [...likedBy, usuarioAtual];
+                        likedBy.push(usuarioAtual);
+                        item.likes = likedBy.length;
+                        enviarNotificacao(item.username, 'like', usuarioAtual, 'curtiu sua review de ' + item.album_name + '.', 'home.html');
                     }
                     item.liked_by = likedBy;
                     carregarReviews(null, true);
@@ -367,11 +369,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             try {
                 await dbAdicionarComentario(reviewId, usuarioAtual, text);
+                
+                const item = cacheReviews.find(r => Number(r.id) === reviewId);
+                if (item) {
+                    enviarNotificacao(item.username, 'comment', usuarioAtual, 'comentou na sua review de ' + item.album_name + ': "' + text + '"', 'home.html');
+                }
+
                 await carregarReviews(reviewId);
             } catch (erro) {
-                console.error('Erro ao enviar comentário:', erro);
-                input.disabled = false;
-            }
+
         });
     }
 
