@@ -1,66 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     const temaSalvo = JSON.parse(localStorage.getItem('dissonance_custom_theme'));
     if (!temaSalvo) return;
-    // --- BADGE DE NOTIFICAÇÕES NÃO LIDAS (SINCRONIZADO COM O TEMA) ---
-    function atualizarBadgeNotificacoesNavbar() {
-        const usuarioAtual = localStorage.getItem('usuarioLogado') || '@ouvinte';
-        const navLinks = document.querySelector('.nav-links');
-        if (!navLinks) return;
-
-        // Garante que o link "Notificações" exista na navbar de qualquer página
-        let notifLink = navLinks.querySelector('a[href="notificacoes.html"]');
-        if (!notifLink) {
-            notifLink = document.createElement('a');
-            notifLink.href = 'notificacoes.html';
-            notifLink.className = 'nav-item';
-            notifLink.textContent = 'Notificações';
-
-            const logoutBtn = navLinks.querySelector('.btn-logout');
-            if (logoutBtn) {
-                navLinks.insertBefore(notifLink, logoutBtn);
-            } else {
-                navLinks.appendChild(notifLink);
-            }
-        }
-
-        // Conta notificações não lidas do usuário logado
-        const chaveNotif = 'dissonance_notifs_' + usuarioAtual;
-        const listaNotifs = JSON.parse(localStorage.getItem(chaveNotif)) || [];
-        const naoLidas = listaNotifs.filter(n => !n.read).length;
-
-        // Remove badge antigo antes de redesenhar
-        const badgeAntigo = notifLink.querySelector('.nav-notif-badge');
-        if (badgeAntigo) badgeAntigo.remove();
-
-        if (naoLidas > 0) {
-            notifLink.style.display = 'inline-flex';
-            notifLink.style.alignItems = 'center';
-            notifLink.style.gap = '6px';
-
-            const badge = document.createElement('span');
-            badge.className = 'nav-notif-badge';
-            badge.textContent = naoLidas > 99 ? '99+' : naoLidas;
-            badge.style.cssText =
-                'display: inline-flex;' +
-                'align-items: center;' +
-                'justify-content: center;' +
-                'min-width: 20px;' +
-                'height: 20px;' +
-                'padding: 0 5px;' +
-                'border-radius: 999px;' +
-                'background-color: var(--btn-pink, #f7bbd7);' +
-                'color: #000000;' +
-                'border: 2px solid var(--text-dark, #000000);' +
-                'font-size: 0.72rem;' +
-                'font-weight: 900;' +
-                'line-height: 1;' +
-                'box-shadow: 1.5px 1.5px 0px var(--text-dark, #000000);';
-
-            notifLink.appendChild(badge);
-        }
-    }
-
-    atualizarBadgeNotificacoesNavbar();
 
     const root = document.documentElement;
     root.style.setProperty('--bg-header', temaSalvo.bgHeader);
